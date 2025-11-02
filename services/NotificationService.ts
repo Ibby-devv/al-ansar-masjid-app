@@ -53,12 +53,14 @@ class NotificationService {
     try {
       const styleConfig = NOTIFICATION_STYLES[channelId];
 
+      const channel = NOTIFICATION_CHANNELS[channelId];
+
       const notification: any = {
         title,
         body,
         android: {
           channelId,
-          importance: NOTIFICATION_CHANNELS[channelId].importance,
+          importance: channel.importance,
           color: styleConfig.color,
           smallIcon: styleConfig.smallIcon || 'ic_launcher',
           pressAction: {
@@ -67,6 +69,16 @@ class NotificationService {
         },
         data,
       };
+
+      // Add vibration pattern if defined for this channel
+      if (channel.vibrationPattern) {
+        notification.android.vibrationPattern = channel.vibrationPattern;
+      }
+
+      // Add sound if defined for this channel
+      if (channel.sound) {
+        notification.android.sound = channel.sound;
+      }
 
       // Only add largeIcon if it exists
       const finalLargeIcon = largeIcon || styleConfig.largeIcon;
