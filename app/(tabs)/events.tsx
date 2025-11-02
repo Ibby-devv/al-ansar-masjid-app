@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useMemo, useState } from 'react';
-import { ScrollView, SectionList, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, SectionList, StatusBar, StyleSheet, Text, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PatternOverlay from '../../components/PatternOverlay';
 import Badge from '../../components/ui/Badge';
@@ -203,6 +203,14 @@ export default function EventsScreen(): React.JSX.Element {
               const showPerEventBadge = !section.relBadge && relEvent;
               return (
                 <Card style={styles.eventCard}>
+                  {/* Event Image (if provided) */}
+                  {event.image_url && (
+                    <Image
+                      source={{ uri: event.image_url }}
+                      style={styles.eventImage}
+                      resizeMode="cover"
+                    />
+                  )}
                   <View style={styles.cardRow}>
                     {/* Date badge */}
                     <View style={[styles.dateBadge, relEvent ? styles.dateBadgeHighlight : undefined]}>
@@ -228,15 +236,11 @@ export default function EventsScreen(): React.JSX.Element {
                           <Text style={styles.timeBadgeText}>{event.time}</Text>
                         </View>
                       </View>
-                      <View style={styles.metaRow}>
-                        <View style={styles.metaItem}>
-                          <Ionicons name="calendar-outline" size={16} color={Theme.colors.text.muted} />
-                          <Text style={styles.metaText}>{formatEventDate(event.date)}</Text>
-                        </View>
-                        {showPerEventBadge && (
+                      {showPerEventBadge && (
+                        <View style={styles.metaRow}>
                           <Badge label={relEvent.label} bgColor={relEvent.bg} textColor={relEvent.text} />
-                        )}
-                      </View>
+                        </View>
+                      )}
                       {event.location && (
                         <View style={styles.metaItem}>
                           <Ionicons name="location-outline" size={16} color={Theme.colors.text.muted} />
@@ -384,6 +388,12 @@ const styles = StyleSheet.create({
   },
   eventCard: {
     marginBottom: 12,
+    overflow: 'hidden',
+  },
+  eventImage: {
+    width: '100%',
+    height: 180,
+    backgroundColor: '#e5e7eb',
   },
   cardRow: {
     flexDirection: 'row',
