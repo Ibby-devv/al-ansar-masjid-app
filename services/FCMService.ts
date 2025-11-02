@@ -1,7 +1,44 @@
-import notifee, { AndroidImportance } from '@notifee/react-native';
 import auth from '@react-native-firebase/auth';
 import messaging from '@react-native-firebase/messaging';
 import { db } from '../firebase';
+import NotificationService from './NotificationService';
+
+// Background message handler - REQUIRED for data-only messages when app is closed/background
+// This must be at the top level, outside of any class or function
+messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+  console.log('📭 Background message received:', remoteMessage);
+
+  const data = remoteMessage.data;
+  const title = (typeof data?.title === 'string' ? data.title : null) || 'Al-Ansar Masjid';
+  const body = (typeof data?.body === 'string' ? data.body : null) || '';
+  const notificationType = data?.type as string | undefined;
+
+  try {
+    switch (notificationType) {
+      case 'prayer':
+        await NotificationService.displayPrayerNotification(title, body, data);
+        break;
+      case 'event':
+        await NotificationService.displayEventNotification(title, body, data);
+        break;
+      case 'campaign':
+        await NotificationService.displayCampaignNotification(title, body, data);
+        break;
+      case 'urgent':
+        await NotificationService.displayUrgentNotification(title, body, data);
+        break;
+      default:
+        await NotificationService.displayNotification({
+          title,
+          body,
+          channelId: 'general',
+          data,
+        });
+    }
+  } catch (error) {
+    console.error('❌ Error displaying background notification:', error);
+  }
+});
 
 class FCMService {
   /**
@@ -9,26 +46,26 @@ class FCMService {
    */
   async initialize() {
     console.log('🔔 Initializing FCM Service...');
-    
+
     // 1. Sign in anonymously
     await this.signInAnonymously();
-    
+
     // 2. Request notification permission
     const permissionGranted = await this.requestPermission();
-    
+
     if (permissionGranted) {
       // 3. Get and save FCM token
       await this.registerToken();
-      
+
       // 4. Listen for token refresh
       this.listenForTokenRefresh();
-      
+
       // 5. Setup foreground notification handler
       this.setupForegroundHandler();
     } else {
       console.log('⚠️ Notifications disabled - user denied permission');
     }
-    
+
     console.log('✅ FCM Service initialized');
   }
 
@@ -60,27 +97,11 @@ class FCMService {
     try {
       console.log('📱 Requesting notification permission...');
       
-      const settings = await notifee.requestPermission();
-      console.log('Permission settings:', settings);
-      
-      // On Android: authorizationStatus 1 = GRANTED
-      // On iOS: authorizationStatus 2 = AUTHORIZED, 3 = PROVISIONAL
-      const isGranted = 
-        settings.authorizationStatus === 1 || // Android granted
-        settings.authorizationStatus >= 2;     // iOS authorized/provisional
+      // Use NotificationService to request permission and initialize channels
+      const isGranted = await NotificationService.requestPermission();
       
       if (isGranted) {
-        console.log('✅ Notification permission granted');
-        
-        // Create notification channel for Android
-        await notifee.createChannel({
-          id: 'default',
-          name: 'Al-Ansar Notifications',
-          importance: AndroidImportance.HIGH,
-          description: 'Notifications for events, campaigns, and prayer times',
-        });
-        
-        console.log('✅ Notification channel created');
+        console.log('✅ Notification permission granted and channels initialized');
         return true;
       } else {
         console.log('⚠️ Notification permission denied');
@@ -127,7 +148,7 @@ class FCMService {
   private listenForTokenRefresh() {
     messaging().onTokenRefresh(async (newToken) => {
       console.log('🔄 FCM token refreshed:', newToken);
-      
+
       const uid = auth().currentUser?.uid;
       if (uid) {
         await db.collection('users').doc(uid).update({
@@ -146,20 +167,46 @@ class FCMService {
   private setupForegroundHandler() {
     messaging().onMessage(async (remoteMessage) => {
       console.log('📬 Foreground notification received:', remoteMessage);
-      
-      // Display notification using Notifee when app is in foreground
-      await notifee.displayNotification({
-        title: remoteMessage.notification?.title || 'Al-Ansar Masjid',
-        body: remoteMessage.notification?.body || '',
-        android: {
-          channelId: 'default',
-          importance: AndroidImportance.HIGH,
-          pressAction: {
-            id: 'default',
-          },
-        },
-        data: remoteMessage.data,
-      });
+
+      const data = remoteMessage.data;
+
+      // For data-only messages, title and body are in data field
+      const title = (typeof data?.title === 'string' ? data.title : null)
+        || remoteMessage.notification?.title
+        || 'Al-Ansar Masjid';
+      const body = (typeof data?.body === 'string' ? data.body : null)
+        || remoteMessage.notification?.body
+        || '';
+
+      // Determine channel based on notification type from data
+      const notificationType = data?.type as string | undefined;
+
+      try {
+        switch (notificationType) {
+          case 'prayer':
+            await NotificationService.displayPrayerNotification(title, body, data);
+            break;
+          case 'event':
+            await NotificationService.displayEventNotification(title, body, data);
+            break;
+          case 'campaign':
+            await NotificationService.displayCampaignNotification(title, body, data);
+            break;
+          case 'urgent':
+            await NotificationService.displayUrgentNotification(title, body, data);
+            break;
+          default:
+            // General notification
+            await NotificationService.displayNotification({
+              title,
+              body,
+              channelId: 'general',
+              data,
+            });
+        }
+      } catch (error) {
+        console.error('❌ Error displaying foreground notification:', error);
+      }
     });
 
     console.log('✅ Foreground notification handler setup');
@@ -176,24 +223,14 @@ class FCMService {
    * Check if notifications are enabled (permission granted)
    */
   async areNotificationsEnabled(): Promise<boolean> {
-    try {
-      const settings = await notifee.getNotificationSettings();
-      return settings.authorizationStatus === 1 || settings.authorizationStatus >= 2;
-    } catch (error) {
-      console.error('Error checking notification settings:', error);
-      return false;
-    }
+    return NotificationService.areNotificationsEnabled();
   }
 
   /**
    * Open notification settings (for when user needs to manually enable)
    */
   async openSettings() {
-    try {
-      await notifee.openNotificationSettings();
-    } catch (error) {
-      console.error('Error opening notification settings:', error);
-    }
+    return NotificationService.openSettings();
   }
 }
 

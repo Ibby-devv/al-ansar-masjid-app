@@ -1,6 +1,6 @@
 {
   "name": "al-ansar-masjid-app",
-  "main": "expo-router/entry",
+  "main": "index.js",
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
@@ -10,6 +10,10 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "dev": "expo start",
+    "clean": "node scripts/clean-build.js",
+    "clean:android": "node scripts/clean-build.js",
+    "clean:build:debug": "npm run clean && npm run build:debug",
+    "clean:build:release": "npm run clean && npm run build:release",
     "build:debug": "cd android && gradlew assembleDebug && cd ..",
     "build:release": "cd android && gradlew assembleRelease && cd ..",
     "install:debug": "adb reverse tcp:8081 tcp:8081 && adb install android/app/build/outputs/apk/debug/app-debug.apk",
