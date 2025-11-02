@@ -159,6 +159,7 @@ class NotificationService {
       body,
       channelId: 'urgent',
       data,
+      imageUrl: data?.imageUrl,
     });
   }
 
