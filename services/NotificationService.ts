@@ -1,4 +1,4 @@
-import notifee from '@notifee/react-native';
+import notifee, { AndroidStyle } from '@notifee/react-native';
 import { NOTIFICATION_CHANNELS, NotificationChannelId } from '../constants/notificationChannels';
 import { NOTIFICATION_STYLES } from '../constants/notificationStyles';
 
@@ -8,6 +8,7 @@ export interface DisplayNotificationOptions {
   channelId?: NotificationChannelId;
   data?: Record<string, any>;
   largeIcon?: string;
+  imageUrl?: string;
 }
 
 class NotificationService {
@@ -48,6 +49,7 @@ class NotificationService {
       channelId = 'general',
       data,
       largeIcon,
+      imageUrl,
     } = options;
 
     try {
@@ -86,17 +88,24 @@ class NotificationService {
         notification.android.largeIcon = finalLargeIcon;
       }
 
-      // Add BigText style if enabled
-      if (styleConfig.useBigTextStyle) {
+      // Add Big Picture style if image URL is provided
+      if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim()) {
         notification.android.style = {
-          type: 1, // AndroidStyle.BIGTEXT
+          type: AndroidStyle.BIGPICTURE,
+          picture: imageUrl.trim(),
+        };
+      }
+      // Otherwise, add BigText style if enabled
+      else if (styleConfig.useBigTextStyle) {
+        notification.android.style = {
+          type: AndroidStyle.BIGTEXT,
           text: body,
         };
       }
 
       await notifee.displayNotification(notification);
 
-      console.log(`✅ Notification displayed: ${title} (${channelId})`);
+      console.log(`✅ Notification displayed: ${title} (${channelId})${imageUrl ? ' [with image]' : ''}`);
     } catch (error) {
       console.error('❌ Error displaying notification:', error);
       throw error;
@@ -124,6 +133,7 @@ class NotificationService {
       body,
       channelId: 'events',
       data,
+      imageUrl: data?.imageUrl,
     });
   }
 
@@ -136,6 +146,7 @@ class NotificationService {
       body,
       channelId: 'campaigns',
       data,
+      imageUrl: data?.imageUrl,
     });
   }
 
