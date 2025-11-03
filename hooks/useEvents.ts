@@ -45,6 +45,7 @@ export const useEvents = (): UseEventsReturn => {
         .where('is_active', '==', true)
         .where('date', '>=', today)
         .orderBy('date', 'asc')
+        .orderBy('time', 'asc')
         .onSnapshot(
           (querySnapshot) => {
             const loadedEvents: Event[] = [];
