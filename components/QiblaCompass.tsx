@@ -10,6 +10,7 @@ import {
   AppStateStatus,
   Linking,
   Platform,
+  Easing,
 } from 'react-native';
 import * as Location from 'expo-location';
 import { Magnetometer } from 'expo-sensors';
@@ -42,6 +43,7 @@ export default function QiblaCompass({ onPermissionDenied }: QiblaCompassProps) 
   const magnetometerSubscription = useRef<any>(null);
   const smoothedHeading = useRef<number>(0);
   const appState = useRef<AppStateStatus>(AppState.currentState);
+  const isAnimating = useRef<boolean>(false);
 
   const startMagnetometer = useCallback(() => {
     // Remove existing subscription if any
@@ -49,7 +51,7 @@ export default function QiblaCompass({ onPermissionDenied }: QiblaCompassProps) 
       magnetometerSubscription.current.remove();
     }
 
-    Magnetometer.setUpdateInterval(100);
+    Magnetometer.setUpdateInterval(150);
     magnetometerSubscription.current = Magnetometer.addListener((data) => {
       const heading = calculateHeading(data, 0);
       const alpha = 0.25;
@@ -182,14 +184,25 @@ export default function QiblaCompass({ onPermissionDenied }: QiblaCompassProps) 
       let targetRotation = normalizeDegrees(qiblaDirection - deviceHeading);
       const diff = angleDifference(previousRotation.current, targetRotation);
       const newRotation = previousRotation.current + diff;
-      previousRotation.current = newRotation;
 
-      Animated.spring(compassRotation, {
-        toValue: newRotation,
-        useNativeDriver: true,
-        friction: 8,
-        tension: 40,
-      }).start();
+      // Only animate if the rotation change is significant (reduces micro-jitter)
+      const rotationDelta = Math.abs(diff);
+      if (rotationDelta > 0.3) {
+        previousRotation.current = newRotation;
+
+        // Stop any ongoing animation before starting a new one
+        compassRotation.stopAnimation(() => {
+          isAnimating.current = true;
+          Animated.timing(compassRotation, {
+            toValue: newRotation,
+            duration: 150,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }).start(() => {
+            isAnimating.current = false;
+          });
+        });
+      }
 
       const isPointing = isPointingTowardsQibla(deviceHeading, qiblaDirection);
       if (isPointing && !wasPointingToQibla) {
