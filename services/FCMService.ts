@@ -2,6 +2,9 @@ import auth from '@react-native-firebase/auth';
 import messaging from '@react-native-firebase/messaging';
 import { db } from '../firebase';
 import NotificationService from './NotificationService';
+import DeviceInfo from 'react-native-device-info';
+import { Platform } from 'react-native';
+import firestore from '@react-native-firebase/firestore';
 
 // Background message handler - REQUIRED for data-only messages when app is closed/background
 // This must be at the top level, outside of any class or function
@@ -119,24 +122,35 @@ class FCMService {
    */
   private async registerToken() {
     try {
-      const uid = auth().currentUser?.uid;
-      if (!uid) {
-        console.error('❌ No user ID available');
-        return;
-      }
+      // Get device ID based on platform
+      const deviceId = Platform.OS === 'android'
+        ? await DeviceInfo.getAndroidId()
+        : await DeviceInfo.getUniqueId();
 
       const token = await messaging().getToken();
+      const appVersion = DeviceInfo.getVersion();
+
+      console.log('📱 Device ID:', deviceId);
       console.log('📱 FCM Token:', token);
 
-      // Save to Firestore
-      await db.collection('users').doc(uid).set({
+      // Check if this is a new device or existing one
+      const docRef = db.collection('fcmTokens').doc(deviceId);
+      const docSnapshot = await docRef.get();
+      const isNewDevice = !docSnapshot.exists;
+
+      // Save to Firestore fcmTokens collection with device ID as key
+      await docRef.set({
+        deviceId,
         fcmToken: token,
         notificationsEnabled: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        platform: Platform.OS,
+        appVersion,
+        lastSeen: firestore.FieldValue.serverTimestamp(),
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+        ...(isNewDevice && { createdAt: firestore.FieldValue.serverTimestamp() }),
       }, { merge: true });
 
-      console.log('✅ FCM token saved to Firestore');
+      console.log('✅ FCM token saved to Firestore (fcmTokens collection)');
     } catch (error) {
       console.error('❌ Error registering token:', error);
     }
@@ -149,13 +163,19 @@ class FCMService {
     messaging().onTokenRefresh(async (newToken) => {
       console.log('🔄 FCM token refreshed:', newToken);
 
-      const uid = auth().currentUser?.uid;
-      if (uid) {
-        await db.collection('users').doc(uid).update({
+      try {
+        const deviceId = Platform.OS === 'android'
+          ? await DeviceInfo.getAndroidId()
+          : await DeviceInfo.getUniqueId();
+
+        await db.collection('fcmTokens').doc(deviceId).update({
           fcmToken: newToken,
-          updatedAt: new Date(),
+          lastSeen: firestore.FieldValue.serverTimestamp(),
+          updatedAt: firestore.FieldValue.serverTimestamp(),
         });
         console.log('✅ New token saved');
+      } catch (error) {
+        console.error('❌ Error updating refreshed token:', error);
       }
     });
   }
