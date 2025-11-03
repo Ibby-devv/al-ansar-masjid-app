@@ -16,7 +16,8 @@
           {
             "CFBundleURLSchemes": ["alansar"]
           }
-        ]
+        ],
+        "NSLocationWhenInUseUsageDescription": "We need your location to accurately point you towards the Qibla direction for prayer."
       },
       "entitlements": {
         "com.apple.developer.in-app-payments": [
@@ -35,6 +36,10 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.alansarmasjid.app",
       "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",

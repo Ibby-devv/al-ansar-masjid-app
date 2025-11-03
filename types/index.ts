@@ -161,3 +161,40 @@ export const getCategoryColor = (categoryId: string) => {
 
   return defaultColors[categoryId] || { bg: '#e5e7eb', text: '#374151' };
 };
+
+// Qibla Compass Types
+
+/**
+ * Geographic coordinates (latitude and longitude)
+ */
+export interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+/**
+ * Raw magnetometer data from device sensors
+ */
+export interface MagnetometerData {
+  x: number;
+  y: number;
+  z: number;
+}
+
+/**
+ * Qibla compass state
+ */
+export interface QiblaCompassState {
+  qiblaDirection: number | null; // Direction to Qibla in degrees from North (0-360)
+  deviceHeading: number; // Current device heading in degrees from North (0-360)
+  distanceToKaaba: number | null; // Distance to Kaaba in kilometers
+  isLoading: boolean;
+  error: string | null;
+  isCalibrating: boolean; // Whether magnetometer needs calibration
+  isPointingToQibla: boolean; // Whether device is pointing towards Qibla
+}
+
+/**
+ * Location permission status
+ */
+export type LocationPermissionStatus = 'granted' | 'denied' | 'undetermined';
