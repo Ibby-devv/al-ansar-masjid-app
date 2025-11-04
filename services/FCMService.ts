@@ -1,10 +1,10 @@
 import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 import messaging from '@react-native-firebase/messaging';
+import { Platform } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 import { db } from '../firebase';
 import NotificationService from './NotificationService';
-import DeviceInfo from 'react-native-device-info';
-import { Platform } from 'react-native';
-import firestore from '@react-native-firebase/firestore';
 
 // Background message handler - REQUIRED for data-only messages when app is closed/background
 // This must be at the top level, outside of any class or function
@@ -139,7 +139,7 @@ class FCMService {
       const isNewDevice = !docSnapshot.exists;
 
       // Save to Firestore fcmTokens collection with device ID as key
-      await docRef.set({
+      const tokenData: any = {
         deviceId,
         fcmToken: token,
         notificationsEnabled: true,
@@ -147,8 +147,13 @@ class FCMService {
         appVersion,
         lastSeen: firestore.FieldValue.serverTimestamp(),
         updatedAt: firestore.FieldValue.serverTimestamp(),
-        ...(isNewDevice && { createdAt: firestore.FieldValue.serverTimestamp() }),
-      }, { merge: true });
+      };
+
+      if (isNewDevice) {
+        tokenData.createdAt = firestore.FieldValue.serverTimestamp();
+      }
+
+      await docRef.set(tokenData, { merge: true });
 
       console.log('✅ FCM token saved to Firestore (fcmTokens collection)');
     } catch (error) {
@@ -168,11 +173,17 @@ class FCMService {
           ? await DeviceInfo.getAndroidId()
           : await DeviceInfo.getUniqueId();
 
-        await db.collection('fcmTokens').doc(deviceId).update({
+        const appVersion = DeviceInfo.getVersion();
+
+        // Use set with merge to preserve existing fields like notificationsEnabled
+        await db.collection('fcmTokens').doc(deviceId).set({
+          deviceId,
           fcmToken: newToken,
+          platform: Platform.OS,
+          appVersion,
           lastSeen: firestore.FieldValue.serverTimestamp(),
           updatedAt: firestore.FieldValue.serverTimestamp(),
-        });
+        }, { merge: true });
         console.log('✅ New token saved');
       } catch (error) {
         console.error('❌ Error updating refreshed token:', error);
@@ -251,6 +262,73 @@ class FCMService {
    */
   async openSettings() {
     return NotificationService.openSettings();
+  }
+
+  /**
+   * Get device ID
+   */
+  async getDeviceId(): Promise<string> {
+    return Platform.OS === 'android'
+      ? await DeviceInfo.getAndroidId()
+      : await DeviceInfo.getUniqueId();
+  }
+
+  /**
+   * Update notification settings for this device
+   */
+  async updateNotificationSettings(enabled: boolean): Promise<void> {
+    try {
+      const deviceId = await this.getDeviceId();
+      
+      // Use set with merge to handle case where document doesn't exist yet
+      await db.collection('fcmTokens').doc(deviceId).set({
+        notificationsEnabled: enabled,
+        lastSeen: firestore.FieldValue.serverTimestamp(),
+        updatedAt: firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+      
+      console.log(`✅ Notifications ${enabled ? 'enabled' : 'disabled'} for device ${deviceId}`);
+    } catch (error) {
+      console.error('❌ Error updating notification settings:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update last seen timestamp - call this periodically when app is active
+   * This helps identify stale tokens that can be cleaned up
+   */
+  async updateLastSeen(): Promise<void> {
+    try {
+      const deviceId = await this.getDeviceId();
+      
+      await db.collection('fcmTokens').doc(deviceId).update({
+        lastSeen: firestore.FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      // Silently fail - not critical
+      console.warn('⚠️ Could not update lastSeen:', error);
+    }
+  }
+
+  /**
+   * Get notification settings for this device
+   */
+  async getNotificationSettings(): Promise<boolean> {
+    try {
+      const deviceId = await this.getDeviceId();
+      const doc = await db.collection('fcmTokens').doc(deviceId).get();
+      
+      if (doc.exists()) {
+        const data = doc.data();
+        return data?.notificationsEnabled ?? true;
+      }
+      
+      return true; // Default to enabled
+    } catch (error) {
+      console.error('❌ Error getting notification settings:', error);
+      return true; // Default to enabled on error
+    }
   }
 }
 
