@@ -33,7 +33,7 @@ export default function LearnScreen(): React.JSX.Element {
         <SafeAreaView edges={['top']}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>
-              {mosqueSettings?.name || 'Al Madina Masjid Yagoona'}
+              {mosqueSettings?.name || 'Al Ansar Masjid Yagoona'}
             </Text>
             <Text style={styles.headerSubtitle}>Islamic Resources</Text>
           </View>

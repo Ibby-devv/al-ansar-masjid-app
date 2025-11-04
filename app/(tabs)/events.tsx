@@ -144,7 +144,7 @@ export default function EventsScreen(): React.JSX.Element {
         <SafeAreaView edges={['top']}>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>
-              {mosqueSettings?.name || 'Al Madina Masjid Yagoona'}
+              {mosqueSettings?.name || 'Al Ansar Masjid Yagoona'}
             </Text>
             <View style={styles.headerSubtitleRow}>
               <Ionicons name="calendar" size={16} color={Theme.colors.text.subtle} style={{ marginRight: 6 }} />
