@@ -26,6 +26,8 @@ export default function QiblaScreen(): React.JSX.Element {
   const { direction: qiblaDirection, isValid } = useQiblaDirection(coordinates);
 
   const [showDebug, setShowDebug] = useState(false);
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const SECRET_HOLD_MS = 5000;
 
   const heading = mag?.heading ?? 0;
   const diff = getShortestAngle(heading, qiblaDirection);
@@ -44,6 +46,38 @@ export default function QiblaScreen(): React.JSX.Element {
     prevAligned.current = aligned;
   }, [aligned]);
 
+  // Cleanup any pending hold timers on unmount
+  useEffect(() => {
+    return () => {
+      if (holdTimerRef.current) {
+        clearTimeout(holdTimerRef.current);
+        holdTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  const onInfoPress = () => {
+    if (COMPASS_CONFIG.debugMode) {
+      setShowDebug((v) => !v);
+    }
+  };
+
+  const onInfoPressIn = () => {
+    if (!COMPASS_CONFIG.debugMode) {
+      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = setTimeout(() => {
+        setShowDebug(true);
+      }, SECRET_HOLD_MS);
+    }
+  };
+
+  const onInfoPressOut = () => {
+    if (holdTimerRef.current) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar barStyle="light-content" />
@@ -59,7 +93,10 @@ export default function QiblaScreen(): React.JSX.Element {
         <TouchableOpacity 
           style={styles.infoButton} 
           accessibilityLabel="Info"
-          onPress={() => setShowDebug(!showDebug)}
+          // In dev, tap toggles. In release, require a 5s continuous hold (press-in) to open.
+          onPress={onInfoPress}
+          onPressIn={onInfoPressIn}
+          onPressOut={onInfoPressOut}
         >
           <ThemedText style={styles.infoText}>i</ThemedText>
         </TouchableOpacity>
@@ -74,6 +111,7 @@ export default function QiblaScreen(): React.JSX.Element {
           rotation={qiblaDirection - heading}
           accuracy={mag?.accuracy}
           isCalibrated={mag?.accuracy ? mag.accuracy > 0.5 : undefined}
+          forceVisible={true}
           onClose={() => setShowDebug(false)}
         />
       )}

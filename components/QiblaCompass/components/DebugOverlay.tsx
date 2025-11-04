@@ -19,6 +19,11 @@ interface DebugOverlayProps {
   isCalibrated?: boolean;
   smoothingWindow?: number;
   updateInterval?: number;
+  /**
+   * Force the overlay to render even if COMPASS_CONFIG.debugMode is false.
+   * Useful for hidden/secret toggles in release builds.
+   */
+  forceVisible?: boolean;
   onClose?: () => void;
 }
 
@@ -31,9 +36,11 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({
   isCalibrated,
   smoothingWindow = COMPASS_CONFIG.smoothingWindow,
   updateInterval = COMPASS_CONFIG.magnetometerInterval,
+  forceVisible = false,
   onClose,
 }) => {
-  if (!COMPASS_CONFIG.debugMode) {
+  // In release builds, allow an explicit override via forceVisible
+  if (!(COMPASS_CONFIG.debugMode || forceVisible)) {
     return null;
   }
 
