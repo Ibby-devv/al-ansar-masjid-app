@@ -12,6 +12,7 @@ import {
   Platform,
   Easing,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { Magnetometer } from 'expo-sensors';
 import * as Haptics from 'expo-haptics';
@@ -270,11 +271,12 @@ export default function QiblaCompass({ onPermissionDenied }: QiblaCompassProps) 
   const isPointing = qiblaDirection !== null && isPointingTowardsQibla(deviceHeading, qiblaDirection);
 
   return (
-    <LinearGradient colors={['#0A1A3C', '#0A1A3C']} style={styles.container}>
-      <Text style={styles.title}>Qibla</Text>
-      <Text style={styles.subtitle}>Finder</Text>
+    <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+      <LinearGradient colors={['#0A1A3C', '#0A1A3C']} style={styles.container}>
+        <View style={styles.card}>
+        <Text style={styles.title}>Qibla</Text>
+        <Text style={styles.subtitle}>Finder</Text>
 
-      <View style={styles.card}>
         <View style={styles.locationRow}>
           <Text style={styles.locationLabel}>Location</Text>
         </View>
@@ -315,6 +317,7 @@ export default function QiblaCompass({ onPermissionDenied }: QiblaCompassProps) 
         </Text>
       </View>
     </LinearGradient>
+    </SafeAreaView>
   );
 }
 
@@ -324,7 +327,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A1A3C',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 40,
   },
   centerContainer: {
     flex: 1,
@@ -382,54 +386,61 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#fff',
     lineHeight: 52,
+    marginTop: 20,
   },
   subtitle: {
     fontSize: 28,
     fontWeight: '500',
     color: '#F5CBA7',
-    marginBottom: 40,
+    marginBottom: 30,
   },
   card: {
+    flex: 1,
+    width: '100%',
     backgroundColor: '#0E214F',
-    borderRadius: 24,
-    paddingVertical: 30,
-    paddingHorizontal: 20,
+    borderRadius: 32,
+    paddingVertical: 60,
+    paddingHorizontal: 32,
     alignItems: 'center',
-    borderWidth: 1,
+    justifyContent: 'center',
+    borderWidth: 2,
     borderColor: '#F5CBA7',
   },
   locationRow: {
     width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+    justifyContent: 'center',
+    marginBottom: 12,
   },
   locationLabel: {
     color: '#9FA8DA',
-    fontSize: 12,
-    letterSpacing: 1,
+    fontSize: 14,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
   },
   locationTag: {
     backgroundColor: '#F5CBA7',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    marginBottom: 20,
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    marginBottom: 40,
   },
   locationText: {
     color: '#0A1A3C',
-    fontWeight: '600',
+    fontWeight: '700',
+    fontSize: 16,
   },
   compassWrapper: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 10,
+    width: '100%',
   },
   compass: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    borderWidth: 6,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    borderWidth: 8,
     borderColor: '#F5CBA7',
     backgroundColor: '#fff',
     alignItems: 'center',
@@ -438,37 +449,38 @@ const styles = StyleSheet.create({
   },
   needle: {
     position: 'absolute',
-    width: 10,
-    height: 80,
+    width: 12,
+    height: 110,
     backgroundColor: '#F5CBA7',
-    borderRadius: 5,
-    top: 30,
+    borderRadius: 6,
+    top: 40,
   },
   kaabaIcon: {
     position: 'absolute',
-    top: 50,
-    width: 24,
-    height: 16,
+    top: 65,
+    width: 32,
+    height: 20,
     backgroundColor: '#0A1A3C',
-    borderTopWidth: 6,
+    borderTopWidth: 8,
     borderTopColor: '#F5CBA7',
-    borderRadius: 2,
+    borderRadius: 3,
   },
   cardinal: {
     position: 'absolute',
-    fontSize: 18,
-    fontWeight: '500',
-    color: '#C5CAE9',
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#5E6C84',
   },
-  n: { top: 15 },
-  s: { bottom: 15 },
-  e: { right: 20 },
-  w: { left: 20 },
+  n: { top: 20 },
+  s: { bottom: 20 },
+  e: { right: 25 },
+  w: { left: 25 },
   statusText: {
-    marginTop: 24,
-    fontSize: 18,
+    marginTop: 40,
+    fontSize: 24,
     color: '#fff',
     fontWeight: '500',
+    textAlign: 'center',
   },
   statusHighlight: {
     color: '#F5CBA7',
