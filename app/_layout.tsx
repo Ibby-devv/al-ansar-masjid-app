@@ -9,8 +9,9 @@ import {
 } from '@expo-google-fonts/poppins';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { Stack } from 'expo-router';
-import { useEffect } from 'react';
 import { Text as RNText, TextInput as RNTextInput } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import FCMService from '../services/FCMService';
 
@@ -24,15 +25,34 @@ export default function RootLayout() {
     Poppins_700Bold,
     Poppins_800ExtraBold,
   });
+  const appState = useRef(AppState.currentState);
 
   useEffect(() => {
     // Initialize FCM on app startup
     initializeFCM();
+
+    // Update lastSeen when app comes to foreground
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        // App has come to the foreground - update lastSeen
+        FCMService.updateLastSeen();
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   const initializeFCM = async () => {
     try {
       await FCMService.initialize();
+      // Update lastSeen after successful initialization
+      await FCMService.updateLastSeen();
     } catch (error) {
       console.error('❌ Failed to initialize FCM:', error);
     }
