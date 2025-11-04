@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import {
   calculateQiblaDirection,
   calculateHeading,
+  calculateMagneticDeclination,
   normalizeDegrees,
   angleDifference,
   isPointingTowardsQibla,
@@ -45,27 +46,34 @@ export default function QiblaCompass({ onPermissionDenied }: QiblaCompassProps) 
   const appState = useRef<AppStateStatus>(AppState.currentState);
   const isAnimating = useRef<boolean>(false);
 
-  const startMagnetometer = useCallback(() => {
-    // Remove existing subscription if any
-    if (magnetometerSubscription.current) {
-      magnetometerSubscription.current.remove();
-    }
-
-    Magnetometer.setUpdateInterval(150);
-    magnetometerSubscription.current = Magnetometer.addListener((data) => {
-      const heading = calculateHeading(data, 0);
-      const alpha = 0.25;
-      if (smoothedHeading.current === 0) {
-        smoothedHeading.current = heading;
-      } else {
-        let diff = heading - smoothedHeading.current;
-        if (diff > 180) diff -= 360;
-        if (diff < -180) diff += 360;
-        smoothedHeading.current = normalizeDegrees(smoothedHeading.current + alpha * diff);
+  const startMagnetometer = useCallback(
+    (declination: number) => {
+      // Remove existing subscription if any
+      if (magnetometerSubscription.current) {
+        magnetometerSubscription.current.remove();
       }
-      setDeviceHeading(smoothedHeading.current);
-    });
-  }, []);
+
+      // Start magnetometer with calibrated sensor
+      Magnetometer.setUpdateInterval(150);
+      magnetometerSubscription.current = Magnetometer.addListener((data) => {
+        // Calculate heading using simple 2D calculation
+        const heading = calculateHeading(data, declination);
+
+        // Smooth the heading with low-pass filter
+        const alpha = 0.25;
+        if (smoothedHeading.current === 0) {
+          smoothedHeading.current = heading;
+        } else {
+          let diff = heading - smoothedHeading.current;
+          if (diff > 180) diff -= 360;
+          if (diff < -180) diff += 360;
+          smoothedHeading.current = normalizeDegrees(smoothedHeading.current + alpha * diff);
+        }
+        setDeviceHeading(smoothedHeading.current);
+      });
+    },
+    []
+  );
 
   const initializeQiblaCompass = useCallback(async () => {
     try {
@@ -111,6 +119,9 @@ export default function QiblaCompass({ onPermissionDenied }: QiblaCompassProps) 
       const qibla = calculateQiblaDirection(latitude, longitude);
       setQiblaDirection(qibla);
 
+      // Calculate magnetic declination for this location
+      const declination = calculateMagneticDeclination(latitude, longitude);
+
       try {
         const geocode = await Location.reverseGeocodeAsync({
           latitude,
@@ -124,7 +135,7 @@ export default function QiblaCompass({ onPermissionDenied }: QiblaCompassProps) 
         // Geocoding is not critical, continue without it
       }
 
-      startMagnetometer();
+      startMagnetometer(declination);
       setIsLoading(false);
     } catch (error) {
       console.error('Failed to initialize compass:', error);
@@ -266,9 +277,6 @@ export default function QiblaCompass({ onPermissionDenied }: QiblaCompassProps) 
       <View style={styles.card}>
         <View style={styles.locationRow}>
           <Text style={styles.locationLabel}>Location</Text>
-          <TouchableOpacity>
-            <Ionicons name="information-circle-outline" size={18} color="#F5CBA7" />
-          </TouchableOpacity>
         </View>
 
         <View style={styles.locationTag}>
@@ -465,5 +473,22 @@ const styles = StyleSheet.create({
   statusHighlight: {
     color: '#F5CBA7',
     fontWeight: '700',
+  },
+  calibrationBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E3A5F',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#FFA726',
+  },
+  calibrationBannerText: {
+    color: '#FFA726',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

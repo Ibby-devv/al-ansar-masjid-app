@@ -63,7 +63,7 @@ export function calculateMagneticDeclination(
 
 /**
  * Calculate heading/bearing from magnetometer data
- * @param magnetometerData - Raw magnetometer data with x, y, z values
+ * @param magnetometerData - Magnetometer data with x, y, z values
  * @param magneticDeclination - Magnetic declination in degrees (optional)
  * @returns Heading in degrees from True North (0-360°)
  */
