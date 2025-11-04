@@ -9,9 +9,8 @@ import {
 } from '@expo-google-fonts/poppins';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { Stack } from 'expo-router';
-import { Text as RNText, TextInput as RNTextInput } from 'react-native';
+import { AppState, Text as RNText, TextInput as RNTextInput } from 'react-native';
 import { useEffect, useRef } from 'react';
-import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import FCMService from '../services/FCMService';
 
