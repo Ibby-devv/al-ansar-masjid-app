@@ -17,6 +17,9 @@ interface DebugOverlayProps {
   rotation?: number;
   accuracy?: number;
   isCalibrated?: boolean;
+  confidence?: number;
+  magnitude?: number;
+  lowConfidence?: boolean;
   smoothingWindow?: number;
   updateInterval?: number;
   /**
@@ -34,6 +37,9 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({
   rotation,
   accuracy,
   isCalibrated,
+  confidence,
+  magnitude,
+  lowConfidence,
   smoothingWindow = COMPASS_CONFIG.smoothingWindow,
   updateInterval = COMPASS_CONFIG.magnetometerInterval,
   forceVisible = false,
@@ -96,6 +102,19 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({
               <Text style={[styles.valueNumber, { color: getAccuracyColor(accuracy) }]}>
                 {(accuracy * 100).toFixed(0)}%
               </Text>
+            </Text>
+          )}
+          {confidence !== undefined && (
+            <Text style={styles.value}>
+              Confidence:{' '}
+              <Text style={styles.valueNumber}>{Math.round(confidence * 100)}%</Text>
+              {lowConfidence ? <Text style={{ color: '#ef4444' }}> (low)</Text> : null}
+            </Text>
+          )}
+          {magnitude !== undefined && (
+            <Text style={styles.value}>
+              Field Magnitude:{' '}
+              <Text style={styles.valueNumber}>{magnitude.toFixed(1)}µT</Text>
             </Text>
           )}
           {isCalibrated !== undefined && (

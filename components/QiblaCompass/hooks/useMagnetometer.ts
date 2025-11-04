@@ -20,6 +20,9 @@ export interface MagnetometerData {
   z: number;                    // Raw magnetometer Z
   accuracy: number;             // Magnetometer accuracy (-1 to 1, iOS only)
   isCalibrated: boolean;        // Whether compass needs calibration
+  magnitude?: number;           // Magnetic field strength (µT)
+  confidence?: number;          // Composite confidence score (0-1)
+  lowConfidence?: boolean;      // Whether confidence is below threshold
 }
 
 export interface MagnetometerState {
@@ -39,6 +42,23 @@ export const useMagnetometer = () => {
 
   const smootherRef = useRef<CircularMovingAverageSmoother | null>(null);
   const subscriptionRef = useRef<{ remove: () => void } | null>(null);
+  const samplesRef = useRef<{ t: number; rad: number }[]>([]);
+
+  const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+  const circularStdDevDeg = (rads: number[]): number => {
+    if (!rads.length) return 0;
+    let sumSin = 0;
+    let sumCos = 0;
+    for (const a of rads) {
+      sumSin += Math.sin(a);
+      sumCos += Math.cos(a);
+    }
+    const R = Math.sqrt(sumSin * sumSin + sumCos * sumCos) / rads.length;
+    if (R <= 0) return 180; // worst-case
+    const stdRad = Math.sqrt(-2 * Math.log(R));
+    return (stdRad * 180) / Math.PI;
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -99,11 +119,41 @@ export const useMagnetometer = () => {
         // Apply smoothing
         const smoothedHeading = smootherRef.current.addValue(rawHeading);
 
-        // Determine accuracy (iOS provides this, Android doesn't)
-        // For now, we'll assume good accuracy if values are reasonable
+        // Determine accuracy (heuristic placeholder) and confidence
         const magnitude = Math.sqrt(x * x + y * y + z * z);
-        const accuracy = magnitude > 10 ? 1 : 0.3; // Simple heuristic
+        const accuracy = magnitude > 10 ? 1 : 0.3; // legacy simple heuristic
         const isCalibrated = accuracy > COMPASS_CONFIG.lowAccuracyThreshold;
+
+        // Confidence from magnetic field magnitude
+        const min = COMPASS_CONFIG.fieldStrengthMin ?? 25;
+        const max = COMPASS_CONFIG.fieldStrengthMax ?? 65;
+        const slack = COMPASS_CONFIG.fieldStrengthSlack ?? 20;
+        let magnitudeConfidence = 1;
+        if (magnitude < min) {
+          magnitudeConfidence = clamp01(1 - (min - magnitude) / slack);
+        } else if (magnitude > max) {
+          magnitudeConfidence = clamp01(1 - (magnitude - max) / slack);
+        }
+
+        // Jitter confidence over a recent window (circular stddev)
+        const now = Date.now();
+        const rad = (smoothedHeading * Math.PI) / 180;
+        samplesRef.current.push({ t: now, rad });
+        const windowMs = COMPASS_CONFIG.jitterWindowMs ?? 1500;
+        // Drop old samples
+        const cutoff = now - windowMs;
+        while (samplesRef.current.length && samplesRef.current[0].t < cutoff) {
+          samplesRef.current.shift();
+        }
+        const stdDeg = circularStdDevDeg(samplesRef.current.map(s => s.rad));
+        const badStd = COMPASS_CONFIG.jitterStdBadDeg ?? 10;
+        const jitterConfidence = clamp01(1 - stdDeg / badStd);
+
+        const weights = COMPASS_CONFIG.confidenceWeights ?? { magnitude: 0.6, jitter: 0.4 };
+        const confidence = clamp01(
+          weights.magnitude * magnitudeConfidence + weights.jitter * jitterConfidence
+        );
+        const lowConfidence = confidence < (COMPASS_CONFIG.confidenceLowThreshold ?? 0.5);
 
         setState(prev => ({
           ...prev,
@@ -115,6 +165,9 @@ export const useMagnetometer = () => {
             z,
             accuracy,
             isCalibrated,
+            magnitude,
+            confidence,
+            lowConfidence,
           },
           isListening: true,
           error: null,

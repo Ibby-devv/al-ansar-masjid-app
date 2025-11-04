@@ -2,7 +2,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef, useState } from 'react';
-import { StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CompassView } from '../../components/QiblaCompass/components/CompassView';
 import { DebugOverlay } from '../../components/QiblaCompass/components/DebugOverlay';
@@ -28,6 +28,9 @@ export default function QiblaScreen(): React.JSX.Element {
   const [showDebug, setShowDebug] = useState(false);
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const SECRET_HOLD_MS = 5000;
+  const [showAccuracyHint, setShowAccuracyHint] = useState(false);
+  const lowSinceRef = useRef<number | null>(null);
+  const snoozedUntilRef = useRef<number | null>(null);
 
   const heading = mag?.heading ?? 0;
   const diff = getShortestAngle(heading, qiblaDirection);
@@ -78,6 +81,35 @@ export default function QiblaScreen(): React.JSX.Element {
     }
   };
 
+  // Show a subtle accuracy hint after sustained low confidence
+  useEffect(() => {
+    if (!COMPASS_CONFIG.showAccuracyHint) {
+      setShowAccuracyHint(false);
+      lowSinceRef.current = null;
+      return;
+    }
+    const conf = mag?.confidence;
+    if (conf === undefined) return;
+    const threshold = COMPASS_CONFIG.confidenceLowThreshold ?? 0.5;
+    const duration = COMPASS_CONFIG.lowConfidenceMinDurationMs ?? 3000;
+    const now = Date.now();
+    // Respect snooze window if active
+    const snoozedUntil = snoozedUntilRef.current ?? 0;
+    if (now < snoozedUntil) {
+      setShowAccuracyHint(false);
+      return;
+    }
+    if (conf < threshold) {
+      if (lowSinceRef.current == null) lowSinceRef.current = now;
+      if (!showAccuracyHint && lowSinceRef.current && now - lowSinceRef.current >= duration) {
+        setShowAccuracyHint(true);
+      }
+    } else {
+      lowSinceRef.current = null;
+      setShowAccuracyHint(false);
+    }
+  }, [mag?.confidence, showAccuracyHint]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar barStyle="light-content" />
@@ -110,15 +142,55 @@ export default function QiblaScreen(): React.JSX.Element {
           qiblaDirection={qiblaDirection}
           rotation={qiblaDirection - heading}
           accuracy={mag?.accuracy}
+          confidence={mag?.confidence}
+          magnitude={mag?.magnitude}
+          lowConfidence={mag?.lowConfidence}
           isCalibrated={mag?.accuracy ? mag.accuracy > 0.5 : undefined}
           forceVisible={true}
           onClose={() => setShowDebug(false)}
         />
       )}
 
+      {/* Subtle Accuracy Hint */}
+      {showAccuracyHint && (
+        <View style={styles.hintContainer}>
+          <ThemedText style={styles.hintText}>
+            Improve accuracy: move your phone in a figure ‘8’
+          </ThemedText>
+          <TouchableOpacity
+            onPress={() => {
+              setShowAccuracyHint(false);
+              // Snooze further hints for a while and reset timer so it doesn't reappear immediately
+              snoozedUntilRef.current = Date.now() + (COMPASS_CONFIG.accuracyHintSnoozeMs ?? 120000);
+              lowSinceRef.current = null;
+            }}
+          >
+            <ThemedText style={styles.hintDismiss}>Dismiss</ThemedText>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* States */}
       {!hasPermission && hasPermission !== null && (
-  <View style={styles.stateBox}><ThemedText style={styles.stateText}>Location access required</ThemedText></View>
+        <View style={styles.stateBox}>
+          <ThemedText style={styles.stateText}>Location access required</ThemedText>
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => {
+                Linking.openSettings().catch(() => {});
+              }}
+            >
+              <ThemedText style={styles.actionButtonText}>Open Settings</ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: 'rgba(255,255,255,0.06)' }]}
+              onPress={retry}
+            >
+              <ThemedText style={styles.actionButtonText}>Retry</ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
       )}
       {isLoading && (
   <View style={styles.stateBox}><ThemedText style={styles.stateText}>Getting location…</ThemedText></View>
@@ -227,6 +299,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'Poppins_400Regular',
   },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  actionButton: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    color: '#e5e7eb',
+    fontFamily: 'Poppins_600SemiBold',
+    fontSize: 14,
+  },
   compassArea: {
     flex: 1,
     alignItems: 'center',
@@ -254,5 +343,30 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_700Bold',
     fontSize: 32,
     lineHeight: 40,
+  },
+  hintContainer: {
+    marginHorizontal: 24,
+    marginTop: 8,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  hintText: {
+    color: '#cbd5e1',
+    fontSize: 13,
+    fontFamily: 'Poppins_500Medium',
+    flex: 1,
+    flexWrap: 'wrap',
+  },
+  hintDismiss: {
+    color: '#94a3b8',
+    fontSize: 12,
+    fontFamily: 'Poppins_600SemiBold',
+    paddingHorizontal: 4,
   },
 });

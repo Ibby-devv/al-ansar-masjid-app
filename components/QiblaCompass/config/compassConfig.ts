@@ -26,6 +26,21 @@ export interface CompassConfig {
   
   // Calibration Settings
   lowAccuracyThreshold: number;      // Threshold to show calibration prompt (-1 to 1)
+  showAccuracyHint?: boolean;        // Feature flag: show non-blocking hint when confidence is low
+  confidenceLowThreshold?: number;   // Threshold (0-1) below which confidence is considered low
+  lowConfidenceMinDurationMs?: number; // Duration low confidence must persist before hint shows
+  accuracyHintSnoozeMs?: number;     // After dismissing, wait this long before hint can reappear
+
+  // Confidence Model Settings
+  fieldStrengthMin?: number;         // Expected min Earth magnetic field (µT)
+  fieldStrengthMax?: number;         // Expected max Earth magnetic field (µT)
+  fieldStrengthSlack?: number;       // Slack outside range before confidence drops to 0 (µT)
+  jitterWindowMs?: number;           // Window for jitter/stddev calculation (ms)
+  jitterStdBadDeg?: number;          // Jitter stddev (deg) considered poor
+  confidenceWeights?: {              // Weights to blend sub-scores
+    magnitude: number;
+    jitter: number;
+  };
 
   // Heading Correction
   headingOffsetDegrees: number;      // Additive offset to heading (e.g., 180 to flip)
@@ -64,6 +79,18 @@ export const COMPASS_CONFIG: CompassConfig = {
   
   // Calibration Settings
   lowAccuracyThreshold: 0.3,         // Show calibration if accuracy < 0.3
+  showAccuracyHint: true,
+  confidenceLowThreshold: 0.5,
+  lowConfidenceMinDurationMs: 3000,
+  accuracyHintSnoozeMs: 120000,
+
+  // Confidence Model Settings
+  fieldStrengthMin: 25,
+  fieldStrengthMax: 65,
+  fieldStrengthSlack: 20,
+  jitterWindowMs: 1500,
+  jitterStdBadDeg: 10,
+  confidenceWeights: { magnitude: 0.6, jitter: 0.4 },
 
   // Heading Correction (adjust if your device reports reversed axes)
   headingOffsetDegrees: 0,
