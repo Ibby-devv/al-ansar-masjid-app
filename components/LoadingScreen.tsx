@@ -1,5 +1,6 @@
+import { ThemedText } from '@/components/themed-text';
 import React from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function LoadingScreen(): React.JSX.Element {
@@ -7,7 +8,7 @@ export default function LoadingScreen(): React.JSX.Element {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <ActivityIndicator size="large" color="#1e3a8a" />
-        <Text style={styles.text}>Loading prayer times...</Text>
+  <ThemedText style={styles.text}>Loading prayer times...</ThemedText>
       </View>
     </SafeAreaView>
   );
