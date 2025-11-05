@@ -57,6 +57,9 @@ class NotificationService {
 
       const channel = NOTIFICATION_CHANNELS[channelId];
 
+      // Fallback: allow image URL to be provided via data.imageUrl when not explicitly passed
+      const effectiveImageUrl = (imageUrl && imageUrl.trim()) || (typeof data?.imageUrl === 'string' && data.imageUrl.trim()) || '';
+
       const notification: any = {
         title,
         body,
@@ -88,11 +91,19 @@ class NotificationService {
         notification.android.largeIcon = finalLargeIcon;
       }
 
-      // Add Big Picture style if image URL is provided
-      if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim()) {
+      // Add Big Picture style on Android if image URL is provided
+      if (effectiveImageUrl) {
         notification.android.style = {
           type: AndroidStyle.BIGPICTURE,
-          picture: imageUrl.trim(),
+          picture: effectiveImageUrl,
+        };
+        // Add iOS attachment so images also display on iOS
+        notification.ios = {
+          attachments: [
+            {
+              url: effectiveImageUrl,
+            },
+          ],
         };
       }
       // Otherwise, add BigText style if enabled
