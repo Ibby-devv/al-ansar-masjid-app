@@ -1,9 +1,7 @@
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
 import messaging from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import { db } from '../firebase';
+import FcmTokenApi from './FcmTokenApi';
 import NotificationService from './NotificationService';
 
 // Background message handler - REQUIRED for data-only messages when app is closed/background
@@ -48,49 +46,39 @@ class FCMService {
    * Initialize FCM - Call on app startup
    */
   async initialize() {
+    console.log('🔔 ========================================');
     console.log('🔔 Initializing FCM Service...');
+    console.log('🔔 ========================================');
 
-    // 1. Sign in anonymously
-    await this.signInAnonymously();
-
-    // 2. Request notification permission
-    const permissionGranted = await this.requestPermission();
-
-    if (permissionGranted) {
-      // 3. Get and save FCM token
-      await this.registerToken();
-
-      // 4. Listen for token refresh
-      this.listenForTokenRefresh();
-
-      // 5. Setup foreground notification handler
-      this.setupForegroundHandler();
-    } else {
-      console.log('⚠️ Notifications disabled - user denied permission');
-    }
-
-    console.log('✅ FCM Service initialized');
-  }
-
-  /**
-   * Sign in user anonymously
-   */
-  private async signInAnonymously() {
     try {
-      const user = auth().currentUser;
+      // Initialize notification channels first (required for Android)
+      await NotificationService.initializeChannels();
       
-      if (user) {
-        console.log('✅ Already signed in:', user.uid);
-        return user.uid;
+      // Request notification permission
+      const permissionGranted = await this.requestPermission();
+
+      if (permissionGranted) {
+        console.log('✅ Permission granted - proceeding with token registration');
+        
+        // Get and save FCM token
+        await this.registerToken();
+
+        // Listen for token refresh
+        this.listenForTokenRefresh();
+
+        // Setup foreground notification handler
+        this.setupForegroundHandler();
+        
+        console.log('✅ FCM Service initialized successfully');
+      } else {
+        console.log('⚠️ Notifications disabled - user denied permission');
       }
-      
-      const userCredential = await auth().signInAnonymously();
-      console.log('✅ Signed in anonymously:', userCredential.user.uid);
-      return userCredential.user.uid;
     } catch (error) {
-      console.error('❌ Error signing in anonymously:', error);
+      console.error('❌ FCM Service initialization failed:', error);
       throw error;
     }
+    
+    console.log('🔔 ========================================');
   }
 
   /**
@@ -118,11 +106,12 @@ class FCMService {
   }
 
   /**
-   * Get FCM token and save to Firestore
+   * Get FCM token and save via callable
    */
   private async registerToken() {
     try {
-      // Get device ID based on platform
+      console.log('📝 registerToken: Getting device info...');
+      
       const deviceId = Platform.OS === 'android'
         ? await DeviceInfo.getAndroidId()
         : await DeviceInfo.getUniqueId();
@@ -131,33 +120,30 @@ class FCMService {
       const appVersion = DeviceInfo.getVersion();
 
       console.log('📱 Device ID:', deviceId);
-      console.log('📱 FCM Token:', token);
+      console.log('📱 Platform:', Platform.OS);
+      console.log('📱 App Version:', appVersion);
+      console.log('📱 FCM Token (first 20 chars):', token.substring(0, 20) + '...');
 
-      // Check if this is a new device or existing one
-      const docRef = db.collection('fcmTokens').doc(deviceId);
-      const docSnapshot = await docRef.get();
-      const isNewDevice = !docSnapshot.exists;
-
-      // Save to Firestore fcmTokens collection with device ID as key
-      const tokenData: any = {
+      console.log('🌐 Calling registerFcmToken callable...');
+      const result = await FcmTokenApi.registerFcmToken({
         deviceId,
         fcmToken: token,
-        notificationsEnabled: true,
-        platform: Platform.OS,
+        platform: Platform.OS as 'android' | 'ios',
         appVersion,
-        lastSeen: firestore.FieldValue.serverTimestamp(),
-        updatedAt: firestore.FieldValue.serverTimestamp(),
-      };
-
-      if (isNewDevice) {
-        tokenData.createdAt = firestore.FieldValue.serverTimestamp();
-      }
-
-      await docRef.set(tokenData, { merge: true });
-
-      console.log('✅ FCM token saved to Firestore (fcmTokens collection)');
-    } catch (error) {
-      console.error('❌ Error registering token:', error);
+        notificationsEnabled: true,
+      });
+      
+      console.log('✅ FCM token registered successfully:', {
+        isNew: !result.updated,
+        isUpdate: result.updated,
+      });
+    } catch (error: any) {
+      console.error('❌ Error registering token:', {
+        code: error?.code,
+        message: error?.message,
+        stack: error?.stack,
+      });
+      throw error;
     }
   }
 
@@ -165,8 +151,12 @@ class FCMService {
    * Listen for token refresh
    */
   private listenForTokenRefresh() {
+    console.log('👂 Setting up token refresh listener...');
+    
     messaging().onTokenRefresh(async (newToken) => {
-      console.log('🔄 FCM token refreshed:', newToken);
+      console.log('🔄 ========================================');
+      console.log('🔄 FCM token refreshed!');
+      console.log('🔄 New token (first 20 chars):', newToken.substring(0, 20) + '...');
 
       try {
         const deviceId = Platform.OS === 'android'
@@ -175,20 +165,26 @@ class FCMService {
 
         const appVersion = DeviceInfo.getVersion();
 
-        // Use set with merge to preserve existing fields like notificationsEnabled
-        await db.collection('fcmTokens').doc(deviceId).set({
+        console.log('🌐 Updating token via callable...');
+        await FcmTokenApi.registerFcmToken({
           deviceId,
           fcmToken: newToken,
-          platform: Platform.OS,
+          platform: Platform.OS as 'android' | 'ios',
           appVersion,
-          lastSeen: firestore.FieldValue.serverTimestamp(),
-          updatedAt: firestore.FieldValue.serverTimestamp(),
-        }, { merge: true });
-        console.log('✅ New token saved');
-      } catch (error) {
-        console.error('❌ Error updating refreshed token:', error);
+          notificationsEnabled: true,
+        });
+        console.log('✅ Refreshed token saved successfully');
+      } catch (error: any) {
+        console.error('❌ Error updating refreshed token:', {
+          code: error?.code,
+          message: error?.message,
+        });
       }
+      
+      console.log('🔄 ========================================');
     });
+    
+    console.log('✅ Token refresh listener active');
   }
 
   /**
@@ -244,13 +240,6 @@ class FCMService {
   }
 
   /**
-   * Get current user ID
-   */
-  getUserId(): string | null {
-    return auth().currentUser?.uid || null;
-  }
-
-  /**
    * Check if notifications are enabled (permission granted)
    */
   async areNotificationsEnabled(): Promise<boolean> {
@@ -277,37 +266,36 @@ class FCMService {
    * Update notification settings for this device
    */
   async updateNotificationSettings(enabled: boolean): Promise<void> {
+    console.log(`🔔 updateNotificationSettings: ${enabled ? 'ENABLE' : 'DISABLE'}`);
+    
     try {
       const deviceId = await this.getDeviceId();
+      console.log('📱 Device ID:', deviceId.substring(0, 8) + '...');
       
-      // Use set with merge to handle case where document doesn't exist yet
-      await db.collection('fcmTokens').doc(deviceId).set({
-        notificationsEnabled: enabled,
-        lastSeen: firestore.FieldValue.serverTimestamp(),
-        updatedAt: firestore.FieldValue.serverTimestamp(),
-      }, { merge: true });
-      
-      console.log(`✅ Notifications ${enabled ? 'enabled' : 'disabled'} for device ${deviceId}`);
-    } catch (error) {
-      console.error('❌ Error updating notification settings:', error);
+      await FcmTokenApi.setNotificationPreference({ deviceId, enabled });
+      console.log(`✅ Notifications ${enabled ? 'enabled' : 'disabled'} successfully`);
+    } catch (error: any) {
+      console.error('❌ Error updating notification settings:', {
+        code: error?.code,
+        message: error?.message,
+      });
       throw error;
     }
   }
 
   /**
    * Update last seen timestamp - call this periodically when app is active
-   * This helps identify stale tokens that can be cleaned up
    */
   async updateLastSeen(): Promise<void> {
     try {
       const deviceId = await this.getDeviceId();
-      
-      await db.collection('fcmTokens').doc(deviceId).update({
-        lastSeen: firestore.FieldValue.serverTimestamp(),
+      console.log('👆 updateLastSeen for device:', deviceId.substring(0, 8) + '...');
+      await FcmTokenApi.touchLastSeen({ deviceId });
+    } catch (error: any) {
+      console.warn('⚠️ Could not update lastSeen:', {
+        code: error?.code,
+        message: error?.message,
       });
-    } catch (error) {
-      // Silently fail - not critical
-      console.warn('⚠️ Could not update lastSeen:', error);
     }
   }
 
@@ -315,19 +303,27 @@ class FCMService {
    * Get notification settings for this device
    */
   async getNotificationSettings(): Promise<boolean> {
+    console.log('📖 getNotificationSettings called');
+    
     try {
       const deviceId = await this.getDeviceId();
-      const doc = await db.collection('fcmTokens').doc(deviceId).get();
+      console.log('📱 Device ID:', deviceId.substring(0, 8) + '...');
       
-      if (doc.exists()) {
-        const data = doc.data();
-        return data?.notificationsEnabled ?? true;
-      }
+      const result = await FcmTokenApi.getNotificationPreference({ deviceId });
+      const enabled = result.exists ? (result.notificationsEnabled ?? true) : true;
       
-      return true; // Default to enabled
-    } catch (error) {
-      console.error('❌ Error getting notification settings:', error);
-      return true; // Default to enabled on error
+      console.log('✅ Current settings:', {
+        exists: result.exists,
+        enabled,
+      });
+      
+      return enabled;
+    } catch (error: any) {
+      console.error('❌ Error getting notification settings:', {
+        code: error?.code,
+        message: error?.message,
+      });
+      return true;
     }
   }
 }
