@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 180,
     backgroundColor: '#e5e7eb',
-    marginBottom: 12,
+    marginBottom: Theme.spacing.md,
   },
   cardRow: {
     flexDirection: 'row',
