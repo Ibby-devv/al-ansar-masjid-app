@@ -22,6 +22,8 @@ interface DebugOverlayProps {
   lowConfidence?: boolean;
   smoothingWindow?: number;
   updateInterval?: number;
+  pitch?: number;
+  roll?: number;
   /**
    * Force the overlay to render even if COMPASS_CONFIG.debugMode is false.
    * Useful for hidden/secret toggles in release builds.
@@ -42,6 +44,8 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({
   lowConfidence,
   smoothingWindow = COMPASS_CONFIG.smoothingWindow,
   updateInterval = COMPASS_CONFIG.magnetometerInterval,
+  pitch,
+  roll,
   forceVisible = false,
   onClose,
 }) => {
@@ -132,6 +136,31 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({
           )}
         </View>
 
+        {/* Device Orientation */}
+        {(pitch !== undefined || roll !== undefined) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Device Tilt</Text>
+            {pitch !== undefined && (
+              <Text style={styles.value}>
+                Pitch:{' '}
+                <Text style={styles.valueNumber}>
+                  {pitch >= 0 ? '+' : ''}{pitch.toFixed(1)}°
+                </Text>
+                <Text style={styles.tiltHint}> (forward/back)</Text>
+              </Text>
+            )}
+            {roll !== undefined && (
+              <Text style={styles.value}>
+                Roll:{' '}
+                <Text style={styles.valueNumber}>
+                  {roll >= 0 ? '+' : ''}{roll.toFixed(1)}°
+                </Text>
+                <Text style={styles.tiltHint}> (left/right)</Text>
+              </Text>
+            )}
+          </View>
+        )}
+
         {/* Configuration */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Configuration</Text>
@@ -209,5 +238,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
     fontFamily: 'monospace',
+  },
+  tiltHint: {
+    fontSize: 11,
+    color: '#64748b',
+    fontStyle: 'italic',
   },
 });

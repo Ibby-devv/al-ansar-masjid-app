@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CompassView } from '../../components/QiblaCompass/components/CompassView';
 import { DebugOverlay } from '../../components/QiblaCompass/components/DebugOverlay';
 import { COMPASS_CONFIG } from '../../components/QiblaCompass/config/compassConfig';
+import { useDeviceMotion } from '../../components/QiblaCompass/hooks/useDeviceMotion';
 import { useLocation } from '../../components/QiblaCompass/hooks/useLocation';
 import { useMagnetometer } from '../../components/QiblaCompass/hooks/useMagnetometer';
 import { usePlacename } from '../../components/QiblaCompass/hooks/usePlacename';
@@ -24,10 +25,11 @@ export default function QiblaScreen(): React.JSX.Element {
   const { name: place } = usePlacename(coordinates);
   const { data: mag, isAvailable, error: magError } = useMagnetometer();
   const { direction: qiblaDirection, isValid } = useQiblaDirection(coordinates);
+  const { data: motion } = useDeviceMotion();
 
   const [showDebug, setShowDebug] = useState(false);
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const SECRET_HOLD_MS = 5000;
+  const SECRET_HOLD_MS = 3000;
   const [showAccuracyHint, setShowAccuracyHint] = useState(false);
   const lowSinceRef = useRef<number | null>(null);
   const snoozedUntilRef = useRef<number | null>(null);
@@ -146,6 +148,8 @@ export default function QiblaScreen(): React.JSX.Element {
           magnitude={mag?.magnitude}
           lowConfidence={mag?.lowConfidence}
           isCalibrated={mag?.accuracy ? mag.accuracy > 0.5 : undefined}
+          pitch={motion?.pitch}
+          roll={motion?.roll}
           forceVisible={true}
           onClose={() => setShowDebug(false)}
         />
