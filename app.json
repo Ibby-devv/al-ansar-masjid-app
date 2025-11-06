@@ -14,7 +14,9 @@
       "infoPlist": {
         "CFBundleURLTypes": [
           {
-            "CFBundleURLSchemes": ["alansar"]
+            "CFBundleURLSchemes": [
+              "alansar"
+            ]
           }
         ]
       },
@@ -44,7 +46,10 @@
               "scheme": "alansar"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -76,8 +81,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "0ae76e27-63df-41da-92fe-8a7526cfc915"
+        "projectId": "266a70eb-391c-4ae9-a37c-e6cbdc2067d1"
       }
-    }
+    },
+    "owner": "ibbydev"
   }
 }
