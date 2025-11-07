@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 // Generate launcher icons (all mipmap densities) from assets/images adaptive icon layers
-// Writes directly to android-overrides/res/mipmap-* for guaranteed inclusion in builds
+// Writes directly to android/app/src/main/res/mipmap-* for guaranteed inclusion in builds
 
 const fs = require('fs');
 const path = require('path');
@@ -8,7 +8,7 @@ const Jimp = require('jimp');
 
 const ROOT = path.resolve(__dirname, '..');
 const ASSETS = path.join(ROOT, 'assets', 'images');
-const OUTPUT_BASE = path.join(ROOT, 'android-overrides', 'res');
+const OUTPUT_BASE = path.join(ROOT, 'android', 'app', 'src', 'main', 'res');
 
 // Source adaptive icon layers (matching Icon Kitchen export names)
 const FG_SOURCE = path.join(ASSETS, 'ic_launcher_foreground.png');
@@ -131,7 +131,7 @@ async function generateAdaptiveIcons() {
   console.log('\n✅ Launcher icons generated successfully!');
   console.log(`📁 Output: ${OUTPUT_BASE}/mipmap-*/`);
   console.log('\n💡 Next steps:');
-  console.log('   1. Review icons in android-overrides/res/mipmap-*/');
+  console.log('   1. Review icons in android/app/src/main/res/mipmap-*/');
   console.log('   2. Commit changes to version control');
   console.log('   3. Build with: npm run build:release or eas build');
 }
