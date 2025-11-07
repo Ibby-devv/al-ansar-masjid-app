@@ -42,6 +42,6 @@ yarn-error.*
 
 app-example
 
-# generated native folders
+# generated native folders (we now commit android/ for deterministic builds)
 /ios
-/android
+# /android  <-- un-ignored on purpose so native project is tracked

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "677907945511",
+    "project_id": "al-madina-masjid-app",
+    "storage_bucket": "al-madina-masjid-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:677907945511:android:8b316edcd2cb8a00a41602",
+        "android_client_info": {
+          "package_name": "com.alansarmasjid.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7KEyX6V7LjlU9ITU-78an3I4EuQoFWXE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
