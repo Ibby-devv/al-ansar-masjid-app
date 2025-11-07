@@ -54,10 +54,10 @@ const sizes = {
   'xxxhdpi': 96,
 };
 
-// Write into overrides so Gradle can apply them during the build
-const baseDir = path.join(__dirname, '..', 'android-overrides', 'res');
+// Write directly into src/main/res so they're always included (no Gradle copy needed)
+const baseDir = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'res');
 
-console.log('📱 Generating notification icons to overrides (android-overrides/res)...\n');
+console.log('📱 Generating notification icons directly to src/main/res...\n');
 
 // For each icon type
 Object.entries(icons).forEach(([iconName, iconData]) => {
