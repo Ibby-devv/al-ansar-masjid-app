@@ -17,7 +17,12 @@
     "build:debug": "cd android && gradlew assembleDebug && cd ..",
     "build:release": "cd android && gradlew assembleRelease && cd ..",
     "install:debug": "adb reverse tcp:8081 tcp:8081 && adb install android/app/build/outputs/apk/debug/app-debug.apk",
-    "install:release": "adb install android/app/build/outputs/apk/release/app-release.apk"
+    "install:release": "adb install android/app/build/outputs/apk/release/app-release.apk",
+    "make:play-icon": "node scripts/make-play-icon.js",
+    "icons:snapshot": "node scripts/snapshot-launcher-icons.js",
+    "icons:generate:notifications": "node scripts/generate-notification-icons.js",
+    "icons:generate:launcher": "node scripts/generate-launcher-icons.js",
+    "eas-build-pre-build": "npm run icons:generate:notifications"
   },
   "dependencies": {
     "@expo-google-fonts/poppins": "^0.4.1",
@@ -67,6 +72,7 @@
     "@types/react": "~19.1.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
+    "jimp": "^0.22.12",
     "react-native-svg-transformer": "^1.5.1",
     "typescript": "~5.9.2"
   },

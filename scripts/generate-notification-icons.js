@@ -12,6 +12,7 @@
  * - Sizes: 24x24dp (mdpi), 36x36dp (hdpi), 48x48dp (xhdpi), 72x72dp (xxhdpi), 96x96dp (xxxhdpi)
  */
 
+/* eslint-disable no-undef */
 const fs = require('fs');
 const path = require('path');
 
@@ -53,9 +54,10 @@ const sizes = {
   'xxxhdpi': 96,
 };
 
+// Write directly into src/main/res so they're always included (no Gradle copy needed)
 const baseDir = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'res');
 
-console.log('📱 Generating notification icons...\n');
+console.log('📱 Generating notification icons directly to src/main/res...\n');
 
 // For each icon type
 Object.entries(icons).forEach(([iconName, iconData]) => {
