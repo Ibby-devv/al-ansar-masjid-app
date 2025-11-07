@@ -144,9 +144,11 @@ Android notification icons have specific design requirements:
 This is now the simplest and recommended approach:
 
 1. Edit your adaptive icon source files in `assets/images/`:
-   - `android-icon-foreground.png` (your main logo/symbol)
-   - `android-icon-background.png` (solid color or gradient background)
-   - `android-icon-monochrome.png` (single-color themed version)
+   - `ic_launcher_foreground.png` (your main logo/symbol)
+   - `ic_launcher_background.png` (solid color or gradient background)
+   - `ic_launcher_monochrome.png` (single-color themed version)
+   
+   **Tip:** Use [Icon Kitchen](https://icon.kitchen/) to design and export these 3 files, then copy them directly to `assets/images/`
 
 2. Generate all mipmap densities directly to overrides:
    ```bash
@@ -155,7 +157,7 @@ This is now the simplest and recommended approach:
 
 3. Commit the generated files:
    ```bash
-   git add android-overrides/res/mipmap-*
+   git add assets/images/ic_launcher_* android-overrides/res/mipmap-*
    git commit -m "Update app icon"
    ```
 
@@ -202,9 +204,15 @@ Regenerates all notification icons from the script into `android-overrides/res/d
 ```bash
 npm run icons:generate:launcher
 ```
-Reads `assets/images/android-icon-*.png` and generates all mipmap densities directly into `android-overrides/res/mipmap-*/`
+Reads `assets/images/ic_launcher_*.png` and generates all mipmap densities directly into `android-overrides/res/mipmap-*/`
 
 **This is the recommended workflow for launcher icons!** No prebuild or snapshot needed.
+
+**Icon Kitchen workflow:**
+1. Design at [Icon Kitchen](https://icon.kitchen/)
+2. Download the 3 adaptive icon files
+3. Copy them to `assets/images/` (keeping the `ic_launcher_*.png` names)
+4. Run this command to generate all densities
 
 ### Snapshot Launcher Icons (Legacy)
 ```bash
@@ -331,9 +339,10 @@ Final APK/AAB               ← Contains your override icons
 ### What to Edit
 ✅ **DO edit**: `android-overrides/res/` (source of truth)
 ✅ **DO edit**: `scripts/generate-notification-icons.js` (for notification icons)
-✅ **DO edit**: `assets/images/android-icon-*.png` (for launcher icons - recommended!)
+✅ **DO edit**: `assets/images/ic_launcher_*.png` (for launcher icons - recommended!)
 ✅ **DO run**: `npm run icons:generate:launcher` (after editing assets/images)
 ✅ **DO run**: `npm run icons:generate:notifications` (after editing notification script)
+✅ **DO use**: [Icon Kitchen](https://icon.kitchen/) to design and export adaptive icons
 
 ### What NOT to Edit
 ❌ **DO NOT edit**: `android/app/src/main/res/` directly (gets overwritten by Gradle)
@@ -363,8 +372,9 @@ Final APK/AAB               ← Contains your override icons
 
 ### Launcher icons look wrong
 - **Regenerate from source**: `npm run icons:generate:launcher`
-- **Check source images**: Verify `assets/images/android-icon-*.png` are correct sizes and format
+- **Check source images**: Verify `assets/images/ic_launcher_*.png` are correct sizes and format
 - **Verify overrides exist**: Check `android-overrides/res/mipmap-*/` contains all densities
+- **Icon Kitchen export**: Make sure you copied all 3 files (foreground, background, monochrome)
 
 ### Icons look pixelated
 - **Check density folders**: Ensure icons exist in all density folders in `android-overrides/res/`
@@ -406,9 +416,11 @@ To change which icon is used for a notification type, update the `smallIcon` pro
 
 **Change the app launcher icon:**
 1. Edit files in `assets/images/`:
-   - `android-icon-foreground.png`
-   - `android-icon-background.png`
-   - `android-icon-monochrome.png`
+   - `ic_launcher_foreground.png`
+   - `ic_launcher_background.png`
+   - `ic_launcher_monochrome.png`
+   
+   Or use [Icon Kitchen](https://icon.kitchen/) and copy exported files
 2. Run: `npm run icons:generate:launcher`
 3. Commit changes in `android-overrides/res/mipmap-*/`
 
@@ -440,7 +452,7 @@ npm run build:release                 # Build with overrides applied
 - `android/app/build.gradle` - Contains `applyResourceOverrides` Gradle task
 - `package.json` - Defines `eas-build-pre-build` hook and icon scripts
 - `android-overrides/res/` - Source of truth for custom icons
-- `assets/images/` - Source for launcher icon adaptive layers
+- `assets/images/` - Source for launcher icon adaptive layers (ic_launcher_*.png)
 
 ### Key Code References
 - Notification styles: `constants/notificationStyles.ts`

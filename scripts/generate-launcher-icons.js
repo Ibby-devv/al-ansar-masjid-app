@@ -10,10 +10,10 @@ const ROOT = path.resolve(__dirname, '..');
 const ASSETS = path.join(ROOT, 'assets', 'images');
 const OUTPUT_BASE = path.join(ROOT, 'android-overrides', 'res');
 
-// Source adaptive icon layers
-const FG_SOURCE = path.join(ASSETS, 'android-icon-foreground.png');
-const BG_SOURCE = path.join(ASSETS, 'android-icon-background.png');
-const MONO_SOURCE = path.join(ASSETS, 'android-icon-monochrome.png');
+// Source adaptive icon layers (matching Icon Kitchen export names)
+const FG_SOURCE = path.join(ASSETS, 'ic_launcher_foreground.png');
+const BG_SOURCE = path.join(ASSETS, 'ic_launcher_background.png');
+const MONO_SOURCE = path.join(ASSETS, 'ic_launcher_monochrome.png');
 
 // Android mipmap densities and sizes
 // Adaptive icon specs: 108x108dp safe zone with 72x72dp visible area
@@ -39,9 +39,9 @@ async function generateAdaptiveIcons() {
 
   // Verify source files exist
   const missing = [];
-  if (!fs.existsSync(FG_SOURCE)) missing.push('android-icon-foreground.png');
-  if (!fs.existsSync(BG_SOURCE)) missing.push('android-icon-background.png');
-  if (!fs.existsSync(MONO_SOURCE)) missing.push('android-icon-monochrome.png');
+  if (!fs.existsSync(FG_SOURCE)) missing.push('ic_launcher_foreground.png');
+  if (!fs.existsSync(BG_SOURCE)) missing.push('ic_launcher_background.png');
+  if (!fs.existsSync(MONO_SOURCE)) missing.push('ic_launcher_monochrome.png');
 
   if (missing.length > 0) {
     console.error(`✗ Missing source files in assets/images/:`);
