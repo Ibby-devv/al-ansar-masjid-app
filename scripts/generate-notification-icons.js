@@ -12,6 +12,7 @@
  * - Sizes: 24x24dp (mdpi), 36x36dp (hdpi), 48x48dp (xhdpi), 72x72dp (xxhdpi), 96x96dp (xxxhdpi)
  */
 
+/* eslint-disable no-undef */
 const fs = require('fs');
 const path = require('path');
 
@@ -53,9 +54,10 @@ const sizes = {
   'xxxhdpi': 96,
 };
 
-const baseDir = path.join(__dirname, '..', 'android', 'app', 'src', 'main', 'res');
+// Write into overrides so Gradle can apply them during the build
+const baseDir = path.join(__dirname, '..', 'android-overrides', 'res');
 
-console.log('📱 Generating notification icons...\n');
+console.log('📱 Generating notification icons to overrides (android-overrides/res)...\n');
 
 // For each icon type
 Object.entries(icons).forEach(([iconName, iconData]) => {
