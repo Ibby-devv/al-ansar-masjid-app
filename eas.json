@@ -20,6 +20,7 @@
     },
     "production": {
       "autoIncrement": true,
+      "prebuildCommand": "npx expo prebuild --platform android --clean",
       "android": {
         "buildType": "app-bundle",
         "gradleCommand": ":app:bundleRelease"

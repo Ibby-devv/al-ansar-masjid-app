@@ -1,0 +1,5 @@
+# Exclude build artifacts from EAS uploads (reduces archive size and upload time)
+android/.gradle/
+android/build/
+android/app/build/
+node_modules/.cache/
