@@ -107,13 +107,13 @@ export const CompassView: React.FC<CompassViewProps> = ({
   const QIBLA_TEXT_HEIGHT = 16;
   const POINTER_GAP = 12;
   const pointerHeight = Math.max(
-    80,
+    240, // 3x the original 80
     COMPASS_SIZE / 2 - (QIBLA_INDICATOR_TOP + QIBLA_ICON_SIZE + QIBLA_TEXT_HEIGHT + POINTER_GAP)
   );
-  const pointerWidth = Math.max(40, Math.round(pointerHeight * 0.6)); // Wider for bulbous shape
+  const pointerWidth = Math.max(120, Math.round(pointerHeight * 0.6)); // 3x the original 40
 
   // Position pointer so bottom bulb is offset from center (not at dead center)
-  const POINTER_BOTTOM_OFFSET = 30; // distance from center to bottom of pointer
+  const POINTER_BOTTOM_OFFSET = 100; // Moved down from 90
 
   return (
     <View style={styles.container}>

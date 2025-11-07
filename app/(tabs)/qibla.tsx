@@ -276,6 +276,7 @@ const styles = StyleSheet.create({
   locationText: {
     color: '#f3b17b',
     fontSize: 24,
+    lineHeight: 32,
     fontFamily: 'Poppins_800ExtraBold',
   },
   infoButton: {
