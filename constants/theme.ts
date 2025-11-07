@@ -32,7 +32,6 @@ export const FontFamily = {
   medium: 'Poppins_500Medium',
   semibold: 'Poppins_600SemiBold',
   bold: 'Poppins_700Bold',
-  extrabold: 'Poppins_800ExtraBold',
 } as const;
 
 export const Fonts = Platform.select({

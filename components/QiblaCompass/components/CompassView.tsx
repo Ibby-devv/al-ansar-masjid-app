@@ -6,6 +6,7 @@
  */
 
 import { ThemedText } from '@/components/themed-text';
+import { FontFamily } from '@/constants/theme';
 import React, { useEffect, useMemo } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, {
@@ -223,7 +224,7 @@ const styles = StyleSheet.create({
   },
   directionText: {
     fontSize: 32,
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: FontFamily.bold,
     color: '#1e3a8a',
   },
   degreeText: {
@@ -304,7 +305,7 @@ const styles = StyleSheet.create({
   },
   qiblaText: {
     fontSize: 12,
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: FontFamily.bold,
     color: '#c9d4cf',
   },
   cardinalN: {
@@ -325,7 +326,7 @@ const styles = StyleSheet.create({
   },
   cardinalLabel: {
     fontSize: 16,
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: FontFamily.bold,
     color: '#475569',
   },
   instructionContainer: {
@@ -339,6 +340,6 @@ const styles = StyleSheet.create({
   },
   instructionAligned: {
     color: '#10b981',
-    fontFamily: 'Poppins_600SemiBold',
+    fontFamily: FontFamily.semibold,
   },
 });

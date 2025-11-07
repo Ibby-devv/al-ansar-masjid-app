@@ -1,4 +1,5 @@
 import { ThemedText } from '@/components/themed-text';
+import { FontFamily } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef, useState } from 'react';
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     letterSpacing: 1,
     marginBottom: 6,
-    fontFamily: 'Poppins_600SemiBold',
+    fontFamily: FontFamily.semibold,
     paddingLeft: 16,
   },
   locationPill: {
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
     color: '#f3b17b',
     fontSize: 24,
     lineHeight: 32,
-    fontFamily: 'Poppins_800ExtraBold',
+    fontFamily: FontFamily.bold,
   },
   infoButton: {
     width: 44,
@@ -290,7 +291,7 @@ const styles = StyleSheet.create({
   infoText: {
     color: '#fff',
     fontSize: 18,
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: FontFamily.bold,
   },
   stateBox: {
     marginTop: 8,
@@ -302,7 +303,7 @@ const styles = StyleSheet.create({
   stateText: {
     color: '#cbd5e1',
     textAlign: 'center',
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: FontFamily.regular,
   },
   actionRow: {
     flexDirection: 'row',
@@ -318,8 +319,9 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: '#e5e7eb',
-    fontFamily: 'Poppins_600SemiBold',
+    fontFamily: FontFamily.semibold,
     fontSize: 14,
+    lineHeight: 20,
   },
   compassArea: {
     flex: 1,
@@ -336,7 +338,7 @@ const styles = StyleSheet.create({
   instructionText: {
     fontSize: 32,
     color: '#e5e7eb',
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: FontFamily.bold,
     textAlign: 'center',
     lineHeight: 40,
   },
@@ -345,7 +347,7 @@ const styles = StyleSheet.create({
   },
   instructionEmph: {
     color: '#ffffff',
-    fontFamily: 'Poppins_700Bold',
+    fontFamily: FontFamily.bold,
     fontSize: 32,
     lineHeight: 40,
   },
@@ -364,14 +366,15 @@ const styles = StyleSheet.create({
   hintText: {
     color: '#cbd5e1',
     fontSize: 13,
-    fontFamily: 'Poppins_500Medium',
+    fontFamily: FontFamily.medium,
+    lineHeight: 18,
     flex: 1,
     flexWrap: 'wrap',
   },
   hintDismiss: {
     color: '#94a3b8',
     fontSize: 12,
-    fontFamily: 'Poppins_600SemiBold',
+    fontFamily: FontFamily.semibold,
     paddingHorizontal: 4,
   },
 });

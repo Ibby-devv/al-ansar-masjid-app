@@ -4,13 +4,12 @@ import {
   Poppins_500Medium,
   Poppins_600SemiBold,
   Poppins_700Bold,
-  Poppins_800ExtraBold,
   useFonts,
 } from '@expo-google-fonts/poppins';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { Stack } from 'expo-router';
-import { AppState, Text as RNText, TextInput as RNTextInput } from 'react-native';
 import { useEffect, useRef } from 'react';
+import { AppState, Text as RNText, TextInput as RNTextInput } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import FCMService from '../services/FCMService';
 
@@ -22,7 +21,6 @@ export default function RootLayout() {
     Poppins_500Medium,
     Poppins_600SemiBold,
     Poppins_700Bold,
-    Poppins_800ExtraBold,
   });
   const appState = useRef(AppState.currentState);
 
@@ -57,8 +55,10 @@ export default function RootLayout() {
     }
   };
 
-  // Set global default font to Poppins once fonts are loaded
-  if (fontsLoaded) {
+  // Set global default font to Poppins once fonts are loaded (only once)
+  useEffect(() => {
+    if (!fontsLoaded) return;
+    
     // Ensure defaultProps exists
     // @ts-ignore
     RNText.defaultProps = RNText.defaultProps || {};
@@ -69,7 +69,7 @@ export default function RootLayout() {
     RNTextInput.defaultProps = RNTextInput.defaultProps || {};
     // @ts-ignore
     RNTextInput.defaultProps.style = [RNTextInput.defaultProps.style, { fontFamily: 'Poppins_400Regular' }];
-  }
+  }, [fontsLoaded]);
 
   return (
     <SafeAreaProvider>
