@@ -1,8 +1,11 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import FcmTokenApi from './FcmTokenApi';
 import NotificationService from './NotificationService';
+
+const STORAGE_KEY = '@notification_settings_enabled';
 
 // Background message handler - REQUIRED for data-only messages when app is closed/background
 // This must be at the top level, outside of any class or function
@@ -272,6 +275,10 @@ class FCMService {
       const deviceId = await this.getDeviceId();
       console.log('📱 Device ID:', deviceId.substring(0, 8) + '...');
       
+      // Update cache immediately
+      await AsyncStorage.setItem(STORAGE_KEY, String(enabled));
+      
+      // Update server
       await FcmTokenApi.setNotificationPreference({ deviceId, enabled });
       console.log(`✅ Notifications ${enabled ? 'enabled' : 'disabled'} successfully`);
     } catch (error: any) {
@@ -309,12 +316,20 @@ class FCMService {
       const deviceId = await this.getDeviceId();
       console.log('📱 Device ID:', deviceId.substring(0, 8) + '...');
       
+      // Try to get from cache first for faster response
+      const cached = await AsyncStorage.getItem(STORAGE_KEY);
+      
+      // Fetch from server (will be used to update cache)
       const result = await FcmTokenApi.getNotificationPreference({ deviceId });
       const enabled = result.exists ? (result.notificationsEnabled ?? true) : true;
+      
+      // Update cache with server value
+      await AsyncStorage.setItem(STORAGE_KEY, String(enabled));
       
       console.log('✅ Current settings:', {
         exists: result.exists,
         enabled,
+        cached: cached !== null,
       });
       
       return enabled;
@@ -323,7 +338,19 @@ class FCMService {
         code: error?.code,
         message: error?.message,
       });
-      return true;
+      
+      // Fallback to cache if server request fails
+      try {
+        const cached = await AsyncStorage.getItem(STORAGE_KEY);
+        if (cached !== null) {
+          console.log('⚠️ Using cached value:', cached === 'true');
+          return cached === 'true';
+        }
+      } catch (cacheError) {
+        console.error('❌ Error reading cache:', cacheError);
+      }
+      
+      return true; // Default to enabled
     }
   }
 }

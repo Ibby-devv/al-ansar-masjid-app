@@ -1,12 +1,15 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import FCMService from '../services/FCMService';
 import NotificationService from '../services/NotificationService';
 
+const STORAGE_KEY = '@notification_settings_enabled';
+
 export default function NotificationSettingsScreen() {
   const [enabled, setEnabled] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const [toggleLoading, setToggleLoading] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [diagnosticInfo, setDiagnosticInfo] = useState('');
 
@@ -19,12 +22,21 @@ export default function NotificationSettingsScreen() {
 
   const loadSettings = async () => {
     try {
+      // 1. First, try to load from cache for instant UI
+      const cached = await AsyncStorage.getItem(STORAGE_KEY);
+      if (cached !== null) {
+        setEnabled(cached === 'true');
+      }
+
+      // 2. Then fetch from server in background to ensure sync
       const isEnabled = await FCMService.getNotificationSettings();
       setEnabled(isEnabled);
+      
+      // 3. Update cache with server value
+      await AsyncStorage.setItem(STORAGE_KEY, String(isEnabled));
     } catch (error) {
       console.error('Error loading settings:', error);
-    } finally {
-      setLoading(false);
+      // If all fails, default to true
     }
   };
 
@@ -48,14 +60,36 @@ export default function NotificationSettingsScreen() {
   };
 
   const toggleNotifications = async (value: boolean) => {
+    // Optimistic update - update UI immediately
     setEnabled(value);
     
+    // Update cache immediately for future loads
     try {
+      await AsyncStorage.setItem(STORAGE_KEY, String(value));
+    } catch (error) {
+      console.error('Error updating cache:', error);
+    }
+
+    // Show loading on toggle
+    setToggleLoading(true);
+    
+    try {
+      // Update server in background
       await FCMService.updateNotificationSettings(value);
     } catch (error) {
       console.error('Error updating settings:', error);
-      // Revert the switch if update failed
+      
+      // Revert on failure
       setEnabled(!value);
+      await AsyncStorage.setItem(STORAGE_KEY, String(!value));
+      
+      Alert.alert(
+        'Update Failed',
+        'Failed to update notification settings. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setToggleLoading(false);
     }
   };
 
@@ -107,14 +141,6 @@ export default function NotificationSettingsScreen() {
     }
   };
 
-  if (loading) {
-    return (
-      <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Notifications</Text>
@@ -127,12 +153,16 @@ export default function NotificationSettingsScreen() {
               Get notified about new events, campaigns, and prayer time updates
             </Text>
           </View>
-          <Switch
-            value={enabled}
-            onValueChange={toggleNotifications}
-            trackColor={{ false: '#767577', true: '#81b0ff' }}
-            thumbColor={enabled ? '#007AFF' : '#f4f3f4'}
-          />
+          {toggleLoading ? (
+            <ActivityIndicator size="small" color="#007AFF" />
+          ) : (
+            <Switch
+              value={enabled}
+              onValueChange={toggleNotifications}
+              trackColor={{ false: '#767577', true: '#81b0ff' }}
+              thumbColor={enabled ? '#007AFF' : '#f4f3f4'}
+            />
+          )}
         </View>
       </View>
 
