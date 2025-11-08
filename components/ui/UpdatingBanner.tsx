@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
+import { ThemedText } from '../themed-text';
 import { Theme } from '../../constants/theme';
 
 interface UpdatingBannerProps {
@@ -23,7 +24,7 @@ export default function UpdatingBanner({ text = 'Updating…' }: UpdatingBannerP
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.dot, { opacity }]} />
-      <Text style={styles.text}>{text}</Text>
+      <ThemedText style={styles.text}>{text}</ThemedText>
     </View>
   );
 }
@@ -50,6 +51,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 12,
+    lineHeight: 18,
     color: Theme.colors.text.muted,
     fontWeight: '600',
     letterSpacing: 0.3,
