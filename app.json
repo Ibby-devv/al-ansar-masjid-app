@@ -2,7 +2,7 @@
   "expo": {
     "name": "Al Ansar Masjid",
     "slug": "al-ansar-masjid-app",
-    "version": "1.0.0",
+  "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "alansar",
@@ -27,6 +27,7 @@
       }
     },
     "android": {
+      "versionCode": 11,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/ic_launcher_foreground.png",
