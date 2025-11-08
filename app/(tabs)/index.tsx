@@ -317,12 +317,7 @@ export default function HomeScreen(): React.JSX.Element {
             )}
             <View style={styles.prayerTableCard}>
               <View style={[styles.tableRow, styles.tableHeaderRow, styles.tableRowDivider]}>
-                <View style={styles.rowLeft}>
-                  {/* Show subtle updating indicator in the header's empty left cell */}
-                  {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
-                    <UpdatingBanner text="Updating…" />
-                  )}
-                </View>
+                <View style={styles.rowLeft} />
                 <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Adhan</Text>
                 <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Iqama</Text>
               </View>
@@ -373,6 +368,12 @@ export default function HomeScreen(): React.JSX.Element {
               })
               )}
             </View>
+            {/* Show subtle updating indicator below the table */}
+            {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
+              <View style={styles.updatingContainer}>
+                <UpdatingBanner text="Updating…" />
+              </View>
+            )}
           </View>
         )}
 
@@ -404,10 +405,6 @@ export default function HomeScreen(): React.JSX.Element {
                         ? "Jumu'ah"
                         : `${getOrdinalSuffix(index + 1)} Jumu'ah`}
                     </Text>
-                    {/* Show subtle updating indicator in the header */}
-                    {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
-                      <UpdatingBanner text="Updating…" />
-                    )}
                   </View>
                   <View style={styles.jumuahTimeRow}>
                     <Text style={styles.jumuahLabel}>Khutbah</Text>
@@ -415,6 +412,12 @@ export default function HomeScreen(): React.JSX.Element {
                   </View>
                 </View>
               ))
+            )}
+            {/* Show subtle updating indicator below the cards */}
+            {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
+              <View style={styles.updatingContainer}>
+                <UpdatingBanner text="Updating…" />
+              </View>
             )}
           </View>
         )}
@@ -731,5 +734,9 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 6,
     backgroundColor: Theme.colors.surface.soft,
+  },
+  updatingContainer: {
+    marginTop: 12,
+    alignItems: 'center',
   },
 });

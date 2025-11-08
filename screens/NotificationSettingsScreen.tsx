@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, Platform, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import FCMService from '../services/FCMService';
 import NotificationService from '../services/NotificationService';
@@ -9,36 +9,41 @@ const STORAGE_KEY = '@notification_settings_enabled';
 
 export default function NotificationSettingsScreen() {
   const [enabled, setEnabled] = useState(true);
-  const [toggleLoading, setToggleLoading] = useState(false);
+  // No server-loading spinner; local is source of truth and UI updates instantly
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [diagnosticInfo, setDiagnosticInfo] = useState('');
+  // We no longer surface sync errors to the user; local value is source of truth.
 
+  // (moved below, after loadLocalSettings definition)
+
+  // Load diagnostics when diagnostics toggle changes
   useEffect(() => {
-    loadSettings();
     if (showDiagnostics) {
       loadDiagnosticInfo();
     }
   }, [showDiagnostics]);
 
-  const loadSettings = async () => {
+  const loadLocalSettings = useCallback(async () => {
     try {
-      // 1. First, try to load from cache for instant UI
+      // Load from local storage immediately (source of truth)
       const cached = await AsyncStorage.getItem(STORAGE_KEY);
       if (cached !== null) {
         setEnabled(cached === 'true');
       }
+      // If no local value exists, default is true (already set in state)
 
-      // 2. Then fetch from server in background to ensure sync
-      const isEnabled = await FCMService.getNotificationSettings();
-      setEnabled(isEnabled);
-      
-      // 3. Update cache with server value
-      await AsyncStorage.setItem(STORAGE_KEY, String(isEnabled));
+      // Push local value to server in background to keep server in sync
+      const localValue = cached !== null ? cached === 'true' : true;
+      try {
+        await FCMService.updateNotificationSettings(localValue);
+      } catch (error) {
+        console.warn('Background sync failed (silent):', error);
+      }
     } catch (error) {
-      console.error('Error loading settings:', error);
-      // If all fails, default to true
+      console.error('Error loading local settings:', error);
+      // Still default to true on error
     }
-  };
+  }, []);
 
   const loadDiagnosticInfo = async () => {
     try {
@@ -59,37 +64,23 @@ export default function NotificationSettingsScreen() {
     }
   };
 
+  // Load settings only on mount - local storage is source of truth
+  useEffect(() => {
+    loadLocalSettings();
+  }, [loadLocalSettings]);
+
   const toggleNotifications = async (value: boolean) => {
-    // Optimistic update - update UI immediately
+    // Optimistic update - update UI and local storage immediately
     setEnabled(value);
     
-    // Update cache immediately for future loads
     try {
+      // 1. Update local storage first (source of truth)
       await AsyncStorage.setItem(STORAGE_KEY, String(value));
-    } catch (error) {
-      console.error('Error updating cache:', error);
-    }
-
-    // Show loading on toggle
-    setToggleLoading(true);
-    
-    try {
-      // Update server in background
+      
+      // 2. Best-effort server sync (non-blocking; no spinner)
       await FCMService.updateNotificationSettings(value);
     } catch (error) {
-      console.error('Error updating settings:', error);
-      
-      // Revert on failure
-      setEnabled(!value);
-      await AsyncStorage.setItem(STORAGE_KEY, String(!value));
-      
-      Alert.alert(
-        'Update Failed',
-        'Failed to update notification settings. Please try again.',
-        [{ text: 'OK' }]
-      );
-    } finally {
-      setToggleLoading(false);
+      console.warn('Toggle sync failed (silent; will retry on next mount or action):', error);
     }
   };
 
@@ -153,18 +144,19 @@ export default function NotificationSettingsScreen() {
               Get notified about new events, campaigns, and prayer time updates
             </Text>
           </View>
-          {toggleLoading ? (
-            <ActivityIndicator size="small" color="#007AFF" />
-          ) : (
+          <View style={styles.toggleContainer}>
             <Switch
               value={enabled}
               onValueChange={toggleNotifications}
               trackColor={{ false: '#767577', true: '#81b0ff' }}
               thumbColor={enabled ? '#007AFF' : '#f4f3f4'}
             />
-          )}
+          </View>
         </View>
       </View>
+
+      {/* We intentionally do not show a visible error banner for sync failures.
+          Local storage is authoritative; server will catch up via silent retry. */}
 
       <Text style={styles.note}>
         You can change this setting anytime. When disabled, you won&apos;t receive any notifications from the mosque.
@@ -219,10 +211,6 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f5f5f5',
   },
-  center: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -247,6 +235,11 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     marginRight: 16,
+  },
+  toggleContainer: {
+    width: 51,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   label: {
     fontSize: 18,
