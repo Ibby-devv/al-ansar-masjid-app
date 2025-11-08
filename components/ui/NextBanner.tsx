@@ -25,10 +25,11 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
-  backgroundColor: Theme.colors.accent.amberSoft,
-  borderColor: Theme.colors.brand.gold[400] || Theme.colors.accent.amber,
+    backgroundColor: Theme.colors.accent.amberSoft,
+    borderColor: Theme.colors.brand.gold[400] || Theme.colors.accent.amber,
     borderWidth: 1,
     borderRadius: Theme.radius.md,
+    marginBottom: 12,
   },
   text: {
     color: "#92400e",

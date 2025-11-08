@@ -304,10 +304,6 @@ export default function HomeScreen(): React.JSX.Element {
         {/* Prayer Times View */}
         {activeView === "prayer" && (
           <View style={styles.prayerCardsContainer}>
-            {/* Show subtle updating shimmer when using cached data and awaiting live snapshot */}
-            {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
-              <UpdatingBanner text="Updating…" />
-            )}
             {/* Staleness banner when data is old AND we're not currently updating */}
             {!updating && isStale && (
               <View style={styles.staleBanner}>
@@ -321,7 +317,12 @@ export default function HomeScreen(): React.JSX.Element {
             )}
             <View style={styles.prayerTableCard}>
               <View style={[styles.tableRow, styles.tableHeaderRow, styles.tableRowDivider]}>
-                <View style={styles.rowLeft} />
+                <View style={styles.rowLeft}>
+                  {/* Show subtle updating indicator in the header's empty left cell */}
+                  {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
+                    <UpdatingBanner text="Updating…" />
+                  )}
+                </View>
                 <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Adhan</Text>
                 <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Iqama</Text>
               </View>
@@ -378,9 +379,6 @@ export default function HomeScreen(): React.JSX.Element {
         {/* Jumu'ah Times View */}
         {activeView === "jumuah" && jumuahTimes && (
           <View style={styles.jumuahCardsContainer}>
-            {updating && (
-              <UpdatingBanner text="Updating…" />
-            )}
             {/* No staleness banner for Jumu'ah - times don't change daily */}
             {/* Skeleton cards only when loading and NO cached data */}
             {loading && !jumuahTimes ? (
@@ -406,6 +404,10 @@ export default function HomeScreen(): React.JSX.Element {
                         ? "Jumu'ah"
                         : `${getOrdinalSuffix(index + 1)} Jumu'ah`}
                     </Text>
+                    {/* Show subtle updating indicator in the header */}
+                    {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
+                      <UpdatingBanner text="Updating…" />
+                    )}
                   </View>
                   <View style={styles.jumuahTimeRow}>
                     <Text style={styles.jumuahLabel}>Khutbah</Text>
@@ -662,6 +664,7 @@ const styles = StyleSheet.create({
   jumuahHeader: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: Theme.spacing.md,
   },
   jumuahCardTitle: {
@@ -669,6 +672,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: Theme.colors.text.strong,
     marginLeft: 10,
+    flex: 1,
   },
   jumuahTimeRow: {
     flexDirection: "row",
