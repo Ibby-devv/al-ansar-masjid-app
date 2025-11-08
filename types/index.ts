@@ -50,7 +50,7 @@ export interface MosqueSettings {
   imam?: string;
   latitude?: number;
   longitude?: number;
-  calculation_method?: number;
+  calculation_method?: 'MuslimWorldLeague' | 'Egyptian' | 'Karachi' | 'UmmAlQura' | 'Dubai' | 'MoonsightingCommittee' | 'NorthAmerica' | 'Kuwait' | 'Qatar' | 'Singapore' | 'Tehran' | 'Turkey';
   auto_fetch_maghrib?: boolean;
   last_updated?: string;
 }

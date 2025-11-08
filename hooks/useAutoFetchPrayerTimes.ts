@@ -1,6 +1,7 @@
+import { PrayerTimes as AdhanPrayerTimes, CalculationMethod, Coordinates } from 'adhan';
 import { useEffect, useState } from 'react';
 import { db } from '../firebase';
-import { PrayerTimes, MosqueSettings } from '../types';
+import { MosqueSettings, PrayerTimes } from '../types';
 
 export const useAutoFetchPrayerTimes = (
   prayerTimes: PrayerTimes | null,
@@ -20,6 +21,7 @@ export const useAutoFetchPrayerTimes = (
     if (shouldFetch) {
       fetchAndUpdateAllPrayerTimes();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prayerTimes, mosqueSettings]);
 
   const checkIfShouldFetchPrayerTimes = (): boolean => {
@@ -51,31 +53,26 @@ export const useAutoFetchPrayerTimes = (
     setLastFetchAttempt(today);
 
     try {
-      console.log('🕌 Auto-fetching all prayer times...');
+      console.log('🕌 Auto-calculating prayer times using adhan package...');
       
-      const timestamp = Math.floor(Date.now() / 1000);
-      const method = mosqueSettings.calculation_method || 3;
-
-      const response = await fetch(
-        `https://api.aladhan.com/v1/timings/${timestamp}?latitude=${mosqueSettings.latitude}&longitude=${mosqueSettings.longitude}&method=${method}`
+      // Set up coordinates and calculation parameters
+      const coordinates = new Coordinates(
+        mosqueSettings.latitude!,
+        mosqueSettings.longitude!
       );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch prayer times');
-      }
-
-      const data = await response.json();
       
-      if (data.code !== 200 || !data.data?.timings) {
-        throw new Error('Invalid API response');
-      }
-
-      // Convert all prayer times from 24-hour to 12-hour format
-      const timings = data.data.timings;
+      // Use the calculation method directly from settings (now using adhan package naming)
+      const methodName = mosqueSettings.calculation_method || 'MuslimWorldLeague';
+      const params = CalculationMethod[methodName as keyof typeof CalculationMethod]();
       
-      const convertTo12Hour = (time24: string): string => {
-        const [hours24, minutes] = time24.split(':');
-        let hours = parseInt(hours24);
+      // Calculate prayer times for today
+      const date = new Date();
+      const adhanPrayerTimes = new AdhanPrayerTimes(coordinates, date, params);
+
+      // Convert Date objects to 12-hour format strings
+      const formatTime = (date: Date): string => {
+        let hours = date.getHours();
+        const minutes = date.getMinutes();
         const period = hours >= 12 ? 'PM' : 'AM';
         
         if (hours > 12) {
@@ -84,7 +81,8 @@ export const useAutoFetchPrayerTimes = (
           hours = 12;
         }
 
-        return `${hours}:${minutes} ${period}`;
+        const minutesStr = minutes.toString().padStart(2, '0');
+        return `${hours}:${minutesStr} ${period}`;
       };
 
       // Get current prayer times from Firebase
@@ -98,11 +96,11 @@ export const useAutoFetchPrayerTimes = (
       // Update ALL Adhan times, keep existing Iqama settings
       const updatedPrayerTimes: PrayerTimes = {
         ...currentPrayerTimes,
-        fajr_adhan: convertTo12Hour(timings.Fajr),
-        dhuhr_adhan: convertTo12Hour(timings.Dhuhr),
-        asr_adhan: convertTo12Hour(timings.Asr),
-        maghrib_adhan: convertTo12Hour(timings.Maghrib),
-        isha_adhan: convertTo12Hour(timings.Isha),
+        fajr_adhan: formatTime(adhanPrayerTimes.fajr),
+        dhuhr_adhan: formatTime(adhanPrayerTimes.dhuhr),
+        asr_adhan: formatTime(adhanPrayerTimes.asr),
+        maghrib_adhan: formatTime(adhanPrayerTimes.maghrib),
+        isha_adhan: formatTime(adhanPrayerTimes.isha),
         last_updated: today
       };
 
@@ -111,15 +109,15 @@ export const useAutoFetchPrayerTimes = (
         .doc('current')
         .set(updatedPrayerTimes);
 
-      console.log(`✅ All prayer times auto-updated:
-        Fajr: ${convertTo12Hour(timings.Fajr)}
-        Dhuhr: ${convertTo12Hour(timings.Dhuhr)}
-        Asr: ${convertTo12Hour(timings.Asr)}
-        Maghrib: ${convertTo12Hour(timings.Maghrib)}
-        Isha: ${convertTo12Hour(timings.Isha)}
+      console.log(`✅ Prayer times auto-calculated using ${methodName}:
+        Fajr: ${formatTime(adhanPrayerTimes.fajr)}
+        Dhuhr: ${formatTime(adhanPrayerTimes.dhuhr)}
+        Asr: ${formatTime(adhanPrayerTimes.asr)}
+        Maghrib: ${formatTime(adhanPrayerTimes.maghrib)}
+        Isha: ${formatTime(adhanPrayerTimes.isha)}
       `);
     } catch (error) {
-      console.error('❌ Error auto-fetching prayer times:', error);
+      console.error('❌ Error auto-calculating prayer times:', error);
     } finally {
       setIsFetching(false);
     }
