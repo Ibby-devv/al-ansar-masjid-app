@@ -63,8 +63,18 @@ class FCMService {
       if (permissionGranted) {
         console.log('✅ Permission granted - proceeding with token registration');
         
-        // Get and save FCM token
-        await this.registerToken();
+        // Get and save FCM token (gracefully skip on transient failures)
+        try {
+          await this.registerToken();
+        } catch (err: any) {
+          const msg = String(err?.message || err);
+          // Don't crash initialization on transient or service availability issues
+          if (msg.includes('SERVICE_NOT_AVAILABLE') || err?.code === 'messaging/unknown') {
+            console.warn('⚠️ registerToken skipped due to transient FCM service unavailability. Will retry on token refresh.');
+          } else {
+            console.warn('⚠️ registerToken failed, continuing without token:', msg);
+          }
+        }
 
         // Listen for token refresh
         this.listenForTokenRefresh();
@@ -77,8 +87,8 @@ class FCMService {
         console.log('⚠️ Notifications disabled - user denied permission');
       }
     } catch (error) {
-      console.error('❌ FCM Service initialization failed:', error);
-      throw error;
+      console.error('❌ FCM Service initialization encountered an error (continuing):', error);
+      // Do not throw to avoid breaking app startup in offline/emulator scenarios
     }
     
     console.log('🔔 ========================================');
@@ -119,7 +129,7 @@ class FCMService {
         ? await DeviceInfo.getAndroidId()
         : await DeviceInfo.getUniqueId();
 
-      const token = await messaging().getToken();
+  const token = await messaging().getToken();
       const appVersion = DeviceInfo.getVersion();
 
       console.log('📱 Device ID:', deviceId);
@@ -141,11 +151,20 @@ class FCMService {
         isUpdate: result.updated,
       });
     } catch (error: any) {
-      console.error('❌ Error registering token:', {
-        code: error?.code,
-        message: error?.message,
-        stack: error?.stack,
+      const code = error?.code;
+      const message = error?.message || '';
+      console.warn('⚠️ Error registering token (will not block startup):', {
+        code,
+        message,
       });
+      // Propagate only non-transient errors if needed; otherwise swallow
+      if (String(message).includes('SERVICE_NOT_AVAILABLE')) {
+        return; // transient; skip
+      }
+      if (code === 'messaging/unknown') {
+        return; // likely transient on emulator/offline
+      }
+      // For other errors, rethrow so callers can decide
       throw error;
     }
   }

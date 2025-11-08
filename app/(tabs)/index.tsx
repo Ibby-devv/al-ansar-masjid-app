@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import PatternOverlay from "../../components/PatternOverlay";
 import NextBanner from "../../components/ui/NextBanner";
 import PillToggle from "../../components/ui/PillToggle";
+import UpdatingBanner from "../../components/ui/UpdatingBanner";
 
 // Import custom components
 import LoadingScreen from "../../components/LoadingScreen";
@@ -42,8 +43,25 @@ export default function HomeScreen(): React.JSX.Element {
   const [activeView, setActiveView] = useState<ViewType>("prayer");
 
   // Load data from Firebase using custom hooks
-  const { prayerTimes, jumuahTimes, mosqueSettings, loading } =
-    useFirebaseData();
+  const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating } = useFirebaseData();
+
+  // Staleness check based on last_updated date (YYYY-MM-DD)
+  const formatDmy = (ymd?: string): string | null => {
+    if (!ymd || !/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return null;
+    const [y, m, d] = ymd.split('-');
+    return `${d}-${m}-${y}`;
+  };
+
+  const isStale = (() => {
+    const today = new Date().toISOString().split('T')[0];
+    const last = prayerTimes?.last_updated || mosqueSettings?.last_updated;
+    if (!last) return false;
+    // Only consider stale if last_updated is before today (not just different)
+    return last < today;
+  })();
+
+  // Jumu'ah times don't change daily, so we don't check staleness
+  // (unlike prayer times which update every day)
 
   // Update current time every minute
   useEffect(() => {
@@ -181,8 +199,8 @@ export default function HomeScreen(): React.JSX.Element {
 
   const nextPrayer = getNextPrayer();
 
-  // Show loading screen
-  if (loading) {
+  // Show loading screen ONLY if no cached data yet
+  if (loading && !prayerTimes && !jumuahTimes && !mosqueSettings) {
     return <LoadingScreen />;
   }
 
@@ -286,6 +304,18 @@ export default function HomeScreen(): React.JSX.Element {
         {/* Prayer Times View */}
         {activeView === "prayer" && (
           <View style={styles.prayerCardsContainer}>
+            {/* Show subtle updating shimmer when using cached data and awaiting live snapshot */}
+            {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
+              <UpdatingBanner text="Updating…" />
+            )}
+            {/* Staleness banner when data is old AND we're not currently updating */}
+            {!updating && isStale && (
+              <View style={styles.staleBanner}>
+                <Text style={styles.staleBannerText}>
+                  Prayer times last updated on {formatDmy(prayerTimes?.last_updated || mosqueSettings?.last_updated) || 'a previous day'}.
+                </Text>
+              </View>
+            )}
             {nextPrayer && (
               <NextBanner text={`Next: ${nextPrayer.name} in ${nextPrayer.timeRemaining}`} />
             )}
@@ -295,7 +325,20 @@ export default function HomeScreen(): React.JSX.Element {
                 <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Adhan</Text>
                 <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Iqama</Text>
               </View>
-              {prayers.map((prayer, index) => {
+              {/* Skeleton rows only when loading and NO cached data */}
+              {loading && !prayerTimes ? (
+                [0,1,2,3,4].map((i) => (
+                  <View key={`sk-${i}`} style={[styles.tableRow, styles.tableRowDivider]}> 
+                    <View style={styles.rowLeft}>
+                      <View style={[styles.iconCircleSmall, { opacity: 0.4 }]} />
+                      <View style={styles.skelName} />
+                    </View>
+                    <View style={styles.skelTime} />
+                    <View style={styles.skelTime} />
+                  </View>
+                ))
+              ) : (
+              prayers.map((prayer, index) => {
                 const isNextPrayer = nextPrayer?.name === prayer.name;
                 const isLast = index === prayers.length - 1;
 
@@ -326,7 +369,8 @@ export default function HomeScreen(): React.JSX.Element {
                     </Text>
                   </View>
                 );
-              })}
+              })
+              )}
             </View>
           </View>
         )}
@@ -334,22 +378,42 @@ export default function HomeScreen(): React.JSX.Element {
         {/* Jumu'ah Times View */}
         {activeView === "jumuah" && jumuahTimes && (
           <View style={styles.jumuahCardsContainer}>
-            {jumuahTimes.times.map((time, index) => (
-              <View key={time.id} style={styles.jumuahCard}>
-                <View style={styles.jumuahHeader}>
-                  <Ionicons name="calendar" size={24} color={Theme.colors.brand.gold[600]} />
-                  <Text style={styles.jumuahCardTitle}>
-                    {jumuahTimes.times.length === 1
-                      ? "Jumu'ah"
-                      : `${getOrdinalSuffix(index + 1)} Jumu'ah`}
-                  </Text>
+            {updating && (
+              <UpdatingBanner text="Updating…" />
+            )}
+            {/* No staleness banner for Jumu'ah - times don't change daily */}
+            {/* Skeleton cards only when loading and NO cached data */}
+            {loading && !jumuahTimes ? (
+              [0].map((i) => (
+                <View key={`j-sk-${i}`} style={styles.jumuahCard}>
+                  <View style={styles.jumuahHeader}>
+                    <View style={[styles.iconCircleSmall, { width: 40, height: 40, opacity: 0.35 }]} />
+                    <View style={styles.jumuahSkelTitle} />
+                  </View>
+                  <View style={styles.jumuahTimeRow}>
+                    <View style={styles.jumuahSkelLine} />
+                    <View style={styles.jumuahSkelLine} />
+                  </View>
                 </View>
-                <View style={styles.jumuahTimeRow}>
-                  <Text style={styles.jumuahLabel}>Khutbah</Text>
-                  <Text style={styles.jumuahTime}>{time.khutbah}</Text>
+              ))
+            ) : (
+              jumuahTimes.times.map((time, index) => (
+                <View key={time.id} style={styles.jumuahCard}>
+                  <View style={styles.jumuahHeader}>
+                    <Ionicons name="calendar" size={24} color={Theme.colors.brand.gold[600]} />
+                    <Text style={styles.jumuahCardTitle}>
+                      {jumuahTimes.times.length === 1
+                        ? "Jumu'ah"
+                        : `${getOrdinalSuffix(index + 1)} Jumu'ah`}
+                    </Text>
+                  </View>
+                  <View style={styles.jumuahTimeRow}>
+                    <Text style={styles.jumuahLabel}>Khutbah</Text>
+                    <Text style={styles.jumuahTime}>{time.khutbah}</Text>
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))
+            )}
           </View>
         )}
       </ScrollView>
@@ -623,5 +687,45 @@ const styles = StyleSheet.create({
     fontSize: Theme.typography.h2,
     fontWeight: "700",
     color: Theme.colors.brand.navy[700],
+  },
+  staleBanner: {
+    backgroundColor: Theme.colors.accent.amberSoft,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: Theme.colors.brand.gold[400],
+  },
+  staleBannerText: {
+    fontSize: 12,
+    color: Theme.colors.text.strong,
+    fontWeight: '600',
+  },
+  skelName: {
+    width: 60,
+    height: 16,
+    borderRadius: 4,
+    backgroundColor: Theme.colors.surface.soft,
+  },
+  skelTime: {
+    flex: 1,
+    height: 18,
+    borderRadius: 4,
+    backgroundColor: Theme.colors.surface.soft,
+    marginHorizontal: 4,
+  },
+  jumuahSkelTitle: {
+    flex: 1,
+    height: 20,
+    borderRadius: 6,
+    backgroundColor: Theme.colors.surface.soft,
+    marginLeft: 10,
+  },
+  jumuahSkelLine: {
+    width: 90,
+    height: 22,
+    borderRadius: 6,
+    backgroundColor: Theme.colors.surface.soft,
   },
 });
