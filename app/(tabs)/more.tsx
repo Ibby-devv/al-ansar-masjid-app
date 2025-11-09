@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
+import DeviceInfo from 'react-native-device-info';
 import { Linking, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, Vibration, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PatternOverlay from '../../components/PatternOverlay';
@@ -13,6 +14,9 @@ import { useFirebaseData } from '../../hooks/useFirebaseData';
 
 export default function MoreScreen(): React.JSX.Element {
   const { mosqueSettings } = useFirebaseData();
+  // App version info (marketing version + build number)
+  const appVersion = DeviceInfo.getVersion();
+  const buildNumber = DeviceInfo.getBuildNumber();
 
   const toDisplayDomain = (raw?: string) => {
     if (!raw) return '';
@@ -299,7 +303,10 @@ export default function MoreScreen(): React.JSX.Element {
               </View>
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Version</Text>
-                <Text style={styles.infoValue}>1.0.0</Text>
+                <Text style={styles.infoValue}>
+                  {appVersion}
+                  {buildNumber ? ` (${buildNumber})` : ''}
+                </Text>
               </View>
             </View>
 

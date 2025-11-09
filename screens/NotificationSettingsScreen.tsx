@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Platform, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
-import DeviceInfo from 'react-native-device-info';
 import FCMService from '../services/FCMService';
 import NotificationService from '../services/NotificationService';
 
@@ -48,13 +47,11 @@ export default function NotificationSettingsScreen() {
   const loadDiagnosticInfo = async () => {
     try {
       const osVersion = Platform.Version;
-      const appVersion = DeviceInfo.getVersion();
       const deviceId = await FCMService.getDeviceId();
       const permissionGranted = await NotificationService.areNotificationsEnabled();
       
       setDiagnosticInfo(
         `Android API: ${osVersion}\n` +
-        `App: ${appVersion}\n` +
         `Device ID: ${deviceId.substring(0, 12)}...\n` +
         `System Permission: ${permissionGranted ? '✅ GRANTED' : '❌ DENIED'}`
       );

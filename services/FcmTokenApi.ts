@@ -17,6 +17,7 @@ interface RegisterFcmTokenResponse {
 interface SetNotificationPreferenceRequest {
   deviceId: string;
   enabled: boolean;
+  appVersion?: string;
 }
 
 interface SetNotificationPreferenceResponse {
@@ -35,6 +36,7 @@ interface GetNotificationPreferenceResponse {
 
 interface TouchLastSeenRequest {
   deviceId: string;
+  appVersion?: string;
 }
 
 interface TouchLastSeenResponse {
@@ -156,8 +158,8 @@ class FcmTokenApi {
     
     // Don't retry this one as aggressively - it's not critical
     try {
-      const callable = regionalFunctions.httpsCallable('touchLastSeen');
-      const result = await callable(data);
+  const callable = regionalFunctions.httpsCallable('touchLastSeen');
+  const result = await callable(data);
       console.log('✅ touchLastSeen succeeded');
       return result.data as TouchLastSeenResponse;
     } catch (error: any) {

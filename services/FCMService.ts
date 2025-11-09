@@ -293,7 +293,8 @@ class FCMService {
       console.log('📱 Device ID:', deviceId.substring(0, 8) + '...');
       
       // Update server
-      await FcmTokenApi.setNotificationPreference({ deviceId, enabled });
+  const appVersion = DeviceInfo.getVersion();
+  await FcmTokenApi.setNotificationPreference({ deviceId, enabled, appVersion });
       console.log(`✅ Notifications ${enabled ? 'enabled' : 'disabled'} on server`);
     } catch (error: any) {
       const code = error?.code;
@@ -330,7 +331,8 @@ class FCMService {
     try {
       const deviceId = await this.getDeviceId();
       console.log('👆 updateLastSeen for device:', deviceId.substring(0, 8) + '...');
-      await FcmTokenApi.touchLastSeen({ deviceId });
+      const appVersion = DeviceInfo.getVersion();
+      await FcmTokenApi.touchLastSeen({ deviceId, appVersion });
     } catch (error: any) {
       console.warn('⚠️ Could not update lastSeen:', {
         code: error?.code,
