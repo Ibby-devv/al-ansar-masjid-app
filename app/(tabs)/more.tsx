@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import DeviceInfo from 'react-native-device-info';
 import { Linking, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, Vibration, View } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PatternOverlay from '../../components/PatternOverlay';
 import InstagramIcon from '../../components/ui/InstagramIcon';
@@ -437,6 +437,9 @@ const styles = StyleSheet.create({
   },
   iconDeveloperBg: {
     backgroundColor: '#6366f1', // indigo-500 for developer/code
+  },
+  iconSettingsBg: {
+    backgroundColor: '#8b5cf6', // violet-500 for settings/notifications
   },
   infoTextContainer: {
     flex: 1,

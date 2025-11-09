@@ -7,8 +7,8 @@ export default function SettingsScreen() {
       <Stack.Screen
         options={{
           headerShown: true,
-          title: 'Settings',
-          headerBackTitle: 'Home',
+          title: 'Notification Settings',
+          headerBackTitle: 'Back',
           headerStyle: {
             backgroundColor: '#1e3a8a',
           },

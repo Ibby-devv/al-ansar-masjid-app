@@ -1,4 +1,5 @@
 import notifee, { AndroidStyle } from '@notifee/react-native';
+import { Platform } from 'react-native';
 import { NOTIFICATION_CHANNELS, NotificationChannelId } from '../constants/notificationChannels';
 import { NOTIFICATION_STYLES } from '../constants/notificationStyles';
 
@@ -172,6 +173,80 @@ class NotificationService {
       data,
       imageUrl: data?.imageUrl,
     });
+  }
+
+  /**
+   * Get a summary of available channels (Android)
+   */
+  async getChannels(): Promise<{ id: string; name: string; importance?: number }[]> {
+    try {
+      const channels = await notifee.getChannels();
+      return channels.map((c: any) => ({ id: c.id, name: c.name, importance: c.importance }));
+    } catch (error) {
+      console.warn('Error fetching channels:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Open channel-specific settings (Android)
+   */
+  async openChannelSettings(channelId: string) {
+    try {
+      // Notifee's openNotificationSettings does not take params; some versions expose channel-specific API separately.
+      // Try channel-specific approach via Android intent fallback first.
+      // @ts-ignore
+      if (typeof (notifee as any).openChannelSettings === 'function') {
+        // @ts-ignore
+        await (notifee as any).openChannelSettings(channelId);
+        return;
+      }
+      // Fallback: open general notification settings
+      await notifee.openNotificationSettings();
+    } catch (error) {
+      console.error('Error opening channel settings:', error);
+      // Fallback: open general settings
+      try { await notifee.openNotificationSettings(); } catch {}
+    }
+  }
+
+  /**
+   * Check if battery optimization is enabled (Android)
+   */
+  async isBatteryOptimizationEnabled(): Promise<boolean | null> {
+    try {
+      // @ts-ignore - API is Android-only
+      if (typeof (notifee as any).isBatteryOptimizationEnabled === 'function') {
+        return await (notifee as any).isBatteryOptimizationEnabled();
+      }
+      return null;
+    } catch (error) {
+      console.warn('Error checking battery optimization:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Open battery optimization settings page (Android)
+   */
+  async openBatteryOptimizationSettings() {
+    try {
+      if (Platform.OS === 'android') {
+        // Notifee v7+ supports opening power manager settings
+        await notifee.openBatteryOptimizationSettings();
+      } else {
+        // Fallback for non-Android
+        await notifee.openNotificationSettings();
+      }
+    } catch (error) {
+      console.warn('Error opening battery optimization settings:', error);
+      // Fallback to general notification settings
+      try {
+        await notifee.openNotificationSettings();
+      } catch (e) {
+        console.error('Failed to open any settings:', e);
+      }
+    }
   }
 
   /**

@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
@@ -36,6 +37,13 @@ messaging().setBackgroundMessageHandler(async (remoteMessage) => {
           data,
         });
     }
+    // Track last background notification time for diagnostics
+    try {
+      await AsyncStorage.setItem(
+        '@diag_last_background_notification_at',
+        new Date().toISOString()
+      );
+    } catch {}
   } catch (error) {
     console.error('❌ Error displaying background notification:', error);
   }
@@ -147,6 +155,13 @@ class FCMService {
         isNew: !result.updated,
         isUpdate: result.updated,
       });
+      // Store diagnostics data
+      try {
+        await AsyncStorage.multiSet([
+          ['@diag_token_registered_at', new Date().toISOString()],
+          ['@diag_fcm_token', token],
+        ]);
+      } catch {}
     } catch (error: any) {
       const code = error?.code;
       const message = error?.message || '';
@@ -193,6 +208,12 @@ class FCMService {
           notificationsEnabled: true,
         });
         console.log('✅ Refreshed token saved successfully');
+        try {
+          await AsyncStorage.multiSet([
+            ['@diag_token_registered_at', new Date().toISOString()],
+            ['@diag_fcm_token', newToken],
+          ]);
+        } catch {}
       } catch (error: any) {
         console.error('❌ Error updating refreshed token:', {
           code: error?.code,
@@ -250,6 +271,13 @@ class FCMService {
               data,
             });
         }
+        // Track last foreground notification time for diagnostics
+        try {
+          await AsyncStorage.setItem(
+            '@diag_last_foreground_notification_at',
+            new Date().toISOString()
+          );
+        } catch {}
       } catch (error) {
         console.error('❌ Error displaying foreground notification:', error);
       }
