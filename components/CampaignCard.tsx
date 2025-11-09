@@ -4,9 +4,9 @@
 // Displays a campaign with progress bar and donate button
 // ============================================================================
 
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Campaign } from '../hooks/useCampaigns';
 
 interface CampaignCardProps {
@@ -19,6 +19,18 @@ export default function CampaignCard({ campaign, onPress }: CampaignCardProps) {
   const progress = campaign.goal_amount > 0 
     ? (campaign.current_amount / campaign.goal_amount) * 100 
     : 0;
+
+  // Animated value for smooth progress bar transitions
+  const animatedProgress = useRef(new Animated.Value(progress)).current;
+
+  // Animate progress bar when it changes (smooth transition)
+  useEffect(() => {
+    Animated.timing(animatedProgress, {
+      toValue: progress,
+      duration: 800, // 800ms smooth transition
+      useNativeDriver: false, // width animation requires non-native driver
+    }).start();
+  }, [progress, animatedProgress]);
 
   // Format currency
   const formatCurrency = (cents: number): string => {
@@ -54,11 +66,15 @@ export default function CampaignCard({ campaign, onPress }: CampaignCardProps) {
         {/* Progress Bar */}
         <View style={styles.progressSection}>
           <View style={styles.progressBar}>
-            <View 
+            <Animated.View 
               style={[
                 styles.progressFill, 
                 { 
-                  width: `${Math.min(progress, 100)}%`,
+                  width: animatedProgress.interpolate({
+                    inputRange: [0, 100],
+                    outputRange: ['0%', '100%'],
+                    extrapolate: 'clamp',
+                  }),
                   backgroundColor: progress >= 100 ? '#10b981' : '#3b82f6'
                 }
               ]} 

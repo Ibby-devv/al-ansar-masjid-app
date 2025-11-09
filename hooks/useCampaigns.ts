@@ -1,11 +1,14 @@
 // ============================================================================
-// HOOK: useCampaigns
+// HOOK: useCampaigns - with offline caching
 // Location: hooks/useCampaigns.ts
 // Fetches active campaigns from Firestore - React Native Firebase version
 // ============================================================================
 
-import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
 import { db } from '../firebase';
+
+const CAMPAIGNS_CACHE_KEY = '@campaigns_cache';
 
 export interface Campaign {
   id: string;
@@ -34,31 +37,61 @@ export function useCampaigns() {
 
   const loadCampaigns = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      // 1. Load from cache first (instant)
+      const cachedData = await AsyncStorage.getItem(CAMPAIGNS_CACHE_KEY);
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData);
+        setCampaigns(parsed);
+        setLoading(false);
+        console.log('✅ Campaigns loaded from cache:', parsed.length);
+      }
 
-      // Query active campaigns that are visible in app
-      const querySnapshot = await db
+      // 2. Then fetch from Firestore (background update)
+      const unsubscribe = db
         .collection('campaigns')
         .where('status', '==', 'active')
         .where('is_visible_in_app', '==', true)
         .orderBy('created_at', 'desc')
-        .get();
-      
-      const loadedCampaigns: Campaign[] = [];
-      querySnapshot.forEach((doc) => {
-        loadedCampaigns.push({ id: doc.id, ...doc.data() } as Campaign);
-      });
+        .onSnapshot(
+          async (querySnapshot) => {
+            setLoading(false);
+            setError(null);
 
-      setCampaigns(loadedCampaigns);
-      console.log('✅ Campaigns loaded:', loadedCampaigns.length);
+            const loadedCampaigns: Campaign[] = [];
+            querySnapshot.forEach((doc) => {
+              loadedCampaigns.push({ id: doc.id, ...doc.data() } as Campaign);
+            });
+
+            setCampaigns(loadedCampaigns);
+
+            // Update cache
+            await AsyncStorage.setItem(
+              CAMPAIGNS_CACHE_KEY,
+              JSON.stringify(loadedCampaigns)
+            );
+
+            const fromCache = querySnapshot.metadata.fromCache;
+            console.log(
+              fromCache
+                ? '📦 Campaigns from cache (offline):'
+                : '✅ Campaigns updated from server:',
+              loadedCampaigns.length
+            );
+          },
+          (err) => {
+            console.error('❌ Error loading campaigns:', err);
+            setError(err.message);
+            setLoading(false);
+          }
+        );
+
+      return () => unsubscribe();
     } catch (err: any) {
-      console.error('❌ Error loading campaigns:', err);
+      console.error('❌ Error in loadCampaigns:', err);
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };
 
-  return { campaigns, loading, error, refetch: loadCampaigns };
+  return { campaigns, loading, error };
 }

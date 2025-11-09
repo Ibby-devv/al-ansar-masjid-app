@@ -1,20 +1,23 @@
 // ============================================================================
-// DONATION HOOK - React Native Firebase version
+// DONATION HOOK - React Native Firebase version with offline caching
 // Location: src/hooks/useDonation.ts
 // ============================================================================
 
-import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
 import { db, regionalFunctions } from '../firebase';
-import { 
-  DonationSettings, 
-  DonationFormData, 
-  PaymentIntentResponse, 
-  SubscriptionResponse,
-  Donation 
+import {
+  Donation,
+  DonationFormData,
+  DonationSettings,
+  PaymentIntentResponse,
+  SubscriptionResponse
 } from '../types/donation';
 
+const SETTINGS_CACHE_KEY = '@donation_settings_cache';
+
 export const useDonation = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState<DonationSettings | null>(null);
   const [donations, setDonations] = useState<Donation[]>([]);
@@ -22,32 +25,61 @@ export const useDonation = () => {
   // Get regional functions instance
   const functions = regionalFunctions;
 
-  // Load donation settings
+  // Load donation settings with cache-first approach (one-time fetch)
   useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        // 1. Load from cache first (instant)
+        const cachedData = await AsyncStorage.getItem(SETTINGS_CACHE_KEY);
+        if (cachedData) {
+          const parsed = JSON.parse(cachedData);
+          setSettings(parsed);
+          setLoading(false);
+          console.log('✅ Donation settings loaded from cache');
+        }
+
+        // 2. Then fetch once from Firestore (no real-time listener)
+        const docSnapshot = await db
+          .collection('donationSettings')
+          .doc('config')
+          .get();
+
+        setLoading(false);
+
+        if (docSnapshot.exists()) {
+          const freshData = docSnapshot.data() as DonationSettings;
+          
+          // Only update if data actually changed (prevent unnecessary re-renders)
+          const dataChanged = JSON.stringify(freshData) !== JSON.stringify(cachedData ? JSON.parse(cachedData) : null);
+          
+          if (dataChanged) {
+            setSettings(freshData);
+
+            // Update cache
+            await AsyncStorage.setItem(
+              SETTINGS_CACHE_KEY,
+              JSON.stringify(freshData)
+            );
+
+            console.log('✅ Donation settings updated from server');
+          } else {
+            console.log('📦 Donation settings unchanged');
+          }
+        } else {
+          console.error('❌ Donation settings document not found');
+        }
+      } catch (err: any) {
+        console.error('❌ Error loading donation settings:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
     loadSettings();
   }, []);
 
-  const loadSettings = async () => {
-    try {
-      const settingsDoc = await db
-        .collection('donationSettings')
-        .doc('config')
-        .get();
-      
-      if (settingsDoc.exists()) {
-        setSettings(settingsDoc.data() as DonationSettings);
-        console.log('✅ Donation settings loaded');
-      } else {
-        console.error('❌ Donation settings not found in Firestore');
-      }
-    } catch (err: any) {
-      console.error('❌ Error loading donation settings:', err);
-      setError(err.message);
-    }
-  };
-
   // Create one-time donation
-  const createDonation = async (data: DonationFormData): Promise<PaymentIntentResponse> => {
+  const createDonation = async (formData: DonationFormData): Promise<PaymentIntentResponse> => {
     setLoading(true);
     setError(null);
 
@@ -57,24 +89,25 @@ export const useDonation = () => {
       const createPaymentIntent = functions.httpsCallable('createPaymentIntent');
 
       const payload = {
-        amount: Math.round(data.amount * 100), // Convert to cents
-        donor_name: data.donorName,
-        donor_email: data.donorEmail,
-        donor_phone: data.donorPhone,
-        donation_type_id: data.donationType,
-        donation_type_label: data.donationTypeLabel,
-        campaign_id: data.campaignId || "",
-        donor_message: data.donorMessage,
+        amount: Math.round(formData.amount * 100), // Convert to cents
+        donor_name: formData.donorName,
+        donor_email: formData.donorEmail,
+        donor_phone: formData.donorPhone,
+        donation_type_id: formData.donationType,
+        donation_type_label: formData.donationTypeLabel,
+        campaign_id: formData.campaignId || "",
+        donor_message: formData.donorMessage,
       };
 
       console.log('📦 Payload:', payload);
 
       const result = await createPaymentIntent(payload);
+      const data = result.data as PaymentIntentResponse;
 
-      console.log('✅ Payment intent created:', result.data.paymentIntentId);
+      console.log('✅ Payment intent created:', data.paymentIntentId);
       
       setLoading(false);
-      return result.data as PaymentIntentResponse;
+      return data;
     } catch (err: any) {
       console.error('❌ Error creating payment intent:');
       console.error('   Code:', err.code);
@@ -102,12 +135,12 @@ export const useDonation = () => {
   };
 
   // Create recurring donation
-  const createSubscription = async (data: DonationFormData): Promise<SubscriptionResponse> => {
+  const createSubscription = async (formData: DonationFormData): Promise<SubscriptionResponse> => {
     setLoading(true);
     setError(null);
 
     try {
-      if (!data.frequency) {
+      if (!formData.frequency) {
         throw new Error('Frequency is required for recurring donations');
       }
 
@@ -116,24 +149,25 @@ export const useDonation = () => {
       const createSubscriptionFunc = functions.httpsCallable('createSubscription');
 
       const payload = {
-        amount: Math.round(data.amount * 100), // Convert to cents
-        frequency: data.frequency,
-        donor_name: data.donorName,
-        donor_email: data.donorEmail,
-        donor_phone: data.donorPhone,
-        donation_type_id: data.donationType,
-        donation_type_label: data.donationTypeLabel,
-        campaign_id: data.campaignId || ""
+        amount: Math.round(formData.amount * 100), // Convert to cents
+        frequency: formData.frequency,
+        donor_name: formData.donorName,
+        donor_email: formData.donorEmail,
+        donor_phone: formData.donorPhone,
+        donation_type_id: formData.donationType,
+        donation_type_label: formData.donationTypeLabel,
+        campaign_id: formData.campaignId || ""
       };
 
       console.log('📦 Payload:', payload);
 
       const result = await createSubscriptionFunc(payload);
+      const data = result.data as SubscriptionResponse;
 
-      console.log('✅ Subscription created:', result.data.subscriptionId);
+      console.log('✅ Subscription created:', data.subscriptionId);
 
       setLoading(false);
-      return result.data as SubscriptionResponse;
+      return data;
     } catch (err: any) {
       console.error('❌ Error creating subscription:');
       console.error('   Code:', err.code);

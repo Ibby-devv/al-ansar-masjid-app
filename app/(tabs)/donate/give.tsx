@@ -7,17 +7,17 @@ import { Picker } from "@react-native-picker/picker";
 import { useStripe } from "@stripe/stripe-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -30,7 +30,7 @@ import { useDonation } from "../../../hooks/useDonation";
 import { useFirebaseData } from "../../../hooks/useFirebaseData";
 import { DonationFormData } from "../../../types/donation";
 
-export default function GiveTab(): React.JSX.Element {
+export default function GiveTab(): React.JSX.Element | null {
   const { mosqueSettings } = useFirebaseData();
   const { campaigns, loading: campaignsLoading } = useCampaigns();
   const { settings, loading, error, createDonation, createSubscription } =
@@ -248,7 +248,7 @@ export default function GiveTab(): React.JSX.Element {
     setIsRecurring(false);
   };
 
-  if (!settings) {
+  if (loading && !settings) {
     return (
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.loadingContainer}>
@@ -257,6 +257,11 @@ export default function GiveTab(): React.JSX.Element {
         </View>
       </SafeAreaView>
     );
+  }
+
+  // Guard clause - should never happen after loading
+  if (!settings) {
+    return null;
   }
 
   // Check if we should show campaigns view or donation form
