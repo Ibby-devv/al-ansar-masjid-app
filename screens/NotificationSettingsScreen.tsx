@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Platform, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Clipboard, Platform, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import FCMService from '../services/FCMService';
 import NotificationService from '../services/NotificationService';
 
@@ -11,16 +11,13 @@ export default function NotificationSettingsScreen() {
   // No server-loading spinner; local is source of truth and UI updates instantly
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [diagnosticInfo, setDiagnosticInfo] = useState('');
+  const [channels, setChannels] = useState<{ id: string; name: string; importance?: number }[]>([]);
+  // Removed explicit netInfo & batteryOpt states from render; values are embedded directly in diagnosticInfo string.
   // We no longer surface sync errors to the user; local value is source of truth.
 
   // (moved below, after loadLocalSettings definition)
 
-  // Load diagnostics when diagnostics toggle changes
-  useEffect(() => {
-    if (showDiagnostics) {
-      loadDiagnosticInfo();
-    }
-  }, [showDiagnostics]);
+  // (moved below, after loadDiagnosticInfo)
 
   const loadLocalSettings = useCallback(async () => {
     try {
@@ -44,22 +41,66 @@ export default function NotificationSettingsScreen() {
     }
   }, []);
 
-  const loadDiagnosticInfo = async () => {
+  const loadDiagnosticInfo = useCallback(async () => {
     try {
+      // Diagnostics v2.0 gathers a holistic snapshot for notification troubleshooting.
+      // Fields included:
+      // - Android API level / iOS version
+      // - Device ID (partial) for correlating with backend fcmTokens doc
+      // - System permission status (fast failure root cause)
+      // - Connectivity state (offline devices won't receive FCM)
+      // - Battery optimization (Android may defer background delivery)
+      // - Token suffix + registration timestamp (verify most recent refresh)
+      // - Last foreground/background notification timestamps (recency of delivery)
+      // - Channel definitions w/ importance (misconfigured importance causes silent deliveries)
       const osVersion = Platform.Version;
       const deviceId = await FCMService.getDeviceId();
       const permissionGranted = await NotificationService.areNotificationsEnabled();
+      // Channels (Android)
+      const ch = Platform.OS === 'android' ? await NotificationService.getChannels() : [];
+      setChannels(ch);
+      // Token suffix & registration time
+  const token = await AsyncStorage.getItem('@diag_fcm_token');
+  const suffix = token ? token.slice(-8) : '';
+  const regAt = await AsyncStorage.getItem('@diag_token_registered_at');
+      // Last received timestamps
+  const fg = await AsyncStorage.getItem('@diag_last_foreground_notification_at');
+  const bg = await AsyncStorage.getItem('@diag_last_background_notification_at');
+      // Connectivity
+      let connectionStr = 'Check manually';
+      // Note: Network detection requires expo-network which needs dev build
+      // For now, users can check connectivity manually
+      // Battery optimization (Android-only, best-effort)
+      let batteryStr = 'N/A on iOS';
+      if (Platform.OS === 'android') {
+        const bo = await NotificationService.isBatteryOptimizationEnabled();
+        if (bo === null) batteryStr = 'Unknown';
+        else batteryStr = bo ? 'Enabled (may delay background delivery)' : 'Disabled';
+      }
       
       setDiagnosticInfo(
         `Android API: ${osVersion}\n` +
         `Device ID: ${deviceId.substring(0, 12)}...\n` +
-        `System Permission: ${permissionGranted ? '✅ GRANTED' : '❌ DENIED'}`
+        `System Permission: ${permissionGranted ? '✅ GRANTED' : '❌ DENIED'}\n` +
+        `Connectivity: ${connectionStr}\n` +
+        `${Platform.OS === 'android' ? `Battery Optimization: ${batteryStr}\n` : ''}` +
+        `FCM Token Suffix: ${suffix || '(none)'}\n` +
+        `Token Registered At: ${regAt ? new Date(regAt).toLocaleString() : '(unknown)'}\n` +
+        `Last Foreground Notif: ${fg ? new Date(fg).toLocaleString() : '—'}\n` +
+        `Last Background Notif: ${bg ? new Date(bg).toLocaleString() : '—'}`
       );
     } catch (error) {
       console.error('Error loading diagnostic info:', error);
       setDiagnosticInfo('Error loading info');
     }
-  };
+  }, []);
+
+  // Load diagnostics when diagnostics toggle changes
+  useEffect(() => {
+    if (showDiagnostics) {
+      loadDiagnosticInfo();
+    }
+  }, [showDiagnostics, loadDiagnosticInfo]);
 
   // Load settings only on mount - local storage is source of truth
   useEffect(() => {
@@ -130,7 +171,7 @@ export default function NotificationSettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <Text style={styles.title}>Notifications</Text>
       
       <View style={styles.card}>
@@ -186,27 +227,93 @@ export default function NotificationSettingsScreen() {
             <Text style={styles.diagnosticText}>{diagnosticInfo || 'Loading...'}</Text>
           </View>
 
-          <TouchableOpacity 
-            style={styles.testButton} 
-            onPress={testLocalNotification}
-          >
-            <Text style={styles.testButtonText}>🧪 Test Local Notification</Text>
-          </TouchableOpacity>
+          {/* Actions */}
+          <View style={styles.actionsRow}>
+            <TouchableOpacity 
+              style={[styles.actionButton, { backgroundColor: '#6c757d' }]} 
+              onPress={() => NotificationService.openSettings()}
+            >
+              <Text style={styles.actionButtonText}>Open App Settings</Text>
+            </TouchableOpacity>
+            {Platform.OS === 'android' && (
+              <TouchableOpacity 
+                style={[styles.actionButton, { backgroundColor: '#7950f2' }]} 
+                onPress={() => NotificationService.openBatteryOptimizationSettings()}
+              >
+                <Text style={styles.actionButtonText}>Battery Optimization</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View style={styles.actionsRow}>
+            <TouchableOpacity 
+              style={[styles.actionButton, { backgroundColor: '#20c997' }]} 
+              onPress={async () => {
+                try {
+                  const token = (await AsyncStorage.getItem('@diag_fcm_token')) || '';
+                  if (!token) {
+                    Alert.alert('No Token', 'No cached FCM token yet. Try enabling notifications or restarting.');
+                    return;
+                  }
+                  Clipboard.setString(token);
+                  Alert.alert('Copied', 'FCM token copied to clipboard.');
+                } catch (e: any) {
+                  Alert.alert('Copy Failed', e?.message || 'Unknown error');
+                }
+              }}
+            >
+              <Text style={styles.actionButtonText}>Copy FCM Token</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.actionButton, { backgroundColor: '#0ca678' }]} 
+              onPress={testLocalNotification}
+            >
+              <Text style={styles.actionButtonText}>🧪 Test Local</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Channels list (Android) */}
+          {Platform.OS === 'android' && (
+            <View style={[styles.diagnosticCard, { marginTop: 12 }]}> 
+              <Text style={[styles.diagnosticText, { fontWeight: '700', marginBottom: 6 }]}>Channels</Text>
+              {channels.length === 0 ? (
+                <Text style={styles.diagnosticText}>No channels or unable to fetch.</Text>
+              ) : (
+                channels.map((ch) => (
+                  <View key={ch.id} style={styles.channelRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.diagnosticText}>{ch.name} ({ch.id})</Text>
+                      <Text style={[styles.diagnosticText, { color: '#868e96' }]}>importance: {String(ch.importance)}</Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={[styles.smallBtn]}
+                      onPress={() => NotificationService.openChannelSettings(ch.id)}
+                    >
+                      <Text style={styles.smallBtnText}>Open</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))
+              )}
+            </View>
+          )}
 
           <Text style={styles.diagnosticHint}>
             Use this to verify if notifications can display on your device. If the test works but FCM doesn&apos;t, the issue is with message delivery or background priority.
           </Text>
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#f5f5f5',
+  },
+  contentContainer: {
+    padding: 20,
+    paddingBottom: 40,
   },
   title: {
     fontSize: 28,
@@ -282,16 +389,39 @@ const styles = StyleSheet.create({
     color: '#495057',
     lineHeight: 18,
   },
-  testButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-    padding: 14,
-    alignItems: 'center',
-    marginBottom: 12,
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
   },
-  testButtonText: {
+  actionButton: {
+    flex: 1,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  actionButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  channelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  smallBtn: {
+    backgroundColor: '#228be6',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+  smallBtnText: {
+    color: '#fff',
+    fontSize: 12,
     fontWeight: '600',
   },
   diagnosticHint: {
