@@ -22,7 +22,8 @@
     "install:release": "adb install android/app/build/outputs/apk/release/app-release.apk",
     "icons:generate:notifications": "node scripts/generate-notification-icons.js",
     "icons:generate:launcher": "node scripts/generate-launcher-icons.js",
-    "eas-build-pre-build": "npm run icons:generate:notifications"
+    "splash:generate": "node scripts/generate-splash-screen.js",
+    "restore:signing": "node scripts/restore-signing-config.js"
   },
   "dependencies": {
     "@expo-google-fonts/poppins": "^0.4.1",
