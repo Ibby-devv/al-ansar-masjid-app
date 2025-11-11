@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  BackHandler,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -19,9 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-// Import custom hooks
+import { SafeAreaView } from "react-native-safe-area-context"; // Import custom hooks
 import CampaignCard from "../../../components/CampaignCard";
 import DonationErrorModal, { DonationError } from "../../../components/DonationErrorModal";
 import DonationSuccessModal from "../../../components/DonationSuccessModal";
@@ -144,6 +143,24 @@ export default function GiveTab(): React.JSX.Element | null {
       }
     }
   }, [settings]);
+
+  // Handle hardware back button
+  useEffect(() => {
+    const backAction = () => {
+      if (showDonationForm) {
+        handleBackToCampaigns();
+        return true; // Prevent default back behavior
+      }
+      return false; // Allow default back behavior
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [showDonationForm]);
 
   const handlePresetAmount = (value: number) => {
     setAmount(value.toString());

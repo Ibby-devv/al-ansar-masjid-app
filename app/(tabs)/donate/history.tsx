@@ -1,14 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import DonationAnalyticsCard from "../../../components/DonationAnalyticsCard";
 import PillToggle from "../../../components/ui/PillToggle";
@@ -126,6 +127,17 @@ export default function HistoryTab() {
             Receipt: {donation.receipt_number}
           </Text>
         </View>
+      )}
+
+      {donation.stripe_receipt_url && (
+        <TouchableOpacity
+          style={styles.viewReceiptButton}
+          onPress={() => Linking.openURL(donation.stripe_receipt_url!)}
+        >
+          <Ionicons name="receipt-outline" size={18} color={Theme.colors.brand.navy[700]} />
+          <Text style={styles.viewReceiptText}>View Receipt</Text>
+          <Ionicons name="open-outline" size={14} color={Theme.colors.text.muted} />
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -451,6 +463,22 @@ const styles = StyleSheet.create({
   receiptText: {
     fontSize: 13,
     color: Theme.colors.text.muted,
+  },
+  viewReceiptButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Theme.spacing.sm,
+    marginTop: Theme.spacing.md,
+    paddingVertical: Theme.spacing.sm,
+    paddingHorizontal: Theme.spacing.md,
+    backgroundColor: Theme.colors.accent.blueSoft,
+    borderRadius: Theme.radius.sm,
+  },
+  viewReceiptText: {
+    fontSize: Theme.typography.body,
+    fontWeight: '600',
+    color: Theme.colors.brand.navy[700],
   },
   subscriptionBadge: {
     marginTop: Theme.spacing.md,
