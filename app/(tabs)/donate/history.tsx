@@ -10,6 +10,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import DonationAnalyticsCard from "../../../components/DonationAnalyticsCard";
 import PillToggle from "../../../components/ui/PillToggle";
 import { Theme } from "../../../constants/theme";
 import { regionalFunctions } from "../../../firebase";
@@ -221,6 +222,14 @@ export default function HistoryTab() {
                 <Text style={styles.changeButtonText}>Change</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Analytics Card */}
+            {(donations.length > 0 || subscriptions.length > 0) && (
+              <DonationAnalyticsCard
+                donations={donations}
+                subscriptions={subscriptions}
+              />
+            )}
 
             {/* Tab Switcher */}
             <PillToggle

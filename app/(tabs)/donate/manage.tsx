@@ -51,18 +51,53 @@ export default function ManageTab() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Info Card */}
-        <View style={styles.infoCard}>
-          <Ionicons name="information-circle" size={24} color={Theme.colors.brand.navy[700]} />
-          <Text style={styles.infoText}>
-            Enter the email address you used when setting up your recurring donation.
-            We&apos;ll send you a secure link to manage your subscriptions.
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerIcon}>
+            <Ionicons name="settings" size={32} color={Theme.colors.brand.navy[700]} />
+          </View>
+          <Text style={styles.headerTitle}>Manage Your Donations</Text>
+          <Text style={styles.headerSubtitle}>
+            Update, pause, or cancel your recurring donations anytime
           </Text>
+        </View>
+
+        {/* How it Works */}
+        <View style={styles.howItWorksCard}>
+          <Text style={styles.sectionTitle}>How It Works</Text>
+          <View style={styles.stepsList}>
+            <View style={styles.step}>
+              <View style={styles.stepNumber}>
+                <Text style={styles.stepNumberText}>1</Text>
+              </View>
+              <Text style={styles.stepText}>
+                Enter the email you used for your recurring donation
+              </Text>
+            </View>
+            
+            <View style={styles.step}>
+              <View style={styles.stepNumber}>
+                <Text style={styles.stepNumberText}>2</Text>
+              </View>
+              <Text style={styles.stepText}>
+                We&apos;ll send you a secure link to your email
+              </Text>
+            </View>
+            
+            <View style={styles.step}>
+              <View style={styles.stepNumber}>
+                <Text style={styles.stepNumberText}>3</Text>
+              </View>
+              <Text style={styles.stepText}>
+                Click the link to access your Stripe Customer Portal
+              </Text>
+            </View>
+          </View>
         </View>
 
         {/* Email Input */}
         <View style={styles.section}>
-          <Text style={styles.label}>Your Email</Text>
+          <Text style={styles.label}>Your Email Address</Text>
           <TextInput
             style={styles.input}
             placeholder="email@example.com"
@@ -93,31 +128,56 @@ export default function ManageTab() {
 
         {/* Features List */}
         <View style={styles.featuresSection}>
-          <Text style={styles.featuresTitle}>What you can do:</Text>
+          <Text style={styles.sectionTitle}>
+            <Ionicons name="star" size={20} color={Theme.colors.accent.amber} /> What You Can Manage
+          </Text>
           
           <View style={styles.featureItem}>
-            <Ionicons name="checkmark-circle" size={20} color={Theme.colors.accent.green} />
-            <Text style={styles.featureText}>View all recurring donations</Text>
+            <View style={styles.featureIcon}>
+              <Ionicons name="card" size={24} color={Theme.colors.brand.navy[700]} />
+            </View>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Payment Method</Text>
+              <Text style={styles.featureDescription}>
+                Update your card details or change payment methods
+              </Text>
+            </View>
           </View>
 
           <View style={styles.featureItem}>
-            <Ionicons name="checkmark-circle" size={20} color={Theme.colors.accent.green} />
-            <Text style={styles.featureText}>Cancel subscriptions</Text>
+            <View style={styles.featureIcon}>
+              <Ionicons name="document-text" size={24} color={Theme.colors.brand.navy[700]} />
+            </View>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Invoices & Receipts</Text>
+              <Text style={styles.featureDescription}>
+                View and download all your payment receipts
+              </Text>
+            </View>
           </View>
 
           <View style={styles.featureItem}>
-            <Ionicons name="checkmark-circle" size={20} color={Theme.colors.accent.green} />
-            <Text style={styles.featureText}>Update payment method</Text>
+            <View style={styles.featureIcon}>
+              <Ionicons name="pause-circle" size={24} color={Theme.colors.brand.navy[700]} />
+            </View>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Pause or Cancel</Text>
+              <Text style={styles.featureDescription}>
+                Temporarily pause or cancel your recurring donations
+              </Text>
+            </View>
           </View>
 
           <View style={styles.featureItem}>
-            <Ionicons name="checkmark-circle" size={20} color={Theme.colors.accent.green} />
-            <Text style={styles.featureText}>View payment history</Text>
-          </View>
-
-          <View style={styles.featureItem}>
-            <Ionicons name="checkmark-circle" size={20} color={Theme.colors.accent.green} />
-            <Text style={styles.featureText}>Download receipts</Text>
+            <View style={styles.featureIcon}>
+              <Ionicons name="calendar" size={24} color={Theme.colors.brand.navy[700]} />
+            </View>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Payment History</Text>
+              <Text style={styles.featureDescription}>
+                See all past payments and upcoming charges
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -145,19 +205,72 @@ const styles = StyleSheet.create({
     padding: Theme.spacing.xl,
     paddingBottom: 40,
   },
-  infoCard: {
-    flexDirection: 'row',
-    backgroundColor: Theme.colors.accent.blueSoft,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
+  header: {
+    alignItems: 'center',
     marginBottom: Theme.spacing.xxl,
-    gap: Theme.spacing.md,
   },
-  infoText: {
+  headerIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Theme.colors.accent.blueSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Theme.spacing.lg,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: Theme.colors.text.strong,
+    marginBottom: Theme.spacing.sm,
+    textAlign: 'center',
+  },
+  headerSubtitle: {
+    fontSize: Theme.spacing.lg,
+    color: Theme.colors.text.muted,
+    textAlign: 'center',
+    paddingHorizontal: Theme.spacing.lg,
+  },
+  howItWorksCard: {
+    backgroundColor: Theme.colors.surface.base,
+    borderRadius: Theme.radius.lg,
+    padding: Theme.spacing.xl,
+    marginBottom: Theme.spacing.xxl,
+    ...Theme.shadow.soft,
+  },
+  sectionTitle: {
+    fontSize: Theme.typography.h3,
+    fontWeight: 'bold',
+    color: Theme.colors.text.strong,
+    marginBottom: Theme.spacing.lg,
+  },
+  stepsList: {
+    gap: Theme.spacing.lg,
+  },
+  step: {
+    flexDirection: 'row',
+    gap: Theme.spacing.md,
+    alignItems: 'flex-start',
+  },
+  stepNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Theme.colors.brand.navy[700],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepNumberText: {
+    color: Theme.colors.text.inverse,
+    fontSize: Theme.spacing.lg,
+    fontWeight: 'bold',
+  },
+  stepText: {
     flex: 1,
     fontSize: Theme.typography.body,
-    color: Theme.colors.brand.navy[700],
-    lineHeight: 20,
+    color: Theme.colors.text.base,
+    lineHeight: 22,
+    paddingTop: 4,
   },
   section: {
     marginBottom: Theme.spacing.xxl,
@@ -197,25 +310,40 @@ const styles = StyleSheet.create({
   },
   featuresSection: {
     backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
+    borderRadius: Theme.radius.lg,
     padding: Theme.spacing.xl,
     marginBottom: Theme.spacing.xl,
-  },
-  featuresTitle: {
-    fontSize: Theme.spacing.lg,
-    fontWeight: '600',
-    color: Theme.colors.text.strong,
-    marginBottom: Theme.spacing.lg,
+    ...Theme.shadow.soft,
   },
   featureItem: {
     flexDirection: 'row',
-    alignItems: 'center',
     gap: Theme.spacing.md,
-    marginBottom: Theme.spacing.md,
+    marginBottom: Theme.spacing.lg,
+    paddingBottom: Theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Theme.colors.border.soft,
   },
-  featureText: {
-    fontSize: 15,
+  featureIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: Theme.radius.sm,
+    backgroundColor: Theme.colors.accent.blueSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureContent: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontSize: Theme.spacing.lg,
+    fontWeight: '600',
     color: Theme.colors.text.strong,
+    marginBottom: 4,
+  },
+  featureDescription: {
+    fontSize: Theme.typography.body,
+    color: Theme.colors.text.muted,
+    lineHeight: 20,
   },
   securityNote: {
     flexDirection: 'row',
