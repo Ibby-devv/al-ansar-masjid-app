@@ -273,12 +273,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    maxWidth: '90%',
   },
   locationText: {
     color: '#f3b17b',
     fontSize: 24,
     lineHeight: 32,
     fontFamily: FontFamily.bold,
+    flexShrink: 1,
   },
   infoButton: {
     width: 44,
