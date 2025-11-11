@@ -50,6 +50,7 @@ export interface Donation {
   payment_status: 'succeeded' | 'pending' | 'failed';
   date: string;
   created_at: any;
+  stripe_receipt_url?: string | null;
 }
 
 export interface PaymentIntentResponse {

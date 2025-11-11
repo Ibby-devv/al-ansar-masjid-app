@@ -7,22 +7,23 @@ import { Picker } from "@react-native-picker/picker";
 import { useStripe } from "@stripe/stripe-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  BackHandler,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-// Import custom hooks
+import { SafeAreaView } from "react-native-safe-area-context"; // Import custom hooks
 import CampaignCard from "../../../components/CampaignCard";
+import DonationErrorModal, { DonationError } from "../../../components/DonationErrorModal";
+import DonationSuccessModal from "../../../components/DonationSuccessModal";
 import GeneralDonationCard from "../../../components/GeneralDonationCard";
 import { Theme } from "../../../constants/theme";
 import { Campaign, useCampaigns } from "../../../hooks/useCampaigns";
@@ -63,6 +64,75 @@ export default function GiveTab(): React.JSX.Element | null {
   // Processing state
   const [processing, setProcessing] = useState(false);
 
+  // Success modal state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successModalData, setSuccessModalData] = useState<{
+    amount: number;
+    isRecurring: boolean;
+    frequency?: string;
+    donationType: string;
+    campaignName?: string;
+  } | null>(null);
+
+  // Error modal state
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorData, setErrorData] = useState<DonationError | null>(null);
+
+  // Parse error into DonationError type
+  const parseError = (err: any): DonationError => {
+    // Network errors
+    if (err.message?.toLowerCase().includes('network') || 
+        err.message?.toLowerCase().includes('connection') ||
+        err.code === 'unavailable') {
+      return {
+        type: 'network',
+        message: 'Network connection failed',
+        originalError: err,
+      };
+    }
+
+    // Validation errors
+    if (err.code === 'invalid-argument' || 
+        err.message?.toLowerCase().includes('invalid') ||
+        err.message?.toLowerCase().includes('minimum')) {
+      return {
+        type: 'validation',
+        message: err.message || 'Invalid information provided',
+        originalError: err,
+      };
+    }
+
+    // Payment errors (Stripe)
+    if (err.code === 'card_declined' ||
+        err.message?.toLowerCase().includes('card') ||
+        err.message?.toLowerCase().includes('payment') ||
+        err.message?.toLowerCase().includes('declined')) {
+      return {
+        type: 'payment',
+        message: err.message || 'Payment declined',
+        originalError: err,
+      };
+    }
+
+    // Server errors
+    if (err.code === 'internal' || 
+        err.code === 'functions/internal' ||
+        err.message?.toLowerCase().includes('server')) {
+      return {
+        type: 'server',
+        message: 'Server error occurred',
+        originalError: err,
+      };
+    }
+
+    // Unknown errors
+    return {
+      type: 'unknown',
+      message: err.message || 'An unexpected error occurred',
+      originalError: err,
+    };
+  };
+
   // Initialize selected type
   useEffect(() => {
     if (settings && settings.donation_types.length > 0) {
@@ -73,6 +143,24 @@ export default function GiveTab(): React.JSX.Element | null {
       }
     }
   }, [settings]);
+
+  // Handle hardware back button
+  useEffect(() => {
+    const backAction = () => {
+      if (showDonationForm) {
+        handleBackToCampaigns();
+        return true; // Prevent default back behavior
+      }
+      return false; // Allow default back behavior
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [showDonationForm]);
 
   const handlePresetAmount = (value: number) => {
     setAmount(value.toString());
@@ -191,35 +279,27 @@ export default function GiveTab(): React.JSX.Element | null {
       }
 
       // Success!
-      Alert.alert(
-        "Success! 🎉",
-        isRecurring
-          ? `Thank you for setting up a ${frequency} donation of $${getDisplayAmount()}!`
-          : `Thank you for your donation of $${getDisplayAmount()}!${
-              selectedCampaign
-                ? ` Your support for ${selectedCampaign.title} is greatly appreciated.`
-                : ""
-            }`,
-        [
-          {
-            text: "Done",
-            onPress: () => {
-              // Reset form
-              setAmount("");
-              setCustomAmount("");
-              setShowCustomInput(false);
-              setDonorName("");
-              setDonorEmail("");
-              setIsAnonymous(false);
-              setIsRecurring(false);
-              setShowDonationForm(false);
-              setSelectedCampaign(null);
-            },
-          },
-        ]
-      );
+      setSuccessModalData({
+        amount: getDisplayAmount(),
+        isRecurring,
+        frequency: isRecurring ? frequency : undefined,
+        donationType: selectedTypeLabel,
+        campaignName: selectedCampaign?.title,
+      });
+      setShowSuccessModal(true);
+      
+      // Reset form
+      setAmount("");
+      setCustomAmount("");
+      setShowCustomInput(false);
+      setDonorName("");
+      setDonorEmail("");
+      setIsAnonymous(false);
+      setIsRecurring(false);
     } catch (err: any) {
-      Alert.alert("Error", err.message || "Payment failed. Please try again.");
+      const parsedError = parseError(err);
+      setErrorData(parsedError);
+      setShowErrorModal(true);
     } finally {
       setProcessing(false);
     }
@@ -605,11 +685,83 @@ export default function GiveTab(): React.JSX.Element | null {
                     Secure payment powered by Stripe
                   </Text>
                 </View>
+
+                {/* TEST ERROR BUTTONS - Remove in production */}
+                {__DEV__ && (
+                  <View style={{ marginTop: 20, gap: 10 }}>
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#ef4444', padding: 12, borderRadius: 8 }}
+                      onPress={() => {
+                        setErrorData({
+                          type: 'payment',
+                          message: 'Your card was declined',
+                        });
+                        setShowErrorModal(true);
+                      }}
+                    >
+                      <Text style={{ color: 'white', textAlign: 'center' }}>Test Payment Error</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#f59e0b', padding: 12, borderRadius: 8 }}
+                      onPress={() => {
+                        setErrorData({
+                          type: 'network',
+                          message: 'Network connection failed',
+                        });
+                        setShowErrorModal(true);
+                      }}
+                    >
+                      <Text style={{ color: 'white', textAlign: 'center' }}>Test Network Error</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#8b5cf6', padding: 12, borderRadius: 8 }}
+                      onPress={() => {
+                        setErrorData({
+                          type: 'validation',
+                          message: 'Minimum donation is $5',
+                        });
+                        setShowErrorModal(true);
+                      }}
+                    >
+                      <Text style={{ color: 'white', textAlign: 'center' }}>Test Validation Error</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </>
             )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Success Modal */}
+      <DonationSuccessModal
+        visible={showSuccessModal && !!successModalData}
+        onClose={() => {
+          setShowSuccessModal(false);
+          setShowDonationForm(false);
+          setSelectedCampaign(null);
+          setSuccessModalData(null);
+        }}
+        amount={successModalData?.amount || 0}
+        isRecurring={successModalData?.isRecurring || false}
+        frequency={successModalData?.frequency}
+        donationType={successModalData?.donationType || ''}
+        campaignName={successModalData?.campaignName}
+      />
+
+      {/* Error Modal */}
+      <DonationErrorModal
+        visible={showErrorModal && !!errorData}
+        onClose={() => {
+          setShowErrorModal(false);
+          setErrorData(null);
+        }}
+        onRetry={() => {
+          setShowErrorModal(false);
+          handleDonate();
+        }}
+        error={errorData}
+      />
     </SafeAreaView>
   );
 }
