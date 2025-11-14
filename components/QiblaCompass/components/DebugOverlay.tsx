@@ -24,6 +24,14 @@ interface DebugOverlayProps {
   updateInterval?: number;
   pitch?: number;
   roll?: number;
+  // New fields for enhanced troubleshooting
+  magHeading?: number;          // Magnetic heading (raw from magnetometer)
+  trueHeading?: number;         // True heading (GPS-corrected, -1 if no permission)
+  magneticDeclination?: number; // Difference between true and magnetic north
+  latitude?: number;            // Current latitude
+  longitude?: number;           // Current longitude
+  differenceFromQibla?: number; // Angular difference from Qibla direction
+  headingSource?: string;       // Which heading is being used (true/magnetic)
   /**
    * Force the overlay to render even if COMPASS_CONFIG.debugMode is false.
    * Useful for hidden/secret toggles in release builds.
@@ -46,6 +54,13 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({
   updateInterval = COMPASS_CONFIG.magnetometerInterval,
   pitch,
   roll,
+  magHeading,
+  trueHeading,
+  magneticDeclination,
+  latitude,
+  longitude,
+  differenceFromQibla,
+  headingSource,
   forceVisible = false,
   onClose,
 }) => {
@@ -72,9 +87,49 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({
       </View>
 
       <View style={styles.content}>
+        {/* Location & Heading Source Info */}
+        {(latitude !== undefined || longitude !== undefined || headingSource || magneticDeclination !== undefined) && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Location & Heading</Text>
+            {latitude !== undefined && longitude !== undefined && (
+              <>
+                <Text style={styles.value}>
+                  Lat: <Text style={styles.valueNumber}>{latitude.toFixed(6)}°</Text>
+                </Text>
+                <Text style={styles.value}>
+                  Lon: <Text style={styles.valueNumber}>{longitude.toFixed(6)}°</Text>
+                </Text>
+              </>
+            )}
+            {headingSource && (
+              <Text style={styles.value}>
+                Source: <Text style={styles.valueNumber}>{headingSource}</Text>
+              </Text>
+            )}
+            {magneticDeclination !== undefined && (
+              <Text style={styles.value}>
+                Mag Declination:{' '}
+                <Text style={[styles.valueNumber, { color: magneticDeclination >= 0 ? '#10b981' : '#f59e0b' }]}>
+                  {magneticDeclination >= 0 ? '+' : ''}{magneticDeclination.toFixed(1)}°
+                </Text>
+              </Text>
+            )}
+          </View>
+        )}
+
         {/* Heading values */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Compass Heading</Text>
+          {magHeading !== undefined && (
+            <Text style={styles.value}>
+              Magnetic: <Text style={styles.valueNumber}>{formatAngle(magHeading, 1)}</Text>
+            </Text>
+          )}
+          {trueHeading !== undefined && trueHeading >= 0 && (
+            <Text style={styles.value}>
+              True: <Text style={styles.valueNumber}>{formatAngle(trueHeading, 1)}</Text>
+            </Text>
+          )}
           {COMPASS_CONFIG.showRawValues && rawHeading !== undefined && (
             <Text style={styles.value}>
               Raw: <Text style={styles.valueNumber}>{formatAngle(rawHeading, 1)}</Text>
@@ -88,6 +143,14 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({
           {qiblaDirection !== undefined && (
             <Text style={styles.value}>
               Qibla: <Text style={styles.valueNumber}>{formatAngle(qiblaDirection, 1)}</Text>
+            </Text>
+          )}
+          {differenceFromQibla !== undefined && (
+            <Text style={styles.value}>
+              Diff from Qibla:{' '}
+              <Text style={[styles.valueNumber, { color: Math.abs(differenceFromQibla) < 10 ? '#10b981' : '#fff' }]}>
+                {differenceFromQibla >= 0 ? '+' : ''}{differenceFromQibla.toFixed(1)}°
+              </Text>
             </Text>
           )}
           {rotation !== undefined && (

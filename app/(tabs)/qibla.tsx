@@ -151,6 +151,23 @@ export default function QiblaScreen(): React.JSX.Element {
           isCalibrated={heading?.accuracy ? heading.accuracy > 0.5 : undefined}
           pitch={motion?.pitch}
           roll={motion?.roll}
+          magHeading={heading?.magHeading}
+          trueHeading={heading?.trueHeading}
+          magneticDeclination={
+            heading?.trueHeading !== undefined && 
+            heading?.trueHeading >= 0 && 
+            heading?.magHeading !== undefined
+              ? heading.trueHeading - heading.magHeading
+              : undefined
+          }
+          latitude={coordinates?.latitude}
+          longitude={coordinates?.longitude}
+          differenceFromQibla={diff}
+          headingSource={
+            heading?.trueHeading !== undefined && heading?.trueHeading >= 0
+              ? 'True (GPS-corrected)'
+              : 'Magnetic (fallback)'
+          }
           forceVisible={true}
           onClose={() => setShowDebug(false)}
         />
