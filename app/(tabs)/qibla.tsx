@@ -1,6 +1,7 @@
 import { ThemedText } from '@/components/themed-text';
 import { FontFamily } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef, useState } from 'react';
 import { Linking, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -22,6 +23,7 @@ const MUTED = 'rgba(255,255,255,0.6)';
 const TOLERANCE = 10; // degrees
 
 export default function QiblaScreen(): React.JSX.Element {
+  const isFocused = useIsFocused();
   const { coordinates, isLoading, error, hasPermission, retry } = useLocation();
   const { name: place } = usePlacename(coordinates);
   const { data: heading, isAvailable, error: headingError } = useHeading();
@@ -44,13 +46,21 @@ export default function QiblaScreen(): React.JSX.Element {
   const turnRight = COMPASS_CONFIG.invertInstruction ? baseTurnLeft : baseTurnRight;
 
   // Haptic feedback when transitioning into aligned state
+  // Only trigger when screen is focused to prevent haptics after navigation
   const prevAligned = useRef<boolean>(false);
   useEffect(() => {
-    if (aligned && !prevAligned.current) {
+    if (isFocused && aligned && !prevAligned.current) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     }
     prevAligned.current = aligned;
-  }, [aligned]);
+  }, [aligned, isFocused]);
+
+  // Reset alignment state when screen loses focus
+  useEffect(() => {
+    if (!isFocused) {
+      prevAligned.current = false;
+    }
+  }, [isFocused]);
 
   // Cleanup any pending hold timers on unmount
   useEffect(() => {
