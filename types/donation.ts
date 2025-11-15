@@ -55,6 +55,21 @@ export interface Donation {
   stripe_receipt_url?: string | null;
 }
 
+export interface RecurringDonation {
+  id: string;
+  donor_name: string;
+  donor_email: string;
+  amount: number;
+  currency: string;
+  donation_type_label: string;
+  frequency: string;
+  status: 'active' | 'paused' | 'cancelled';
+  next_payment_date: FirebaseFirestoreTypes.Timestamp;
+  stripe_subscription_id: string;
+  created_at: any;
+  updated_at: any;
+}
+
 export interface PaymentIntentResponse {
   clientSecret: string;
   paymentIntentId: string;

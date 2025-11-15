@@ -6,6 +6,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import { db } from '../firebase';
 
 const CAMPAIGNS_CACHE_KEY = '@campaigns_cache';
@@ -17,8 +18,8 @@ export interface Campaign {
   goal_amount: number; // in cents
   current_amount: number; // in cents
   currency: string;
-  start_date: string;
-  end_date: string;
+  start_date: FirebaseFirestoreTypes.Timestamp;
+  end_date: FirebaseFirestoreTypes.Timestamp;
   status: 'active' | 'completed' | 'paused';
   image_url?: string;
   is_visible_in_app: boolean;

@@ -68,7 +68,7 @@ export interface EventCategory {
 // NEW: Event Categories Config (for Firestore document)
 export interface EventCategoriesConfig {
   categories: EventCategory[];
-  updated_at: string;
+  updated_at: FirebaseFirestoreTypes.Timestamp;
 }
 
 // Event
@@ -76,7 +76,7 @@ export interface Event {
   id: string;
   title: string;
   description: string;
-  date: string; // YYYY-MM-DD format
+  date: FirebaseFirestoreTypes.Timestamp;
   time: string; // e.g., "7:00 PM"
   location?: string;
   category: string; // CHANGED: from union type to string
@@ -86,8 +86,8 @@ export interface Event {
   rsvp_limit?: number;
   rsvp_count?: number;
   is_active: boolean;
-  created_at?: string;
-  updated_at?: string;
+  created_at?: FirebaseFirestoreTypes.Timestamp;
+  updated_at?: FirebaseFirestoreTypes.Timestamp;
 }
 
 // Component Props Types
