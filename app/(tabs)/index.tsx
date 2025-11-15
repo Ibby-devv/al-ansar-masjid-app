@@ -78,13 +78,25 @@ export default function HomeScreen(): React.JSX.Element {
     }
   };
 
+  // Helper to get start of day for accurate date-only comparisons
+  const getStartOfDay = (date: Date): Date => {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  };
+
   const isStale = (() => {
-    const today = new Date().toISOString().split('T')[0];
     const last = prayerTimes?.last_updated || mosqueSettings?.last_updated;
     if (!last) return false;
+    
     // Only consider stale if last_updated is before today (not just different)
-    const lastDateStr = last.toDate().toISOString().split('T')[0];
-    return lastDateStr < today;
+    // Use proper date comparison instead of string comparison
+    const lastDate = last.toDate();
+    const today = new Date();
+    
+    // Set both to start of day for accurate day comparison
+    const lastDateStartOfDay = getStartOfDay(lastDate);
+    const todayStartOfDay = getStartOfDay(today);
+    
+    return lastDateStartOfDay.getTime() < todayStartOfDay.getTime();
   })();
 
   // Jumu'ah times don't change daily, so we don't check staleness

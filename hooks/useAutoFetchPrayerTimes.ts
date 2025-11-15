@@ -11,6 +11,11 @@ export const useAutoFetchPrayerTimes = (
   const [isFetching, setIsFetching] = useState(false);
   const [lastFetchAttempt, setLastFetchAttempt] = useState<string | null>(null);
 
+  // Helper to get start of day for accurate date-only comparisons
+  const getStartOfDay = (date: Date): Date => {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  };
+
   useEffect(() => {
     // Only run if we have the necessary data
     if (!prayerTimes || !mosqueSettings) return;
@@ -28,10 +33,12 @@ export const useAutoFetchPrayerTimes = (
   const checkIfShouldFetchPrayerTimes = (): boolean => {
     if (!prayerTimes) return false;
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    const todayStartOfDay = getStartOfDay(today);
+    const todayDateStr = today.toISOString().split('T')[0];
     
     // Don't fetch if we already tried today
-    if (lastFetchAttempt === today) {
+    if (lastFetchAttempt === todayDateStr) {
       return false;
     }
 
@@ -39,9 +46,11 @@ export const useAutoFetchPrayerTimes = (
     const lastUpdate = prayerTimes.last_updated;
     
     if (lastUpdate) {
-      // Convert Timestamp to YYYY-MM-DD for comparison
-      const lastUpdateDate = lastUpdate.toDate().toISOString().split('T')[0];
-      if (lastUpdateDate === today) {
+      // Use proper date comparison instead of string comparison
+      const lastUpdateDate = lastUpdate.toDate();
+      const lastUpdateStartOfDay = getStartOfDay(lastUpdateDate);
+      
+      if (lastUpdateStartOfDay.getTime() >= todayStartOfDay.getTime()) {
         console.log('Prayer times already updated today');
         return false;
       }
