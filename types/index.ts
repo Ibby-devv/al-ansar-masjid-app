@@ -1,4 +1,5 @@
 // Firebase Data Types
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
 export interface PrayerTimes {
   fajr_adhan: string;
@@ -26,7 +27,7 @@ export interface PrayerTimes {
   isha_iqama_type: 'fixed' | 'offset';
   isha_iqama_offset?: number;
   
-  last_updated?: string;
+  last_updated?: FirebaseFirestoreTypes.Timestamp;
 }
 
 export interface JumuahTime {
@@ -36,7 +37,7 @@ export interface JumuahTime {
 
 export interface JumuahTimes {
   times: JumuahTime[];
-  last_updated?: string;
+  last_updated?: FirebaseFirestoreTypes.Timestamp;
 }
 
 export interface MosqueSettings {
@@ -52,7 +53,7 @@ export interface MosqueSettings {
   longitude?: number;
   calculation_method?: 'MuslimWorldLeague' | 'Egyptian' | 'Karachi' | 'UmmAlQura' | 'Dubai' | 'MoonsightingCommittee' | 'NorthAmerica' | 'Kuwait' | 'Qatar' | 'Singapore' | 'Tehran' | 'Turkey';
   auto_fetch_maghrib?: boolean;
-  last_updated?: string;
+  last_updated?: FirebaseFirestoreTypes.Timestamp;
 }
 
 export interface EventCategory {

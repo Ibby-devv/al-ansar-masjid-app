@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import PatternOverlay from "../../components/PatternOverlay";
 import NextBanner from "../../components/ui/NextBanner";
 import PillToggle from "../../components/ui/PillToggle";
@@ -45,11 +46,18 @@ export default function HomeScreen(): React.JSX.Element {
   // Load data from Firebase using custom hooks
   const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating } = useFirebaseData();
 
-  // Staleness check based on last_updated date (YYYY-MM-DD)
-  const formatDmy = (ymd?: string): string | null => {
-    if (!ymd || !/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return null;
-    const [y, m, d] = ymd.split('-');
-    return `${d}-${m}-${y}`;
+  // Staleness check based on last_updated Timestamp
+  const formatDmy = (timestamp?: FirebaseFirestoreTypes.Timestamp): string | null => {
+    if (!timestamp) return null;
+    try {
+      const date = timestamp.toDate();
+      const d = String(date.getDate()).padStart(2, '0');
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const y = date.getFullYear();
+      return `${d}-${m}-${y}`;
+    } catch {
+      return null;
+    }
   };
 
   const isStale = (() => {
@@ -57,7 +65,8 @@ export default function HomeScreen(): React.JSX.Element {
     const last = prayerTimes?.last_updated || mosqueSettings?.last_updated;
     if (!last) return false;
     // Only consider stale if last_updated is before today (not just different)
-    return last < today;
+    const lastDateStr = last.toDate().toISOString().split('T')[0];
+    return lastDateStr < today;
   })();
 
   // Jumu'ah times don't change daily, so we don't check staleness

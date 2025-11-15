@@ -112,7 +112,7 @@ export default function HistoryTab() {
             {donation.donation_type_label || "General Donation"}
           </Text>
           <Text style={styles.donationDate}>
-           {donation.date || formatDate(donation.created_at)}
+           {formatDate(donation.date || donation.created_at)}
           </Text>
         </View>
         <Text style={styles.donationAmount}>

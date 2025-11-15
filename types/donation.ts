@@ -3,6 +3,8 @@
 // Location: src/types/donation.ts
 // ============================================================================
 
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+
 export interface DonationType {
   id: string;
   label: string;
@@ -48,7 +50,7 @@ export interface Donation {
   frequency?: string;
   status?: string
   payment_status: 'succeeded' | 'pending' | 'failed';
-  date: string;
+  date: FirebaseFirestoreTypes.Timestamp;
   created_at: any;
   stripe_receipt_url?: string | null;
 }

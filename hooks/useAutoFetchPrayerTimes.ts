@@ -1,5 +1,6 @@
 import { PrayerTimes as AdhanPrayerTimes, CalculationMethod, Coordinates } from 'adhan';
 import { useEffect, useState } from 'react';
+import firestore from '@react-native-firebase/firestore';
 import { db } from '../firebase';
 import { MosqueSettings, PrayerTimes } from '../types';
 
@@ -37,9 +38,13 @@ export const useAutoFetchPrayerTimes = (
     // Check if prayer times were already updated today
     const lastUpdate = prayerTimes.last_updated;
     
-    if (lastUpdate === today) {
-      console.log('Prayer times already updated today');
-      return false;
+    if (lastUpdate) {
+      // Convert Timestamp to YYYY-MM-DD for comparison
+      const lastUpdateDate = lastUpdate.toDate().toISOString().split('T')[0];
+      if (lastUpdateDate === today) {
+        console.log('Prayer times already updated today');
+        return false;
+      }
     }
 
     return true;
@@ -101,7 +106,7 @@ export const useAutoFetchPrayerTimes = (
         asr_adhan: formatTime(adhanPrayerTimes.asr),
         maghrib_adhan: formatTime(adhanPrayerTimes.maghrib),
         isha_adhan: formatTime(adhanPrayerTimes.isha),
-        last_updated: today
+        last_updated: firestore.Timestamp.now()
       };
 
       await db
