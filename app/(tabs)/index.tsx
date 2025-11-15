@@ -60,6 +60,24 @@ export default function HomeScreen(): React.JSX.Element {
     }
   };
 
+  // Format timestamp with both date and time for better context
+  const formatDateTimeDisplay = (timestamp?: FirebaseFirestoreTypes.Timestamp): string | null => {
+    if (!timestamp) return null;
+    try {
+      const date = timestamp.toDate();
+      const d = String(date.getDate()).padStart(2, '0');
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const y = date.getFullYear();
+      const hours = date.getHours();
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      return `${d}-${m}-${y} at ${displayHours}:${minutes} ${ampm}`;
+    } catch {
+      return null;
+    }
+  };
+
   const isStale = (() => {
     const today = new Date().toISOString().split('T')[0];
     const last = prayerTimes?.last_updated || mosqueSettings?.last_updated;
@@ -317,7 +335,7 @@ export default function HomeScreen(): React.JSX.Element {
             {!updating && isStale && (
               <View style={styles.staleBanner}>
                 <Text style={styles.staleBannerText}>
-                  Prayer times last updated on {formatDmy(prayerTimes?.last_updated || mosqueSettings?.last_updated) || 'a previous day'}.
+                  Prayer times last updated on {formatDateTimeDisplay(prayerTimes?.last_updated || mosqueSettings?.last_updated) || 'a previous day'}.
                 </Text>
               </View>
             )}

@@ -84,10 +84,14 @@ export default function HistoryTab() {
         return "N/A";
       }
 
+      // Format with date and time for better context
       return date.toLocaleDateString("en-AU", {
         day: "numeric",
         month: "short",
         year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
       });
     } catch (error) {
       console.error("Error formatting date:", error, timestamp);
