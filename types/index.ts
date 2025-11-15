@@ -1,4 +1,5 @@
 // Firebase Data Types
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
 export interface PrayerTimes {
   fajr_adhan: string;
@@ -26,7 +27,7 @@ export interface PrayerTimes {
   isha_iqama_type: 'fixed' | 'offset';
   isha_iqama_offset?: number;
   
-  last_updated?: string;
+  last_updated?: FirebaseFirestoreTypes.Timestamp;
 }
 
 export interface JumuahTime {
@@ -36,7 +37,7 @@ export interface JumuahTime {
 
 export interface JumuahTimes {
   times: JumuahTime[];
-  last_updated?: string;
+  last_updated?: FirebaseFirestoreTypes.Timestamp;
 }
 
 export interface MosqueSettings {
@@ -52,7 +53,7 @@ export interface MosqueSettings {
   longitude?: number;
   calculation_method?: 'MuslimWorldLeague' | 'Egyptian' | 'Karachi' | 'UmmAlQura' | 'Dubai' | 'MoonsightingCommittee' | 'NorthAmerica' | 'Kuwait' | 'Qatar' | 'Singapore' | 'Tehran' | 'Turkey';
   auto_fetch_maghrib?: boolean;
-  last_updated?: string;
+  last_updated?: FirebaseFirestoreTypes.Timestamp;
 }
 
 export interface EventCategory {
@@ -67,7 +68,7 @@ export interface EventCategory {
 // NEW: Event Categories Config (for Firestore document)
 export interface EventCategoriesConfig {
   categories: EventCategory[];
-  updated_at: string;
+  updated_at: FirebaseFirestoreTypes.Timestamp;
 }
 
 // Event
@@ -75,7 +76,7 @@ export interface Event {
   id: string;
   title: string;
   description: string;
-  date: string; // YYYY-MM-DD format
+  date: FirebaseFirestoreTypes.Timestamp;
   time: string; // e.g., "7:00 PM"
   location?: string;
   category: string; // CHANGED: from union type to string
@@ -85,8 +86,8 @@ export interface Event {
   rsvp_limit?: number;
   rsvp_count?: number;
   is_active: boolean;
-  created_at?: string;
-  updated_at?: string;
+  created_at?: FirebaseFirestoreTypes.Timestamp;
+  updated_at?: FirebaseFirestoreTypes.Timestamp;
 }
 
 // Component Props Types

@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, SectionList, StatusBar, StyleSheet, Text, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import PatternOverlay from '../../components/PatternOverlay';
 import Badge from '../../components/ui/Badge';
 import Card from '../../components/ui/Card';
@@ -23,10 +24,10 @@ export default function EventsScreen(): React.JSX.Element {
   const { categories, loading: categoriesLoading } = useEventCategories();  // ✅ NEW: Load categories
   const { mosqueSettings } = useFirebaseData();
 
-  // Format event date
-  const formatEventDate = (dateString: string): string => {
+  // Format event date from Timestamp
+  const formatEventDate = (timestamp: FirebaseFirestoreTypes.Timestamp): string => {
     try {
-      const date = new Date(dateString);
+      const date = timestamp.toDate();
       return date.toLocaleDateString('en-US', {
         weekday: 'short',
         month: 'short',
@@ -34,13 +35,13 @@ export default function EventsScreen(): React.JSX.Element {
         year: 'numeric'
       });
     } catch {
-      return dateString;
+      return 'Invalid date';
     }
   };
 
   // Helpers for prominent date display and relative badges
-  const getDateParts = (dateString: string) => {
-    const d = new Date(dateString);
+  const getDateParts = (timestamp: FirebaseFirestoreTypes.Timestamp) => {
+    const d = timestamp.toDate();
     const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
     const month = d.toLocaleDateString('en-US', { month: 'short' });
     const day = d.getDate();
@@ -49,9 +50,9 @@ export default function EventsScreen(): React.JSX.Element {
 
   const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
-  const getRelativeBadge = (dateString: string): { label: string; bg: string; text: string } | null => {
+  const getRelativeBadge = (timestamp: FirebaseFirestoreTypes.Timestamp): { label: string; bg: string; text: string } | null => {
     try {
-      const eventDate = startOfDay(new Date(dateString));
+      const eventDate = startOfDay(timestamp.toDate());
       const today = startOfDay(new Date());
       const msInDay = 24 * 60 * 60 * 1000;
       const diffDays = Math.round((eventDate.getTime() - today.getTime()) / msInDay);

@@ -1,6 +1,7 @@
 // masjid-app/hooks/useEvents.ts - React Native Firebase version
 
 import { useState, useEffect } from 'react';
+import firestore from '@react-native-firebase/firestore';
 import { db } from '../firebase';
 import { Event } from '../types';
 
@@ -23,27 +24,21 @@ export const useEvents = (): UseEventsReturn => {
     try {
       setError(null);
 
-      // Get today's date in Sydney timezone (YYYY-MM-DD format)
-      const getSydneyDate = (): string => {
-        const sydneyDate = new Date().toLocaleString('en-AU', {
-          timeZone: 'Australia/Sydney',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-        });
-        // Convert DD/MM/YYYY to YYYY-MM-DD
-        const [day, month, year] = sydneyDate.split('/');
-        return `${year}-${month}-${day}`;
+      // Get today's start of day as Firestore Timestamp for comparison
+      const getTodayStartTimestamp = (): firestore.Timestamp => {
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        return firestore.Timestamp.fromDate(startOfToday);
       };
 
-      const today = getSydneyDate();
-      console.log('Fetching events from date:', today);
+      const todayTimestamp = getTodayStartTimestamp();
+      console.log('Fetching events from date:', todayTimestamp.toDate());
 
       // Real-time listener for active upcoming events only
       unsubscribe = db
         .collection('events')
         .where('is_active', '==', true)
-        .where('date', '>=', today)
+        .where('date', '>=', todayTimestamp)
         .orderBy('date', 'asc')
         .orderBy('time', 'asc')
         .onSnapshot(

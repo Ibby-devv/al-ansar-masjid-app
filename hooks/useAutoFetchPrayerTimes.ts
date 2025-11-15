@@ -1,5 +1,6 @@
 import { PrayerTimes as AdhanPrayerTimes, CalculationMethod, Coordinates } from 'adhan';
 import { useEffect, useState } from 'react';
+import firestore from '@react-native-firebase/firestore';
 import { db } from '../firebase';
 import { MosqueSettings, PrayerTimes } from '../types';
 
@@ -9,6 +10,11 @@ export const useAutoFetchPrayerTimes = (
 ) => {
   const [isFetching, setIsFetching] = useState(false);
   const [lastFetchAttempt, setLastFetchAttempt] = useState<string | null>(null);
+
+  // Helper to get start of day for accurate date-only comparisons
+  const getStartOfDay = (date: Date): Date => {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  };
 
   useEffect(() => {
     // Only run if we have the necessary data
@@ -27,19 +33,27 @@ export const useAutoFetchPrayerTimes = (
   const checkIfShouldFetchPrayerTimes = (): boolean => {
     if (!prayerTimes) return false;
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date();
+    const todayStartOfDay = getStartOfDay(today);
+    const todayDateStr = today.toISOString().split('T')[0];
     
     // Don't fetch if we already tried today
-    if (lastFetchAttempt === today) {
+    if (lastFetchAttempt === todayDateStr) {
       return false;
     }
 
     // Check if prayer times were already updated today
     const lastUpdate = prayerTimes.last_updated;
     
-    if (lastUpdate === today) {
-      console.log('Prayer times already updated today');
-      return false;
+    if (lastUpdate) {
+      // Use proper date comparison instead of string comparison
+      const lastUpdateDate = lastUpdate.toDate();
+      const lastUpdateStartOfDay = getStartOfDay(lastUpdateDate);
+      
+      if (lastUpdateStartOfDay.getTime() >= todayStartOfDay.getTime()) {
+        console.log('Prayer times already updated today');
+        return false;
+      }
     }
 
     return true;
@@ -101,7 +115,7 @@ export const useAutoFetchPrayerTimes = (
         asr_adhan: formatTime(adhanPrayerTimes.asr),
         maghrib_adhan: formatTime(adhanPrayerTimes.maghrib),
         isha_adhan: formatTime(adhanPrayerTimes.isha),
-        last_updated: today
+        last_updated: firestore.Timestamp.now()
       };
 
       await db
