@@ -73,6 +73,19 @@ export const useHeading = () => {
     // Start listening to heading updates
     const startListening = async () => {
       try {
+        // Request location permission for true heading support
+        // Without permission, watchHeadingAsync will only provide magnetic heading
+        let { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          const req = await Location.requestForegroundPermissionsAsync();
+          status = req.status;
+        }
+
+        if (!isMounted) return;
+
+        // Note: We continue even without permission, but will only get magnetic heading
+        // The heading callback will check trueHeading >= 0 to determine which to use
+
         // Subscribe to heading updates
         const subscription = await Location.watchHeadingAsync((headingData) => {
           if (!isMounted || !smootherRef.current) return;
