@@ -46,19 +46,6 @@ export default function HomeScreen(): React.JSX.Element {
   // Load data from Firebase using custom hooks
   const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating } = useFirebaseData();
 
-  // Staleness check based on last_updated Timestamp
-  const formatDmy = (timestamp?: FirebaseFirestoreTypes.Timestamp): string | null => {
-    if (!timestamp) return null;
-    try {
-      const date = timestamp.toDate();
-      const d = String(date.getDate()).padStart(2, '0');
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const y = date.getFullYear();
-      return `${d}-${m}-${y}`;
-    } catch {
-      return null;
-    }
-  };
 
   // Format timestamp with both date and time for better context
   const formatDateTimeDisplay = (timestamp?: FirebaseFirestoreTypes.Timestamp): string | null => {
