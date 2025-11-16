@@ -94,10 +94,10 @@ export const COMPASS_CONFIG: CompassConfig = {
 
   // Heading Correction (adjust if your device reports reversed axes)
   headingOffsetDegrees: 0,
-  invertHeading: true,
+  invertHeading: false,
 
   // Instruction Direction
-  invertInstruction: true,
+  invertInstruction: false,
 };
 
 /**

@@ -1,6 +1,7 @@
 import { ThemedText } from '@/components/themed-text';
 import { FontFamily } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef, useState } from 'react';
 import { Linking, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -9,8 +10,8 @@ import { CompassView } from '../../components/QiblaCompass/components/CompassVie
 import { DebugOverlay } from '../../components/QiblaCompass/components/DebugOverlay';
 import { COMPASS_CONFIG } from '../../components/QiblaCompass/config/compassConfig';
 import { useDeviceMotion } from '../../components/QiblaCompass/hooks/useDeviceMotion';
+import { useHeading } from '../../components/QiblaCompass/hooks/useHeading';
 import { useLocation } from '../../components/QiblaCompass/hooks/useLocation';
-import { useMagnetometer } from '../../components/QiblaCompass/hooks/useMagnetometer';
 import { usePlacename } from '../../components/QiblaCompass/hooks/usePlacename';
 import { useQiblaDirection } from '../../components/QiblaCompass/hooks/useQiblaDirection';
 import { getShortestAngle, isWithinTolerance } from '../../components/QiblaCompass/utils/angleUtils';
@@ -22,9 +23,10 @@ const MUTED = 'rgba(255,255,255,0.6)';
 const TOLERANCE = 10; // degrees
 
 export default function QiblaScreen(): React.JSX.Element {
+  const isFocused = useIsFocused();
   const { coordinates, isLoading, error, hasPermission, retry } = useLocation();
   const { name: place } = usePlacename(coordinates);
-  const { data: mag, isAvailable, error: magError } = useMagnetometer();
+  const { data: heading, isAvailable, error: headingError } = useHeading();
   const { direction: qiblaDirection, isValid } = useQiblaDirection(coordinates);
   const { data: motion } = useDeviceMotion();
 
@@ -35,22 +37,30 @@ export default function QiblaScreen(): React.JSX.Element {
   const lowSinceRef = useRef<number | null>(null);
   const snoozedUntilRef = useRef<number | null>(null);
 
-  const heading = mag?.heading ?? 0;
-  const diff = getShortestAngle(heading, qiblaDirection);
-  const aligned = isWithinTolerance(heading, qiblaDirection, TOLERANCE);
+  const headingValue = heading?.heading ?? 0;
+  const diff = getShortestAngle(headingValue, qiblaDirection);
+  const aligned = isWithinTolerance(headingValue, qiblaDirection, TOLERANCE);
   const baseTurnLeft = diff < -TOLERANCE;
   const baseTurnRight = diff > TOLERANCE;
   const turnLeft = COMPASS_CONFIG.invertInstruction ? baseTurnRight : baseTurnLeft;
   const turnRight = COMPASS_CONFIG.invertInstruction ? baseTurnLeft : baseTurnRight;
 
   // Haptic feedback when transitioning into aligned state
+  // Only trigger when screen is focused to prevent haptics after navigation
   const prevAligned = useRef<boolean>(false);
   useEffect(() => {
-    if (aligned && !prevAligned.current) {
+    if (isFocused && aligned && !prevAligned.current) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     }
     prevAligned.current = aligned;
-  }, [aligned]);
+  }, [aligned, isFocused]);
+
+  // Reset alignment state when screen loses focus
+  useEffect(() => {
+    if (!isFocused) {
+      prevAligned.current = false;
+    }
+  }, [isFocused]);
 
   // Cleanup any pending hold timers on unmount
   useEffect(() => {
@@ -91,7 +101,7 @@ export default function QiblaScreen(): React.JSX.Element {
       lowSinceRef.current = null;
       return;
     }
-    const conf = mag?.confidence;
+    const conf = heading?.confidence;
     if (conf === undefined) return;
     const threshold = COMPASS_CONFIG.confidenceLowThreshold ?? 0.5;
     const duration = COMPASS_CONFIG.lowConfidenceMinDurationMs ?? 3000;
@@ -111,7 +121,7 @@ export default function QiblaScreen(): React.JSX.Element {
       lowSinceRef.current = null;
       setShowAccuracyHint(false);
     }
-  }, [mag?.confidence, showAccuracyHint]);
+  }, [heading?.confidence, showAccuracyHint]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -140,17 +150,34 @@ export default function QiblaScreen(): React.JSX.Element {
       {/* Debug Overlay */}
       {showDebug && (
         <DebugOverlay
-          rawHeading={mag?.rawHeading}
-          smoothedHeading={heading}
+          rawHeading={heading?.rawHeading}
+          smoothedHeading={headingValue}
           qiblaDirection={qiblaDirection}
-          rotation={qiblaDirection - heading}
-          accuracy={mag?.accuracy}
-          confidence={mag?.confidence}
-          magnitude={mag?.magnitude}
-          lowConfidence={mag?.lowConfidence}
-          isCalibrated={mag?.accuracy ? mag.accuracy > 0.5 : undefined}
+          rotation={qiblaDirection - headingValue}
+          accuracy={heading?.accuracy}
+          confidence={heading?.confidence}
+          magnitude={undefined}
+          lowConfidence={heading?.lowConfidence}
+          isCalibrated={heading?.accuracy ? heading.accuracy > 0.5 : undefined}
           pitch={motion?.pitch}
           roll={motion?.roll}
+          magHeading={heading?.magHeading}
+          trueHeading={heading?.trueHeading}
+          magneticDeclination={
+            heading?.trueHeading !== undefined && 
+            heading?.trueHeading >= 0 && 
+            heading?.magHeading !== undefined
+              ? getShortestAngle(heading.trueHeading, heading.magHeading)
+              : undefined
+          }
+          latitude={coordinates?.latitude}
+          longitude={coordinates?.longitude}
+          differenceFromQibla={diff}
+          headingSource={
+            heading?.trueHeading !== undefined && heading?.trueHeading >= 0
+              ? 'True (GPS-corrected)'
+              : 'Magnetic (fallback)'
+          }
           forceVisible={true}
           onClose={() => setShowDebug(false)}
         />
@@ -203,16 +230,16 @@ export default function QiblaScreen(): React.JSX.Element {
       {error && (
   <TouchableOpacity onPress={retry} style={styles.stateBox}><ThemedText style={styles.stateText}>{error} • Tap to retry</ThemedText></TouchableOpacity>
       )}
-      {!isAvailable && magError && (
-  <View style={styles.stateBox}><ThemedText style={styles.stateText}>{magError}</ThemedText></View>
+      {!isAvailable && headingError && (
+  <View style={styles.stateBox}><ThemedText style={styles.stateText}>{headingError}</ThemedText></View>
       )}
 
       {/* Compass */}
-      {isValid && mag && (
+      {isValid && heading && (
         <View style={styles.compassArea}>
           <CompassView
             qiblaDirection={qiblaDirection}
-            currentHeading={heading}
+            currentHeading={headingValue}
             isAligned={aligned}
             showInstruction={false}
             theme={{
@@ -229,7 +256,7 @@ export default function QiblaScreen(): React.JSX.Element {
       )}
 
       {/* Instruction */}
-      {isValid && mag && (
+      {isValid && heading && (
         <View style={styles.instructionRow}>
           {aligned ? (
             <ThemedText style={[styles.instructionText, styles.instructionAligned]}>You&apos;re facing Makkah</ThemedText>
