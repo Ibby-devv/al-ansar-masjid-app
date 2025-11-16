@@ -57,5 +57,6 @@ Provides device pitch/roll for advanced features (future use).
 
 ## Permissions Required
 
-- **Location (foreground)**: Required for GPS coordinates and magnetic declination correction
-- Both features are needed for accurate Qibla direction
+- **Location (foreground)**: Required for two purposes:
+  - Getting GPS coordinates to calculate direction to Makkah
+  - Enabling magnetic declination correction for accurate heading
