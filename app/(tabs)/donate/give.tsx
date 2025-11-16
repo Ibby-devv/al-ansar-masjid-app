@@ -24,6 +24,7 @@ import { SafeAreaView } from "react-native-safe-area-context"; // Import custom 
 import CampaignCard from "../../../components/CampaignCard";
 import DonationErrorModal, { DonationError } from "../../../components/DonationErrorModal";
 import DonationSuccessModal from "../../../components/DonationSuccessModal";
+import EmptyState from "../../../components/EmptyState";
 import GeneralDonationCard from "../../../components/GeneralDonationCard";
 import { Theme } from "../../../constants/theme";
 import { Campaign, useCampaigns } from "../../../hooks/useCampaigns";
@@ -339,9 +340,18 @@ export default function GiveTab(): React.JSX.Element | null {
     );
   }
 
-  // Guard clause - should never happen after loading
-  if (!settings) {
-    return null;
+  // Show empty state when no settings data available after loading
+  if (!loading && !settings) {
+    return (
+      <SafeAreaView style={styles.container} edges={["bottom"]}>
+        <StatusBar barStyle="dark-content" />
+        <EmptyState
+          variant="offline"
+          title="Unable to Load Donation Settings"
+          message="Please check your internet connection and try again. Donation options will appear when you're back online."
+        />
+      </SafeAreaView>
+    );
   }
 
   // Check if we should show campaigns view or donation form
