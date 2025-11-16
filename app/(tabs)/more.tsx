@@ -14,7 +14,7 @@ import { Theme } from '../../constants/theme';
 import { useFirebaseData } from '../../hooks/useFirebaseData';
 
 export default function MoreScreen(): React.JSX.Element {
-  const { mosqueSettings, loading } = useFirebaseData();
+  const { mosqueSettings, loading, error } = useFirebaseData();
   // App version info (marketing version + build number)
   const appVersion = DeviceInfo.getVersion();
   const buildNumber = DeviceInfo.getBuildNumber();
@@ -166,10 +166,10 @@ export default function MoreScreen(): React.JSX.Element {
           {/* Show empty state when no mosque settings available after loading */}
           {!loading && !mosqueSettings ? (
             <EmptyState
-              variant="offline"
+              variant={error ? "error" : "offline"}
               icon="information-circle-outline"
               title="Mosque Information Unavailable"
-              message="Please check your internet connection and try again. Mosque details will appear when you're back online."
+              message={error || "Please check your internet connection and try again. Mosque details will appear when you're back online."}
             />
           ) : mosqueSettings ? (
             <>

@@ -45,7 +45,7 @@ export default function HomeScreen(): React.JSX.Element {
   const [activeView, setActiveView] = useState<ViewType>("prayer");
 
   // Load data from Firebase using custom hooks
-  const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating } = useFirebaseData();
+  const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating, error } = useFirebaseData();
 
 
   // Format timestamp with both date and time for better context
@@ -344,10 +344,10 @@ export default function HomeScreen(): React.JSX.Element {
             )}
             {!loading && !prayerTimes ? (
               <EmptyState
-                variant="offline"
+                variant={error ? "error" : "offline"}
                 icon="time-outline"
                 title="Prayer Times Unavailable"
-                message="Please check your internet connection and pull down to refresh. Prayer times will appear when you're back online."
+                message={error || "Please check your internet connection and pull down to refresh. Prayer times will appear when you're back online."}
               />
             ) : (
             <View style={styles.prayerTableCard}>
@@ -433,10 +433,10 @@ export default function HomeScreen(): React.JSX.Element {
               ))
             ) : !jumuahTimes ? (
               <EmptyState
-                variant="offline"
+                variant={error ? "error" : "offline"}
                 icon="calendar-outline"
                 title="Jumu'ah Times Unavailable"
-                message="Please check your internet connection and pull down to refresh. Jumu'ah times will appear when you're back online."
+                message={error || "Please check your internet connection and pull down to refresh. Jumu'ah times will appear when you're back online."}
               />
             ) : (
               jumuahTimes.times.map((time, index) => (

@@ -34,7 +34,7 @@ import { DonationFormData } from "../../../types/donation";
 
 export default function GiveTab(): React.JSX.Element | null {
   const { mosqueSettings } = useFirebaseData();
-  const { campaigns, loading: campaignsLoading } = useCampaigns();
+  const { campaigns } = useCampaigns();
   const { settings, loading, error, createDonation, createSubscription } =
     useDonation();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
@@ -346,9 +346,9 @@ export default function GiveTab(): React.JSX.Element | null {
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <StatusBar barStyle="dark-content" />
         <EmptyState
-          variant="offline"
+          variant={error ? "error" : "offline"}
           title="Unable to Load Donation Settings"
-          message="Please check your internet connection and try again. Donation options will appear when you're back online."
+          message={error || "Please check your internet connection and try again. Donation options will appear when you're back online."}
         />
       </SafeAreaView>
     );
