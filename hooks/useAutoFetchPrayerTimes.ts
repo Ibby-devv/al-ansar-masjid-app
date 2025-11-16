@@ -9,7 +9,7 @@ export const useAutoFetchPrayerTimes = (
   mosqueSettings: MosqueSettings | null
 ) => {
   const [isFetching, setIsFetching] = useState(false);
-  const [lastFetchAttempt, setLastFetchAttempt] = useState<string | null>(null);
+  const [lastFetchAttempt, setLastFetchAttempt] = useState<Date | null>(null);
 
   // Helper to get start of day for accurate date-only comparisons
   const getStartOfDay = (date: Date): Date => {
@@ -35,11 +35,13 @@ export const useAutoFetchPrayerTimes = (
 
     const today = new Date();
     const todayStartOfDay = getStartOfDay(today);
-    const todayDateStr = today.toISOString().split('T')[0];
     
-    // Don't fetch if we already tried today
-    if (lastFetchAttempt === todayDateStr) {
-      return false;
+    // Don't fetch if we already tried today (use proper date comparison)
+    if (lastFetchAttempt) {
+      const lastAttemptStartOfDay = getStartOfDay(lastFetchAttempt);
+      if (lastAttemptStartOfDay.getTime() === todayStartOfDay.getTime()) {
+        return false;
+      }
     }
 
     // Check if prayer times were already updated today
@@ -63,8 +65,7 @@ export const useAutoFetchPrayerTimes = (
     if (isFetching || !mosqueSettings) return;
 
     setIsFetching(true);
-    const today = new Date().toISOString().split('T')[0];
-    setLastFetchAttempt(today);
+    setLastFetchAttempt(new Date());
 
     try {
       console.log('🕌 Auto-calculating prayer times using adhan package...');
