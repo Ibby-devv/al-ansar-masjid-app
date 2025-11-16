@@ -7,13 +7,14 @@ import DeviceInfo from 'react-native-device-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PatternOverlay from '../../components/PatternOverlay';
 import InstagramIcon from '../../components/ui/InstagramIcon';
+import EmptyState from '../../components/EmptyState';
 import { Theme } from '../../constants/theme';
 
 // Import custom hooks
 import { useFirebaseData } from '../../hooks/useFirebaseData';
 
 export default function MoreScreen(): React.JSX.Element {
-  const { mosqueSettings } = useFirebaseData();
+  const { mosqueSettings, loading, error } = useFirebaseData();
   // App version info (marketing version + build number)
   const appVersion = DeviceInfo.getVersion();
   const buildNumber = DeviceInfo.getBuildNumber();
@@ -162,12 +163,22 @@ export default function MoreScreen(): React.JSX.Element {
       <ScrollView style={styles.scrollView}>
         {/* Content */}
         <View style={styles.contentContainer}>
-          {/* About Section */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>About</Text>
-              <Text style={styles.sectionSubtitle}>Masjid details and contact</Text>
-            </View>
+          {/* Show empty state when no mosque settings available after loading */}
+          {!loading && !mosqueSettings ? (
+            <EmptyState
+              variant={error ? "error" : "offline"}
+              icon="information-circle-outline"
+              title="Mosque Information Unavailable"
+              message={error || "Please check your internet connection and try again. Mosque details will appear when you're back online."}
+            />
+          ) : mosqueSettings ? (
+            <>
+              {/* About Section */}
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>About</Text>
+                  <Text style={styles.sectionSubtitle}>Masjid details and contact</Text>
+                </View>
             
             {mosqueSettings?.address && (
               <TouchableOpacity 
@@ -289,8 +300,10 @@ export default function MoreScreen(): React.JSX.Element {
               )}
             </View>
           )}
+            </>
+          ) : null}
 
-          {/* App Info Section */}
+          {/* App Info Section - Always visible */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>App Information</Text>

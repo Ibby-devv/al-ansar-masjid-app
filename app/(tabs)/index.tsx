@@ -20,6 +20,7 @@ import UpdatingBanner from "../../components/ui/UpdatingBanner";
 
 // Import custom components
 import LoadingScreen from "../../components/LoadingScreen";
+import EmptyState from "../../components/EmptyState";
 
 // Import custom hooks
 import { useFirebaseData } from "../../hooks/useFirebaseData";
@@ -44,7 +45,7 @@ export default function HomeScreen(): React.JSX.Element {
   const [activeView, setActiveView] = useState<ViewType>("prayer");
 
   // Load data from Firebase using custom hooks
-  const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating } = useFirebaseData();
+  const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating, error } = useFirebaseData();
 
 
   // Format timestamp with both date and time for better context
@@ -331,7 +332,7 @@ export default function HomeScreen(): React.JSX.Element {
         {activeView === "prayer" && (
           <View style={styles.prayerCardsContainer}>
             {/* Staleness banner when data is old AND we're not currently updating */}
-            {!updating && isStale && (
+            {!updating && isStale && prayerTimes && (
               <View style={styles.staleBanner}>
                 <Text style={styles.staleBannerText}>
                   Prayer times last updated on {formatDateTimeDisplay(prayerTimes?.last_updated || mosqueSettings?.last_updated) || 'a previous day'}.
@@ -341,6 +342,14 @@ export default function HomeScreen(): React.JSX.Element {
             {nextPrayer && (
               <NextBanner text={`Next: ${nextPrayer.name} in ${nextPrayer.timeRemaining}`} />
             )}
+            {!loading && !prayerTimes ? (
+              <EmptyState
+                variant={error ? "error" : "offline"}
+                icon="time-outline"
+                title="Prayer Times Unavailable"
+                message={error || "Please check your internet connection and pull down to refresh. Prayer times will appear when you're back online."}
+              />
+            ) : (
             <View style={styles.prayerTableCard}>
               <View style={[styles.tableRow, styles.tableHeaderRow, styles.tableRowDivider]}>
                 <View style={styles.rowLeft} />
@@ -394,6 +403,7 @@ export default function HomeScreen(): React.JSX.Element {
               })
               )}
             </View>
+            )}
             {/* Show subtle updating indicator below the table */}
             {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
               <View style={styles.updatingContainer}>
@@ -404,7 +414,7 @@ export default function HomeScreen(): React.JSX.Element {
         )}
 
         {/* Jumu'ah Times View */}
-        {activeView === "jumuah" && jumuahTimes && (
+        {activeView === "jumuah" && (
           <View style={styles.jumuahCardsContainer}>
             {/* No staleness banner for Jumu'ah - times don't change daily */}
             {/* Skeleton cards only when loading and NO cached data */}
@@ -421,6 +431,13 @@ export default function HomeScreen(): React.JSX.Element {
                   </View>
                 </View>
               ))
+            ) : !jumuahTimes ? (
+              <EmptyState
+                variant={error ? "error" : "offline"}
+                icon="calendar-outline"
+                title="Jumu'ah Times Unavailable"
+                message={error || "Please check your internet connection and pull down to refresh. Jumu'ah times will appear when you're back online."}
+              />
             ) : (
               jumuahTimes.times.map((time, index) => (
                 <View key={time.id} style={styles.jumuahCard}>
