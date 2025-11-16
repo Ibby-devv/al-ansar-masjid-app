@@ -86,7 +86,7 @@ export default function EventsScreen(): React.JSX.Element {
       ? upcomingEvents
       : upcomingEvents.filter(event => event.category === selectedCategory);
     // Optional: sort by date ascending
-    return [...list].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return [...list].sort((a, b) => a.date.toDate().getTime() - b.date.toDate().getTime());
   }, [selectedCategory, upcomingEvents]);
 
   // ✅ NEW: Build category filter dynamically from Firestore
@@ -97,12 +97,12 @@ export default function EventsScreen(): React.JSX.Element {
 
   // Group events by day (section headers)
   const sections = useMemo(() => {
-    const map = new Map<string, { date: Date; items: any[] }>();
+    const map = new Map<string, { date: Date; timestamp: FirebaseFirestoreTypes.Timestamp; items: any[] }>();
     filteredEvents.forEach((ev) => {
-      const d = new Date(ev.date);
+      const d = ev.date.toDate(); // Convert Timestamp to Date using local timezone
       const keyDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
       const key = keyDate.toISOString();
-      if (!map.has(key)) map.set(key, { date: keyDate, items: [] });
+      if (!map.has(key)) map.set(key, { date: keyDate, timestamp: ev.date, items: [] });
       map.get(key)!.items.push(ev);
     });
     const arr = Array.from(map.values()).sort(
@@ -118,7 +118,7 @@ export default function EventsScreen(): React.JSX.Element {
         weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
       }),
       date: s.date,
-      relBadge: getRelativeBadge(s.date.toISOString()),
+      relBadge: getRelativeBadge(s.timestamp),
       data: s.items,
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
