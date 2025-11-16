@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, SectionList, StatusBar, StyleSheet, Text, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import PatternOverlay from '../../components/PatternOverlay';
 import Badge from '../../components/ui/Badge';
 import Card from '../../components/ui/Card';
@@ -23,24 +24,9 @@ export default function EventsScreen(): React.JSX.Element {
   const { categories, loading: categoriesLoading } = useEventCategories();  // ✅ NEW: Load categories
   const { mosqueSettings } = useFirebaseData();
 
-  // Format event date
-  const formatEventDate = (dateString: string): string => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-    } catch {
-      return dateString;
-    }
-  };
-
   // Helpers for prominent date display and relative badges
-  const getDateParts = (dateString: string) => {
-    const d = new Date(dateString);
+  const getDateParts = (timestamp: FirebaseFirestoreTypes.Timestamp) => {
+    const d = timestamp.toDate();
     const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
     const month = d.toLocaleDateString('en-US', { month: 'short' });
     const day = d.getDate();
@@ -49,9 +35,9 @@ export default function EventsScreen(): React.JSX.Element {
 
   const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
-  const getRelativeBadge = (dateString: string): { label: string; bg: string; text: string } | null => {
+  const getRelativeBadge = (timestamp: FirebaseFirestoreTypes.Timestamp): { label: string; bg: string; text: string } | null => {
     try {
-      const eventDate = startOfDay(new Date(dateString));
+      const eventDate = startOfDay(timestamp.toDate());
       const today = startOfDay(new Date());
       const msInDay = 24 * 60 * 60 * 1000;
       const diffDays = Math.round((eventDate.getTime() - today.getTime()) / msInDay);
@@ -85,7 +71,7 @@ export default function EventsScreen(): React.JSX.Element {
       ? upcomingEvents
       : upcomingEvents.filter(event => event.category === selectedCategory);
     // Optional: sort by date ascending
-    return [...list].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return [...list].sort((a, b) => a.date.toDate().getTime() - b.date.toDate().getTime());
   }, [selectedCategory, upcomingEvents]);
 
   // ✅ NEW: Build category filter dynamically from Firestore
@@ -96,12 +82,12 @@ export default function EventsScreen(): React.JSX.Element {
 
   // Group events by day (section headers)
   const sections = useMemo(() => {
-    const map = new Map<string, { date: Date; items: any[] }>();
+    const map = new Map<string, { date: Date; timestamp: FirebaseFirestoreTypes.Timestamp; items: any[] }>();
     filteredEvents.forEach((ev) => {
-      const d = new Date(ev.date);
+      const d = ev.date.toDate(); // Convert Timestamp to Date using local timezone
       const keyDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
       const key = keyDate.toISOString();
-      if (!map.has(key)) map.set(key, { date: keyDate, items: [] });
+      if (!map.has(key)) map.set(key, { date: keyDate, timestamp: ev.date, items: [] });
       map.get(key)!.items.push(ev);
     });
     const arr = Array.from(map.values()).sort(
@@ -117,7 +103,7 @@ export default function EventsScreen(): React.JSX.Element {
         weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
       }),
       date: s.date,
-      relBadge: getRelativeBadge(s.date.toISOString()),
+      relBadge: getRelativeBadge(s.timestamp),
       data: s.items,
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps

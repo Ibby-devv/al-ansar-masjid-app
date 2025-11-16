@@ -84,10 +84,14 @@ export default function HistoryTab() {
         return "N/A";
       }
 
+      // Format with date and time for better context
       return date.toLocaleDateString("en-AU", {
         day: "numeric",
         month: "short",
         year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
       });
     } catch (error) {
       console.error("Error formatting date:", error, timestamp);
@@ -112,7 +116,7 @@ export default function HistoryTab() {
             {donation.donation_type_label || "General Donation"}
           </Text>
           <Text style={styles.donationDate}>
-           {donation.date || formatDate(donation.created_at)}
+           {formatDate(donation.date || donation.created_at)}
           </Text>
         </View>
         <Text style={styles.donationAmount}>

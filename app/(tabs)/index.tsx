@@ -12,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import PatternOverlay from "../../components/PatternOverlay";
 import NextBanner from "../../components/ui/NextBanner";
 import PillToggle from "../../components/ui/PillToggle";
@@ -45,19 +46,44 @@ export default function HomeScreen(): React.JSX.Element {
   // Load data from Firebase using custom hooks
   const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating } = useFirebaseData();
 
-  // Staleness check based on last_updated date (YYYY-MM-DD)
-  const formatDmy = (ymd?: string): string | null => {
-    if (!ymd || !/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return null;
-    const [y, m, d] = ymd.split('-');
-    return `${d}-${m}-${y}`;
+
+  // Format timestamp with both date and time for better context
+  const formatDateTimeDisplay = (timestamp?: FirebaseFirestoreTypes.Timestamp): string | null => {
+    if (!timestamp) return null;
+    try {
+      const date = timestamp.toDate();
+      const d = String(date.getDate()).padStart(2, '0');
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const y = date.getFullYear();
+      const hours = date.getHours();
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      return `${d}-${m}-${y} at ${displayHours}:${minutes} ${ampm}`;
+    } catch {
+      return null;
+    }
+  };
+
+  // Helper to get start of day for accurate date-only comparisons
+  const getStartOfDay = (date: Date): Date => {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   };
 
   const isStale = (() => {
-    const today = new Date().toISOString().split('T')[0];
     const last = prayerTimes?.last_updated || mosqueSettings?.last_updated;
     if (!last) return false;
+    
     // Only consider stale if last_updated is before today (not just different)
-    return last < today;
+    // Use proper date comparison instead of string comparison
+    const lastDate = last.toDate();
+    const today = new Date();
+    
+    // Set both to start of day for accurate day comparison
+    const lastDateStartOfDay = getStartOfDay(lastDate);
+    const todayStartOfDay = getStartOfDay(today);
+    
+    return lastDateStartOfDay.getTime() < todayStartOfDay.getTime();
   })();
 
   // Jumu'ah times don't change daily, so we don't check staleness
@@ -308,7 +334,7 @@ export default function HomeScreen(): React.JSX.Element {
             {!updating && isStale && (
               <View style={styles.staleBanner}>
                 <Text style={styles.staleBannerText}>
-                  Prayer times last updated on {formatDmy(prayerTimes?.last_updated || mosqueSettings?.last_updated) || 'a previous day'}.
+                  Prayer times last updated on {formatDateTimeDisplay(prayerTimes?.last_updated || mosqueSettings?.last_updated) || 'a previous day'}.
                 </Text>
               </View>
             )}
