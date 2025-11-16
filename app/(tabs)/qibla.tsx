@@ -167,7 +167,7 @@ export default function QiblaScreen(): React.JSX.Element {
             heading?.trueHeading !== undefined && 
             heading?.trueHeading >= 0 && 
             heading?.magHeading !== undefined
-              ? heading.trueHeading - heading.magHeading
+              ? getShortestAngle(heading.trueHeading, heading.magHeading)
               : undefined
           }
           latitude={coordinates?.latitude}
