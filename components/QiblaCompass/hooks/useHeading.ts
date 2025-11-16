@@ -21,7 +21,7 @@ export interface HeadingData {
   rawHeading: number;           // Raw true heading (0-360°)
   magHeading: number;           // Magnetic heading (0-360°)
   trueHeading: number;          // True heading from GPS (0-360°, -1 if no location permission)
-  accuracy: number;             // Heading accuracy (0-3: 0=none, 1=low, 2=medium, 3=high)
+  accuracy: number;             // Heading accuracy (0-1), normalized from iOS scale (0-3)
   isCalibrated: boolean;        // Whether compass is calibrated (accuracy >= 2)
   confidence?: number;          // Composite confidence score (0-1)
   lowConfidence?: boolean;      // Whether confidence is below threshold
