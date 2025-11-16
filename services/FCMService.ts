@@ -4,16 +4,29 @@ import { Platform } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import FcmTokenApi from './FcmTokenApi';
 import NotificationService from './NotificationService';
+import { processNotificationData } from '../utils/notificationDataHelpers';
 
 // Background message handler - REQUIRED for data-only messages when app is closed/background
 // This must be at the top level, outside of any class or function
 messaging().setBackgroundMessageHandler(async (remoteMessage) => {
   console.log('📭 Background message received:', remoteMessage);
 
-  const data = remoteMessage.data;
+  const rawData = remoteMessage.data;
+  
+  // Process notification data to handle timestamp fields properly
+  // FCM data payloads must be strings, so timestamps come as JSON strings or ISO dates
+  const data = processNotificationData(rawData);
+  
   const title = (typeof data?.title === 'string' ? data.title : null) || 'Al-Ansar Masjid';
   const body = (typeof data?.body === 'string' ? data.body : null) || '';
   const notificationType = data?.type as string | undefined;
+
+  console.log('📋 Processed notification data:', {
+    type: notificationType,
+    title,
+    hasImageUrl: !!data?.imageUrl,
+    dataKeys: Object.keys(data || {}),
+  });
 
   try {
     switch (notificationType) {
@@ -235,7 +248,11 @@ class FCMService {
     messaging().onMessage(async (remoteMessage) => {
       console.log('📬 Foreground notification received:', remoteMessage);
 
-      const data = remoteMessage.data;
+      const rawData = remoteMessage.data;
+
+      // Process notification data to handle timestamp fields properly
+      // FCM data payloads must be strings, so timestamps come as JSON strings or ISO dates
+      const data = processNotificationData(rawData);
 
       // For data-only messages, title and body are in data field
       const title = (typeof data?.title === 'string' ? data.title : null)
@@ -247,6 +264,13 @@ class FCMService {
 
       // Determine channel based on notification type from data
       const notificationType = data?.type as string | undefined;
+
+      console.log('📋 Processed notification data:', {
+        type: notificationType,
+        title,
+        hasImageUrl: !!data?.imageUrl,
+        dataKeys: Object.keys(data || {}),
+      });
 
       try {
         switch (notificationType) {
