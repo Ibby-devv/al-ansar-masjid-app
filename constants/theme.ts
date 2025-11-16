@@ -95,6 +95,10 @@ export const Theme = {
       green: '#22c55e',
       amber: '#f59e0b',
     },
+    error: {
+      500: '#ef4444', // red-500
+      100: '#fee2e2', // red-100
+    },
   },
   spacing: {
     xs: 4,

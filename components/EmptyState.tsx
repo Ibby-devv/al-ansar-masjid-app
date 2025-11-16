@@ -32,7 +32,7 @@ export default function EmptyState({
       case 'offline':
         return Theme.colors.text.muted;
       case 'error':
-        return '#ef4444'; // red-500
+        return Theme.colors.error[500];
       default:
         return Theme.colors.brand.navy[700];
     }
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     marginBottom: Theme.spacing.lg,
   },
   iconContainerError: {
-    backgroundColor: '#fee2e2', // red-100
+    backgroundColor: Theme.colors.error[100],
   },
   title: {
     fontSize: Theme.typography.h3,
