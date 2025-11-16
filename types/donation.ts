@@ -51,7 +51,7 @@ export interface Donation {
   status?: string
   payment_status: 'succeeded' | 'pending' | 'failed';
   date: FirebaseFirestoreTypes.Timestamp;
-  created_at: any;
+  created_at: FirebaseFirestoreTypes.Timestamp;
   stripe_receipt_url?: string | null;
 }
 
@@ -66,8 +66,8 @@ export interface RecurringDonation {
   status: 'active' | 'paused' | 'cancelled';
   next_payment_date: FirebaseFirestoreTypes.Timestamp;
   stripe_subscription_id: string;
-  created_at: any;
-  updated_at: any;
+  created_at: FirebaseFirestoreTypes.Timestamp;
+  updated_at: FirebaseFirestoreTypes.Timestamp;
 }
 
 export interface PaymentIntentResponse {

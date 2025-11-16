@@ -24,21 +24,6 @@ export default function EventsScreen(): React.JSX.Element {
   const { categories, loading: categoriesLoading } = useEventCategories();  // ✅ NEW: Load categories
   const { mosqueSettings } = useFirebaseData();
 
-  // Format event date from Timestamp
-  const formatEventDate = (timestamp: FirebaseFirestoreTypes.Timestamp): string => {
-    try {
-      const date = timestamp.toDate();
-      return date.toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-    } catch {
-      return 'Invalid date';
-    }
-  };
-
   // Helpers for prominent date display and relative badges
   const getDateParts = (timestamp: FirebaseFirestoreTypes.Timestamp) => {
     const d = timestamp.toDate();
