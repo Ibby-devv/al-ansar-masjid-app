@@ -18,27 +18,23 @@ The current caching implementation is well-designed and production-ready. These 
 
 **Goal**: Reduce duplication and standardize cache operations
 
-**Implementation**: Create `utils/cache.ts`
+**Current Pattern**: All existing hooks store data directly without wrapping:
+- Storage: `AsyncStorage.setItem(key, JSON.stringify(data))`
+- Retrieval: `JSON.parse(await AsyncStorage.getItem(key))`
+
+**Implementation Option A**: Match current pattern (recommended for consistency)
 
 ```typescript
 // utils/cache.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface CacheOptions {
-  /** Maximum age of cached data in milliseconds */
-  maxAge?: number;
   /** Whether to log cache operations in development */
   debug?: boolean;
 }
 
-export interface CachedData<T> {
-  data: T;
-  timestamp: number;
-  version?: string;
-}
-
 /**
- * Get data from AsyncStorage cache
+ * Get data from AsyncStorage cache (matches current app pattern)
  */
 export async function getCachedData<T>(
   key: string,
@@ -53,25 +49,13 @@ export async function getCachedData<T>(
       return null;
     }
 
-    const parsed: CachedData<T> = JSON.parse(cached);
-    
-    // Check expiration if maxAge is set
-    if (options.maxAge) {
-      const age = Date.now() - parsed.timestamp;
-      if (age > options.maxAge) {
-        if (options.debug && __DEV__) {
-          console.log(`⏰ Cache expired: ${key} (age: ${Math.round(age / 1000)}s)`);
-        }
-        await AsyncStorage.removeItem(key);
-        return null;
-      }
-    }
+    const parsed: T = JSON.parse(cached);
 
     if (options.debug && __DEV__) {
       console.log(`✅ Cache hit: ${key}`);
     }
 
-    return parsed.data;
+    return parsed;
   } catch (error) {
     console.error(`Error reading cache for ${key}:`, error);
     return null;
@@ -79,7 +63,7 @@ export async function getCachedData<T>(
 }
 
 /**
- * Set data in AsyncStorage cache
+ * Set data in AsyncStorage cache (matches current app pattern)
  */
 export async function setCachedData<T>(
   key: string,
@@ -87,12 +71,7 @@ export async function setCachedData<T>(
   options: CacheOptions = {}
 ): Promise<void> {
   try {
-    const cacheEntry: CachedData<T> = {
-      data,
-      timestamp: Date.now(),
-    };
-
-    await AsyncStorage.setItem(key, JSON.stringify(cacheEntry));
+    await AsyncStorage.setItem(key, JSON.stringify(data));
 
     if (options.debug && __DEV__) {
       console.log(`♻️ Cache updated: ${key}`);
@@ -133,11 +112,97 @@ export async function clearAllCache(): Promise<void> {
 }
 ```
 
+**Implementation Option B**: Add timestamp tracking (requires cache migration)
+
+```typescript
+// utils/cacheWithTimestamp.ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export interface CacheOptions {
+  /** Maximum age of cached data in milliseconds */
+  maxAge?: number;
+  /** Whether to log cache operations in development */
+  debug?: boolean;
+}
+
+export interface CachedData<T> {
+  data: T;
+  timestamp: number;
+}
+
+/**
+ * Get data from AsyncStorage cache with timestamp tracking
+ * NOTE: This format is incompatible with existing cache entries
+ */
+export async function getCachedDataWithTimestamp<T>(
+  key: string,
+  options: CacheOptions = {}
+): Promise<T | null> {
+  try {
+    const cached = await AsyncStorage.getItem(key);
+    if (!cached) {
+      if (options.debug && __DEV__) {
+        console.log(`❌ Cache miss: ${key}`);
+      }
+      return null;
+    }
+
+    const parsed: CachedData<T> = JSON.parse(cached);
+    
+    // Check expiration if maxAge is set
+    if (options.maxAge) {
+      const age = Date.now() - parsed.timestamp;
+      if (age > options.maxAge) {
+        if (options.debug && __DEV__) {
+          console.log(`⏰ Cache expired: ${key} (age: ${Math.round(age / 1000)}s)`);
+        }
+        await AsyncStorage.removeItem(key);
+        return null;
+      }
+    }
+
+    if (options.debug && __DEV__) {
+      console.log(`✅ Cache hit: ${key}`);
+    }
+
+    return parsed.data;
+  } catch (error) {
+    console.error(`Error reading cache for ${key}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Set data in AsyncStorage cache with timestamp
+ */
+export async function setCachedDataWithTimestamp<T>(
+  key: string,
+  data: T,
+  options: CacheOptions = {}
+): Promise<void> {
+  try {
+    const cacheEntry: CachedData<T> = {
+      data,
+      timestamp: Date.now(),
+    };
+
+    await AsyncStorage.setItem(key, JSON.stringify(cacheEntry));
+
+    if (options.debug && __DEV__) {
+      console.log(`♻️ Cache updated: ${key}`);
+    }
+  } catch (error) {
+    console.error(`Error writing cache for ${key}:`, error);
+  }
+}
+```
+
+**⚠️ Note**: Option B changes the cache format and would invalidate all existing cached data. Use Option A to match current patterns, or implement a migration strategy if timestamp tracking is needed.
+
 **Impact**: 
 - Reduces ~30-40 lines of duplicate cache code per hook
-- Adds timestamp tracking for all cached data
-- Enables cache expiration across the app
-- Improves debugging with consistent logging
+- Consistent logging across all cache operations
+- Optional: Timestamp tracking and expiration (Option B)
 
 ---
 
@@ -432,9 +497,9 @@ export const useEventCategories = (): UseEventCategoriesReturn => {
 
 ## Enhancement 5: Cache Cleanup on App Start
 
-**Goal**: Prevent AsyncStorage bloat
+**Goal**: Prevent AsyncStorage bloat from stale cache entries
 
-**Implementation**: Add cache management in `app/_layout.tsx`
+**Implementation**: Add cache size management in `app/_layout.tsx`
 
 ```typescript
 // app/_layout.tsx - Add cache cleanup
@@ -444,8 +509,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function RootLayout() {
   useEffect(() => {
-    // Clean up old cache entries on app start
-    cleanupOldCaches();
+    // Clean up stale cache entries on app start
+    cleanupStaleCaches();
   }, []);
 
   return (
@@ -453,38 +518,33 @@ export default function RootLayout() {
   );
 }
 
-async function cleanupOldCaches(): Promise<void> {
+async function cleanupStaleCaches(): Promise<void> {
   try {
     const keys = await AsyncStorage.getAllKeys();
-    const now = Date.now();
-    const maxAge = 1000 * 60 * 60 * 24 * 7; // 7 days
+    const cacheKeys = keys.filter(key => key.startsWith('@cached_') || key.startsWith('@'));
     
-    for (const key of keys) {
-      if (key.startsWith('@cached_') || key.startsWith('@')) {
-        const data = await AsyncStorage.getItem(key);
-        if (data) {
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.timestamp && (now - parsed.timestamp) > maxAge) {
-              await AsyncStorage.removeItem(key);
-              console.log(`🧹 Cleaned old cache: ${key}`);
-            }
-          } catch {
-            // If parsing fails, it's old format - skip
-          }
-        }
-      }
+    // Optionally: Remove cache entries older than a certain size limit
+    // For now, just log the cache size for monitoring
+    if (__DEV__) {
+      console.log(`📊 Current cache entries: ${cacheKeys.length}`);
     }
+    
+    // Future: Implement LRU or size-based eviction if needed
+    // For now, real-time listeners keep data fresh, so old entries are overwritten
   } catch (error) {
-    console.error('Error cleaning caches:', error);
+    console.error('Error checking caches:', error);
   }
+}
 }
 ```
 
 **Impact**:
-- Prevents AsyncStorage from growing unbounded
-- Removes stale data automatically
-- Improves app performance over time
+- Monitors cache size for potential issues
+- Lightweight (doesn't require timestamp tracking)
+- Can be enhanced later with LRU eviction if needed
+- Current real-time listeners already keep data fresh
+
+**Note**: Since the current pattern doesn't use timestamp metadata, this enhancement focuses on monitoring rather than time-based cleanup. Real-time listeners automatically update stale data, so aggressive cleanup isn't necessary.
 
 ---
 
@@ -496,12 +556,15 @@ async function cleanupOldCaches(): Promise<void> {
 3. ✅ **Add Caching to useEventCategories** - Completes offline support
 
 ### Medium Priority (Do Second)
-4. ⚠️ **Shared Cache Utilities** - Moderate refactor, reduces duplication
-5. ⚠️ **Cache Cleanup** - Prevents long-term issues
+4. ⚠️ **Shared Cache Utilities (Option A)** - Match current pattern, reduce duplication
+5. ⚠️ **Cache Monitoring** - Track cache size, prevent bloat
 
 ### Low Priority (Nice to Have)
-6. 📊 **Cache DevTools** - Debug utilities for development
-7. 📈 **Cache Metrics** - Track hit/miss rates
+6. 📊 **Shared Cache Utilities (Option B)** - Add timestamp tracking (requires migration)
+7. 📈 **Cache DevTools** - Debug utilities for development
+8. 📈 **Cache Metrics** - Track hit/miss rates
+
+**Recommendation**: Use Option A for cache utilities to maintain consistency with existing code. Only consider Option B if timestamp-based expiration becomes a requirement.
 
 ---
 
@@ -511,31 +574,33 @@ After implementing enhancements:
 
 - [ ] Test offline mode with airplane mode enabled
 - [ ] Verify cached data loads instantly on app restart
-- [ ] Test cache expiration (if implemented)
 - [ ] Verify real-time updates still work
 - [ ] Check AsyncStorage size doesn't grow unbounded
 - [ ] Test pull-to-refresh still works
 - [ ] Verify no TypeScript errors
 - [ ] Run `npm run lint` - should pass
+- [ ] Verify cache format matches existing pattern (direct JSON, no wrapper)
 
 ---
 
 ## Benefits Summary
 
 ### Code Quality
-- **Reduced duplication**: -100+ lines across hooks
+- **Reduced duplication**: ~50-100 lines across hooks (with Option A utilities)
 - **Standardized patterns**: All hooks follow same approach
 - **Better debugging**: Consistent logging
+- **Pattern consistency**: Matches existing caching implementation
 
 ### User Experience
 - **Faster load times**: Cache-first approach for all data
-- **Better offline experience**: All data available offline
+- **Better offline experience**: All data available offline (events, categories)
 - **Reduced data usage**: Less Firestore reads
 
 ### Maintainability
 - **Centralized cache management**: Easy to find and update
 - **Type-safe cache keys**: Prevents typos
 - **Easier to add features**: Utilities ready to use
+- **No breaking changes**: Compatible with existing cache entries
 
 ---
 
@@ -545,8 +610,9 @@ Unlike migrating to SWR or TanStack Query, these enhancements:
 - ✅ **Build on existing patterns** - no architectural changes
 - ✅ **Can be done incrementally** - one hook at a time
 - ✅ **Low risk** - no library dependencies
-- ✅ **Backward compatible** - existing code keeps working
+- ✅ **Backward compatible** - existing code keeps working (Option A)
 - ✅ **Small changes** - ~50-100 lines per hook
+- ✅ **Pattern consistency** - matches current caching approach
 
 ---
 
