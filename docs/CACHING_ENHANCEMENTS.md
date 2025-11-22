@@ -214,6 +214,26 @@ import { db } from '../firebase';
 import { Event } from '../types';
 import { CACHE_KEYS } from '../constants/cacheKeys';
 
+// Helper to convert Timestamp to serializable format for caching
+const serializeEvent = (event: Event): any => {
+  return {
+    ...event,
+    date: { seconds: event.date.seconds, nanoseconds: event.date.nanoseconds },
+    created_at: event.created_at ? { seconds: event.created_at.seconds, nanoseconds: event.created_at.nanoseconds } : undefined,
+    updated_at: event.updated_at ? { seconds: event.updated_at.seconds, nanoseconds: event.updated_at.nanoseconds } : undefined,
+  };
+};
+
+// Helper to deserialize cached data back to Timestamp objects
+const deserializeEvent = (data: any): Event => {
+  return {
+    ...data,
+    date: new firestore.Timestamp(data.date.seconds, data.date.nanoseconds),
+    created_at: data.created_at ? new firestore.Timestamp(data.created_at.seconds, data.created_at.nanoseconds) : undefined,
+    updated_at: data.updated_at ? new firestore.Timestamp(data.updated_at.seconds, data.updated_at.nanoseconds) : undefined,
+  };
+};
+
 export const useEvents = (): UseEventsReturn => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -229,9 +249,11 @@ export const useEvents = (): UseEventsReturn => {
       const cachedData = await AsyncStorage.getItem(CACHE_KEYS.EVENTS);
       if (cachedData) {
         const parsed = JSON.parse(cachedData);
-        setEvents(parsed);
+        // Deserialize Timestamps from cache
+        const deserialized = parsed.map(deserializeEvent);
+        setEvents(deserialized);
         setLoading(false);
-        console.log('✅ Events loaded from cache:', parsed.length);
+        console.log('✅ Events loaded from cache:', deserialized.length);
       }
 
       // 2. Set up real-time listener
@@ -253,10 +275,11 @@ export const useEvents = (): UseEventsReturn => {
             setEvents(loadedEvents);
             setLoading(false);
             
-            // Update cache
+            // Update cache - serialize Timestamps before storing
+            const serialized = loadedEvents.map(serializeEvent);
             await AsyncStorage.setItem(
               CACHE_KEYS.EVENTS,
-              JSON.stringify(loadedEvents)
+              JSON.stringify(serialized)
             );
             
             console.log('📅 Events updated:', loadedEvents.length);
@@ -298,7 +321,8 @@ function getTodayStartTimestamp(): firestore.Timestamp {
 **Impact**:
 - Events visible when offline
 - Faster initial load
-- Consistent with other hooks
+- Consistent with other hooks (matches `useCampaigns.ts` pattern)
+- Proper Timestamp serialization/deserialization for cache compatibility
 
 ---
 
