@@ -2,7 +2,7 @@ import { PrayerTimes as AdhanPrayerTimes, CalculationMethod, Coordinates } from 
 import { useEffect, useState } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import { db } from '../firebase';
-import { MosqueSettings, PrayerTimes } from '../types';
+import { MosqueSettings, PrayerTimes, getCurrentTimeInMosqueTimezone } from '../types';
 
 export const useAutoFetchPrayerTimes = (
   prayerTimes: PrayerTimes | null,
@@ -31,9 +31,10 @@ export const useAutoFetchPrayerTimes = (
   }, [prayerTimes, mosqueSettings]);
 
   const checkIfShouldFetchPrayerTimes = (): boolean => {
-    if (!prayerTimes) return false;
+    if (!prayerTimes || !mosqueSettings) return false;
 
-    const today = new Date();
+    // Use mosque's current time for staleness check
+    const today = getCurrentTimeInMosqueTimezone(mosqueSettings.timezone);
     const todayStartOfDay = getStartOfDay(today);
     
     // Don't fetch if we already tried today (use proper date comparison)
@@ -65,7 +66,7 @@ export const useAutoFetchPrayerTimes = (
     if (isFetching || !mosqueSettings) return;
 
     setIsFetching(true);
-    setLastFetchAttempt(new Date());
+    setLastFetchAttempt(getCurrentTimeInMosqueTimezone(mosqueSettings.timezone));
 
     try {
       console.log('🕌 Auto-calculating prayer times using adhan package...');
@@ -80,24 +81,39 @@ export const useAutoFetchPrayerTimes = (
       const methodName = mosqueSettings.calculation_method || 'MuslimWorldLeague';
       const params = CalculationMethod[methodName as keyof typeof CalculationMethod]();
       
-      // Calculate prayer times for today
-      const date = new Date();
+      // Calculate prayer times for today (in mosque's timezone)
+      const date = getCurrentTimeInMosqueTimezone(mosqueSettings.timezone);
       const adhanPrayerTimes = new AdhanPrayerTimes(coordinates, date, params);
 
-      // Convert Date objects to 12-hour format strings
+      // Convert Date objects to 12-hour format strings in mosque's timezone
       const formatTime = (date: Date): string => {
-        let hours = date.getHours();
-        const minutes = date.getMinutes();
-        const period = hours >= 12 ? 'PM' : 'AM';
+        const timezone = mosqueSettings.timezone;
         
-        if (hours > 12) {
-          hours -= 12;
-        } else if (hours === 0) {
-          hours = 12;
+        if (!timezone) {
+          // Fallback to local formatting if no timezone set
+          let hours = date.getHours();
+          const minutes = date.getMinutes();
+          const period = hours >= 12 ? 'PM' : 'AM';
+          
+          if (hours > 12) {
+            hours -= 12;
+          } else if (hours === 0) {
+            hours = 12;
+          }
+
+          const minutesStr = minutes.toString().padStart(2, '0');
+          return `${hours}:${minutesStr} ${period}`;
         }
 
-        const minutesStr = minutes.toString().padStart(2, '0');
-        return `${hours}:${minutesStr} ${period}`;
+        // Format time in mosque's timezone
+        const formatter = new Intl.DateTimeFormat('en-US', {
+          timeZone: timezone,
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        });
+
+        return formatter.format(date);
       };
 
       // Get current prayer times from Firebase

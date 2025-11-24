@@ -27,7 +27,7 @@ import { useFirebaseData } from "../../hooks/useFirebaseData";
 
 // Import types and utility
 import { Theme } from "../../constants/theme";
-import { Prayer, calculateIqamaTime } from "../../types";
+import { Prayer, calculateIqamaTime, getCurrentTimeInMosqueTimezone } from "../../types";
 
 type ViewType = "prayer" | "jumuah";
 
@@ -46,6 +46,9 @@ export default function HomeScreen(): React.JSX.Element {
 
   // Load data from Firebase using custom hooks
   const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating, error } = useFirebaseData();
+
+  // Get mosque timezone for all time comparisons
+  const mosqueTimezone = mosqueSettings?.timezone;
 
 
   // Format timestamp with both date and time for better context
@@ -75,14 +78,16 @@ export default function HomeScreen(): React.JSX.Element {
     const last = prayerTimes?.last_updated || mosqueSettings?.last_updated;
     if (!last) return false;
     
+    // Get current time in mosque's timezone for accurate staleness check
+    const mosqueNow = getCurrentTimeInMosqueTimezone(mosqueTimezone);
+    
     // Only consider stale if last_updated is before today (not just different)
     // Use proper date comparison instead of string comparison
     const lastDate = last.toDate();
-    const today = new Date();
     
     // Set both to start of day for accurate day comparison
     const lastDateStartOfDay = getStartOfDay(lastDate);
-    const todayStartOfDay = getStartOfDay(today);
+    const todayStartOfDay = getStartOfDay(mosqueNow);
     
     return lastDateStartOfDay.getTime() < todayStartOfDay.getTime();
   })();
@@ -90,14 +95,14 @@ export default function HomeScreen(): React.JSX.Element {
   // Jumu'ah times don't change daily, so we don't check staleness
   // (unlike prayer times which update every day)
 
-  // Update current time every minute
+  // Update current time every minute (using mosque timezone)
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(new Date());
+      setCurrentTime(getCurrentTimeInMosqueTimezone(mosqueTimezone));
     }, 60000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [mosqueTimezone]);
 
   // Format date
   const formatDate = (date: Date): string => {
@@ -137,12 +142,13 @@ export default function HomeScreen(): React.JSX.Element {
     return calculateIqamaTime(adhanTime, iqamaType, fixedIqama, offset);
   };
 
-  // Parse time string to Date object
+  // Parse time string to Date object (using mosque's timezone context)
   const parseTimeToDate = (timeString: string | undefined): Date | null => {
     if (!timeString) return null;
 
     try {
-      const today = new Date();
+      // Use current time in mosque timezone as base
+      const today = getCurrentTimeInMosqueTimezone(mosqueTimezone);
       const timeMatch = timeString.match(/(\d+):(\d+)\s*(AM|PM)/i);
 
       if (!timeMatch) return null;
@@ -172,9 +178,10 @@ export default function HomeScreen(): React.JSX.Element {
     }
   };
 
-  // Calculate next prayer
+  // Calculate next prayer (using mosque's local time)
   const getNextPrayer = (): { name: string; timeRemaining: string } | null => {
-    const now = new Date();
+    // Use mosque's current time for comparison
+    const now = getCurrentTimeInMosqueTimezone(mosqueTimezone);
 
     const prayers = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
     const prayerTimesWithDates = prayers.map((prayer) => ({

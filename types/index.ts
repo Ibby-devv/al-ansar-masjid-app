@@ -51,6 +51,7 @@ export interface MosqueSettings {
   imam?: string;
   latitude?: number;
   longitude?: number;
+  timezone?: string; // IANA timezone identifier (e.g., "Australia/Brisbane", "America/New_York")
   calculation_method?: 'MuslimWorldLeague' | 'Egyptian' | 'Karachi' | 'UmmAlQura' | 'Dubai' | 'MoonsightingCommittee' | 'NorthAmerica' | 'Kuwait' | 'Qatar' | 'Singapore' | 'Tehran' | 'Turkey';
   auto_fetch_maghrib?: boolean;
   last_updated?: FirebaseFirestoreTypes.Timestamp;
@@ -97,6 +98,58 @@ export interface Prayer {
   adhan: string | undefined;
   iqama: string | undefined;
 }
+
+/**
+ * Get current time in the mosque's timezone
+ * @param mosqueTimezone IANA timezone identifier (e.g., "Australia/Brisbane")
+ * @returns Date object representing current time in mosque's timezone
+ */
+export const getCurrentTimeInMosqueTimezone = (mosqueTimezone?: string): Date => {
+  if (!mosqueTimezone) {
+    // Fallback to user's local time if no timezone is set
+    return new Date();
+  }
+
+  try {
+    const now = new Date();
+    
+    // Get the date/time components in the mosque's timezone
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: mosqueTimezone,
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      hour12: false,
+    });
+
+    const parts = formatter.formatToParts(now);
+    const mosqueTime: Record<string, number> = {};
+    
+    parts.forEach((part) => {
+      if (part.type !== 'literal') {
+        mosqueTime[part.type] = parseInt(part.value, 10);
+      }
+    });
+
+    // Create a new Date object with mosque's local time components
+    // This represents the same wall-clock time as in the mosque's timezone
+    return new Date(
+      mosqueTime.year,
+      mosqueTime.month - 1, // JavaScript months are 0-indexed
+      mosqueTime.day,
+      mosqueTime.hour,
+      mosqueTime.minute,
+      mosqueTime.second
+    );
+  } catch (error) {
+    console.error('Error converting to mosque timezone:', error);
+    // Fallback to user's local time on error
+    return new Date();
+  }
+};
 
 // Utility function to calculate iqama time from adhan + offset
 export const calculateIqamaTime = (
