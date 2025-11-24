@@ -163,14 +163,15 @@ export default function HomeScreen(): React.JSX.Element {
         hours = 0;
       }
 
-      const prayerDate = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate(),
+      // Use UTC methods to construct the date to avoid timezone interpretation issues
+      const prayerDate = new Date(Date.UTC(
+        today.getUTCFullYear(),
+        today.getUTCMonth(),
+        today.getUTCDate(),
         hours,
         minutes,
         0
-      );
+      ));
       return prayerDate;
     } catch (error) {
       console.error("Error parsing time:", error);
@@ -213,8 +214,8 @@ export default function HomeScreen(): React.JSX.Element {
     const fajrIqama = getDisplayedIqamaTime("fajr");
     const fajrTime = parseTimeToDate(fajrIqama);
     if (fajrTime) {
-      const tomorrow = new Date(fajrTime);
-      tomorrow.setDate(tomorrow.getDate() + 1);
+      // Add 24 hours in milliseconds instead of using setDate to avoid month boundary issues
+      const tomorrow = new Date(fajrTime.getTime() + 24 * 60 * 60 * 1000);
       const diffMs = tomorrow.getTime() - now.getTime();
       const diffMins = Math.floor(diffMs / 60000);
       const hours = Math.floor(diffMins / 60);

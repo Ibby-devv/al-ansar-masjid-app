@@ -113,6 +113,9 @@ export const getCurrentTimeInMosqueTimezone = (mosqueTimezone?: string): Date =>
   try {
     const now = new Date();
     
+    // Get the UTC time
+    const utcTime = now.getTime();
+    
     // Get the date/time components in the mosque's timezone
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: mosqueTimezone,
@@ -134,9 +137,9 @@ export const getCurrentTimeInMosqueTimezone = (mosqueTimezone?: string): Date =>
       }
     });
 
-    // Create a new Date object with mosque's local time components
-    // This represents the same wall-clock time as in the mosque's timezone
-    return new Date(
+    // Create a Date in UTC that represents the mosque's local time
+    // We use Date.UTC to avoid timezone interpretation
+    const mosqueLocalAsUTC = Date.UTC(
       mosqueTime.year,
       mosqueTime.month - 1, // JavaScript months are 0-indexed
       mosqueTime.day,
@@ -144,6 +147,10 @@ export const getCurrentTimeInMosqueTimezone = (mosqueTimezone?: string): Date =>
       mosqueTime.minute,
       mosqueTime.second
     );
+
+    // Return a Date object. Although it will display in user's timezone when printed,
+    // the numeric value (getTime()) represents the mosque's local time for comparison purposes
+    return new Date(mosqueLocalAsUTC);
   } catch (error) {
     console.error('Error converting to mosque timezone:', error);
     // Fallback to user's local time on error

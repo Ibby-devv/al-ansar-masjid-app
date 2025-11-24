@@ -31,10 +31,11 @@ export const useAutoFetchPrayerTimes = (
   }, [prayerTimes, mosqueSettings]);
 
   const checkIfShouldFetchPrayerTimes = (): boolean => {
-    if (!prayerTimes || !mosqueSettings) return false;
+    if (!prayerTimes) return false;
 
-    // Use mosque's current time for staleness check
-    const today = getCurrentTimeInMosqueTimezone(mosqueSettings.timezone);
+    // Use mosque's current time for staleness check (falls back to local time if no timezone)
+    const mosqueTimezone = mosqueSettings?.timezone;
+    const today = getCurrentTimeInMosqueTimezone(mosqueTimezone);
     const todayStartOfDay = getStartOfDay(today);
     
     // Don't fetch if we already tried today (use proper date comparison)
@@ -65,8 +66,9 @@ export const useAutoFetchPrayerTimes = (
   const fetchAndUpdateAllPrayerTimes = async (): Promise<void> => {
     if (isFetching || !mosqueSettings) return;
 
+    const mosqueTimezone = mosqueSettings.timezone;
     setIsFetching(true);
-    setLastFetchAttempt(getCurrentTimeInMosqueTimezone(mosqueSettings.timezone));
+    setLastFetchAttempt(getCurrentTimeInMosqueTimezone(mosqueTimezone));
 
     try {
       console.log('🕌 Auto-calculating prayer times using adhan package...');
@@ -82,14 +84,13 @@ export const useAutoFetchPrayerTimes = (
       const params = CalculationMethod[methodName as keyof typeof CalculationMethod]();
       
       // Calculate prayer times for today (in mosque's timezone)
-      const date = getCurrentTimeInMosqueTimezone(mosqueSettings.timezone);
+      const mosqueTimezone = mosqueSettings.timezone;
+      const date = getCurrentTimeInMosqueTimezone(mosqueTimezone);
       const adhanPrayerTimes = new AdhanPrayerTimes(coordinates, date, params);
 
       // Convert Date objects to 12-hour format strings in mosque's timezone
       const formatTime = (date: Date): string => {
-        const timezone = mosqueSettings.timezone;
-        
-        if (!timezone) {
+        if (!mosqueTimezone) {
           // Fallback to local formatting if no timezone set
           let hours = date.getHours();
           const minutes = date.getMinutes();
@@ -107,7 +108,7 @@ export const useAutoFetchPrayerTimes = (
 
         // Format time in mosque's timezone
         const formatter = new Intl.DateTimeFormat('en-US', {
-          timeZone: timezone,
+          timeZone: mosqueTimezone,
           hour: 'numeric',
           minute: '2-digit',
           hour12: true,
