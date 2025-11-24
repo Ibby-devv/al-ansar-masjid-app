@@ -113,9 +113,6 @@ export const getCurrentTimeInMosqueTimezone = (mosqueTimezone?: string): Date =>
   try {
     const now = new Date();
     
-    // Get the UTC time
-    const utcTime = now.getTime();
-    
     // Get the date/time components in the mosque's timezone
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: mosqueTimezone,

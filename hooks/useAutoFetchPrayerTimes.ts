@@ -84,7 +84,6 @@ export const useAutoFetchPrayerTimes = (
       const params = CalculationMethod[methodName as keyof typeof CalculationMethod]();
       
       // Calculate prayer times for today (in mosque's timezone)
-      const mosqueTimezone = mosqueSettings.timezone;
       const date = getCurrentTimeInMosqueTimezone(mosqueTimezone);
       const adhanPrayerTimes = new AdhanPrayerTimes(coordinates, date, params);
 
