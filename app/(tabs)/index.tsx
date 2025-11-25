@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -12,15 +13,14 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import PatternOverlay from "../../components/PatternOverlay";
 import NextBanner from "../../components/ui/NextBanner";
 import PillToggle from "../../components/ui/PillToggle";
 import UpdatingBanner from "../../components/ui/UpdatingBanner";
 
 // Import custom components
-import LoadingScreen from "../../components/LoadingScreen";
 import EmptyState from "../../components/EmptyState";
+import LoadingScreen from "../../components/LoadingScreen";
 
 // Import custom hooks
 import { useFirebaseData } from "../../hooks/useFirebaseData";
@@ -52,7 +52,25 @@ export default function HomeScreen(): React.JSX.Element {
   const formatDateTimeDisplay = (timestamp?: FirebaseFirestoreTypes.Timestamp): string | null => {
     if (!timestamp) return null;
     try {
-      const date = timestamp.toDate();
+      let date: Date;
+      
+      // Handle both Firestore Timestamp objects and cached plain objects
+      if (typeof timestamp === 'object' && timestamp !== null) {
+        // Check if it's a Firestore Timestamp with toDate method
+        if ('toDate' in timestamp && typeof timestamp.toDate === 'function') {
+          date = timestamp.toDate();
+        } 
+        // Handle cached data (plain object with seconds/nanoseconds)
+        else if ('seconds' in timestamp && typeof timestamp.seconds === 'number') {
+          date = new Date((timestamp as any).seconds * 1000);
+        } 
+        else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+      
       const d = String(date.getDate()).padStart(2, '0');
       const m = String(date.getMonth() + 1).padStart(2, '0');
       const y = date.getFullYear();
@@ -75,16 +93,41 @@ export default function HomeScreen(): React.JSX.Element {
     const last = prayerTimes?.last_updated || mosqueSettings?.last_updated;
     if (!last) return false;
     
-    // Only consider stale if last_updated is before today (not just different)
-    // Use proper date comparison instead of string comparison
-    const lastDate = last.toDate();
-    const today = new Date();
-    
-    // Set both to start of day for accurate day comparison
-    const lastDateStartOfDay = getStartOfDay(lastDate);
-    const todayStartOfDay = getStartOfDay(today);
-    
-    return lastDateStartOfDay.getTime() < todayStartOfDay.getTime();
+    try {
+      // Handle both Firestore Timestamp objects and cached plain objects
+      let lastDate: Date;
+      
+      if (typeof last === 'object' && last !== null) {
+        // Check if it's a Firestore Timestamp with toDate method
+        if ('toDate' in last && typeof last.toDate === 'function') {
+          lastDate = last.toDate();
+        } 
+        // Handle cached data (plain object with seconds/nanoseconds)
+        else if ('seconds' in last && typeof last.seconds === 'number') {
+          lastDate = new Date((last as any).seconds * 1000);
+        } 
+        // Fallback: not a valid timestamp
+        else {
+          console.warn('last_updated has unexpected format:', last);
+          return false;
+        }
+      } else {
+        console.warn('last_updated is not an object:', last);
+        return false;
+      }
+      
+      // Only consider stale if last_updated is before today (not just different)
+      const today = new Date();
+      
+      // Set both to start of day for accurate day comparison
+      const lastDateStartOfDay = getStartOfDay(lastDate);
+      const todayStartOfDay = getStartOfDay(today);
+      
+      return lastDateStartOfDay.getTime() < todayStartOfDay.getTime();
+    } catch (error) {
+      console.error('Error checking staleness:', error);
+      return false;
+    }
   })();
 
   // Jumu'ah times don't change daily, so we don't check staleness
