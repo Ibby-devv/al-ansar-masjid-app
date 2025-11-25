@@ -131,7 +131,13 @@ export default function QiblaScreen(): React.JSX.Element {
         <View>
           <ThemedText style={styles.locationLabel}>LOCATION</ThemedText>
           <View style={styles.locationPill}>
-            <ThemedText style={styles.locationText}>{place || 'Current location'}</ThemedText>
+            <ThemedText 
+              style={styles.locationText}
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}
+            >
+              {place || 'Current location'}
+            </ThemedText>
             <Ionicons name="chevron-down" size={16} color={MUTED} />
           </View>
         </View>
@@ -300,13 +306,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    maxWidth: '90%',
+    flex: 1,
   },
   locationText: {
     color: '#f3b17b',
     fontSize: 24,
-    lineHeight: 32,
     fontFamily: FontFamily.bold,
+    lineHeight: 32,
     flexShrink: 1,
   },
   infoButton: {
