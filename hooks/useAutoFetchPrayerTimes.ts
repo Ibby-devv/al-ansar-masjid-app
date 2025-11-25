@@ -2,7 +2,8 @@ import { PrayerTimes as AdhanPrayerTimes, CalculationMethod, Coordinates } from 
 import { useEffect, useState } from 'react';
 import firestore from '@react-native-firebase/firestore';
 import { db } from '../firebase';
-import { MosqueSettings, PrayerTimes, getCurrentTimeInMosqueTimezone } from '../types';
+import { MosqueSettings, PrayerTimes } from '../types';
+import { getCurrentTimeInMosqueTimezone } from '../utils/timezone';
 
 export const useAutoFetchPrayerTimes = (
   prayerTimes: PrayerTimes | null,

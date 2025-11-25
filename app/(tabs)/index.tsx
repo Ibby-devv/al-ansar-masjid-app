@@ -27,7 +27,8 @@ import { useFirebaseData } from "../../hooks/useFirebaseData";
 
 // Import types and utility
 import { Theme } from "../../constants/theme";
-import { Prayer, calculateIqamaTime, getCurrentTimeInMosqueTimezone } from "../../types";
+import { Prayer, calculateIqamaTime } from "../../types";
+import { getCurrentTimeInMosqueTimezone } from "../../utils/timezone";
 
 type ViewType = "prayer" | "jumuah";
 
