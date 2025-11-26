@@ -14,3 +14,6 @@ import './services/NotificationBackgroundHandler';
 
 // Load the expo-router entry point
 import 'expo-router/entry';
+
+//Remove warnings
+//console.warn = () => { };

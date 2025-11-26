@@ -73,19 +73,22 @@ export const useHeading = () => {
     // Start listening to heading updates
     const startListening = async () => {
       try {
-        // Request location permission for true heading support
-        // Without permission, watchHeadingAsync will only provide magnetic heading
-        let { status } = await Location.getForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          const req = await Location.requestForegroundPermissionsAsync();
-          status = req.status;
-        }
+        // Only CHECK permission - don't request it
+        // useLocation handles the permission request to avoid race condition
+        const { status } = await Location.getForegroundPermissionsAsync();
 
         if (!isMounted) return;
 
-        // Note: We continue even without permission, but will only get magnetic heading
-        // The heading callback will check trueHeading >= 0 to determine which to use
-
+        // CRITICAL: Must wait for permission to be granted before subscribing
+        // If we subscribe without permission, Android creates a dead subscription
+        if (status !== 'granted') {
+          setTimeout(() => {
+            if (isMounted) {
+              startListening();
+            }
+          }, 1000);
+          return;
+        }
         // Subscribe to heading updates
         const subscription = await Location.watchHeadingAsync((headingData) => {
           if (!isMounted || !smootherRef.current) return;
