@@ -25,7 +25,7 @@ const TOLERANCE = 10; // degrees
 export default function QiblaScreen(): React.JSX.Element {
   const isFocused = useIsFocused();
   const { coordinates, isLoading, error, hasPermission, retry } = useLocation();
-  const { name: place } = usePlacename(coordinates);
+  const { name: place, loading: isLoadingPlace } = usePlacename(coordinates);
   const { data: heading, isAvailable, error: headingError } = useHeading();
   const { direction: qiblaDirection, isValid } = useQiblaDirection(coordinates);
   const { data: motion } = useDeviceMotion();
@@ -128,15 +128,16 @@ export default function QiblaScreen(): React.JSX.Element {
       <StatusBar barStyle="light-content" />
       {/* Top Bar */}
       <View style={styles.topBar}>
-        <View>
+        <View style={{ flex: 1 }}>
           <ThemedText style={styles.locationLabel}>LOCATION</ThemedText>
           <View style={styles.locationPill}>
             <ThemedText 
               style={styles.locationText}
               adjustsFontSizeToFit
               minimumFontScale={0.6}
+              numberOfLines={1}
             >
-              {place || 'Current location'}
+              {isLoadingPlace ? 'Locating…' : (place || 'Location unavailable')}
             </ThemedText>
             <Ionicons name="chevron-down" size={16} color={MUTED} />
           </View>
@@ -306,7 +307,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    flex: 1,
+    alignSelf: 'flex-start',
+    // Let the pill size to content; cap growth for long names
+    maxWidth: '80%',
   },
   locationText: {
     color: '#f3b17b',

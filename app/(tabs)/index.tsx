@@ -374,14 +374,6 @@ export default function HomeScreen(): React.JSX.Element {
         {/* Prayer Times View */}
         {activeView === "prayer" && (
           <View style={styles.prayerCardsContainer}>
-            {/* Staleness banner when data is old AND we're not currently updating */}
-            {!updating && isStale && prayerTimes && (
-              <View style={styles.staleBanner}>
-                <Text style={styles.staleBannerText}>
-                  Prayer times last updated on {formatDateTimeDisplay(prayerTimes?.last_updated || mosqueSettings?.last_updated) || 'a previous day'}.
-                </Text>
-              </View>
-            )}
             {nextPrayer && (
               <NextBanner text={`Next: ${nextPrayer.name} in ${nextPrayer.timeRemaining}`} />
             )}
@@ -453,6 +445,14 @@ export default function HomeScreen(): React.JSX.Element {
                 <UpdatingBanner text="Updating…" />
               </View>
             )}
+            {/* Staleness banner when data is old AND we're not currently updating */}
+            {!updating && isStale && prayerTimes && (
+              <View style={styles.staleBanner}>
+                <Text style={styles.staleBannerText}>
+                  Prayer times last updated on {formatDateTimeDisplay(prayerTimes?.last_updated || mosqueSettings?.last_updated) || 'a previous day'}.
+                </Text>
+              </View>
+            )}
           </View>
         )}
 
@@ -504,7 +504,7 @@ export default function HomeScreen(): React.JSX.Element {
               <View style={styles.updatingContainer}>
                 <UpdatingBanner text="Updating…" />
               </View>
-            )}
+            )}  
           </View>
         )}
       </ScrollView>
@@ -786,7 +786,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    marginBottom: 10,
+    marginTop: 12,
     borderWidth: 1,
     borderColor: Theme.colors.brand.gold[400],
   },
