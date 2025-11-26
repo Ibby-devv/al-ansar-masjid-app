@@ -15,6 +15,7 @@ import DonationAnalyticsCard from "../../../components/DonationAnalyticsCard";
 import PillToggle from "../../../components/ui/PillToggle";
 import { Theme } from "../../../constants/theme";
 import { regionalFunctions } from "../../../firebase";
+import { useFirebaseData } from "../../../hooks/useFirebaseData";
 import { Donation } from "../../../types/donation";
 
 type DonationType = "one-time" | "recurring";
@@ -27,6 +28,8 @@ export default function HistoryTab() {
   const [subscriptions, setSubscriptions] = useState<Donation[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<DonationType>("one-time");
+  const { mosqueSettings } = useFirebaseData();
+  const MOSQUE_TZ = mosqueSettings?.timezone || 'Australia/Sydney';
 
   const loadDonations = async () => {
     if (!email.trim() || !email.includes("@")) {
@@ -66,12 +69,15 @@ export default function HistoryTab() {
     try {
       let date: Date;
 
-      // Handle Firestore Timestamp
+      // Handle Firestore Timestamp object (has toDate method)
       if (timestamp.toDate && typeof timestamp.toDate === "function") {
         date = timestamp.toDate();
       }
-      // Handle seconds/nanoseconds object
-      else if (timestamp.seconds) {
+      // Handle serialized Firestore Timestamp (seconds/nanoseconds)
+      else if (timestamp._seconds !== undefined) {
+        date = new Date(timestamp._seconds * 1000);
+      }
+      else if (timestamp.seconds !== undefined) {
         date = new Date(timestamp.seconds * 1000);
       }
       // Handle ISO string or number
@@ -81,17 +87,19 @@ export default function HistoryTab() {
 
       // Check if date is valid
       if (isNaN(date.getTime())) {
+        console.warn("Invalid date:", timestamp);
         return "N/A";
       }
 
-      // Format with date and time for better context
-      return date.toLocaleDateString("en-AU", {
+      // Format in mosque timezone to show correct local date/time
+      return date.toLocaleString("en-AU", {
         day: "numeric",
         month: "short",
         year: "numeric",
         hour: "numeric",
         minute: "2-digit",
         hour12: true,
+        timeZone: MOSQUE_TZ,
       });
     } catch (error) {
       console.error("Error formatting date:", error, timestamp);

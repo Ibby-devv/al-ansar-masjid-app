@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import React, { useMemo, useState } from 'react';
-import { ScrollView, SectionList, StatusBar, StyleSheet, Text, View, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Image, ScrollView, SectionList, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PatternOverlay from '../../components/PatternOverlay';
 import Badge from '../../components/ui/Badge';
 import Card from '../../components/ui/Card';
@@ -25,17 +25,30 @@ export default function EventsScreen(): React.JSX.Element {
   const { mosqueSettings } = useFirebaseData();
 
   // Helpers for prominent date display and relative badges
+  const MOSQUE_TZ = mosqueSettings?.timezone || 'Australia/Sydney';
+
   const getDateParts = (timestamp: FirebaseFirestoreTypes.Timestamp) => {
     const d = timestamp.toDate();
-    const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
-    const month = d.toLocaleDateString('en-US', { month: 'short' });
-    const day = d.getDate();
+    const weekday = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: MOSQUE_TZ });
+    const month = d.toLocaleDateString('en-US', { month: 'short', timeZone: MOSQUE_TZ });
+    const day = parseInt(d.toLocaleDateString('en-US', { day: 'numeric', timeZone: MOSQUE_TZ }), 10);
     return { weekday, month, day };
   };
 
-  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const startOfDay = useCallback((d: Date) => {
+    // Get the date parts in mosque timezone
+    const parts = d.toLocaleString('en-US', {
+      timeZone: MOSQUE_TZ,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour12: false
+    }).split(/[,\s:]+/);
+    const [m, day, y] = parts[0].split('/');
+    return new Date(parseInt(y), parseInt(m) - 1, parseInt(day), 0, 0, 0);
+  }, [MOSQUE_TZ]);
 
-  const getRelativeBadge = (timestamp: FirebaseFirestoreTypes.Timestamp): { label: string; bg: string; text: string } | null => {
+  const getRelativeBadge = useCallback((timestamp: FirebaseFirestoreTypes.Timestamp): { label: string; bg: string; text: string } | null => {
     try {
       const eventDate = startOfDay(timestamp.toDate());
       const today = startOfDay(new Date());
@@ -47,7 +60,7 @@ export default function EventsScreen(): React.JSX.Element {
     } catch {
       return null;
     }
-  };
+  }, [startOfDay]);
 
   // ✅ NEW: Get category colors dynamically
   const getCategoryColor = (categoryId: string) => {
@@ -80,34 +93,44 @@ export default function EventsScreen(): React.JSX.Element {
     ...categories.map(cat => ({ id: cat.id, label: cat.label }))
   ];
 
-  // Group events by day (section headers)
+  // Group events by day (section headers) using `event.date` only to avoid drift
   const sections = useMemo(() => {
     const map = new Map<string, { date: Date; timestamp: FirebaseFirestoreTypes.Timestamp; items: any[] }>();
-    filteredEvents.forEach((ev) => {
-      const d = ev.date.toDate(); // Convert Timestamp to Date using local timezone
-      const keyDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-      const key = keyDate.toISOString();
-      if (!map.has(key)) map.set(key, { date: keyDate, timestamp: ev.date, items: [] });
+    filteredEvents.forEach((ev: any) => {
+      const baseTs = ev.date as FirebaseFirestoreTypes.Timestamp;
+      const d = baseTs.toDate();
+      // Build a grouping key using the mosque timezone calendar day
+      const parts = d.toLocaleString('en-US', {
+        timeZone: MOSQUE_TZ,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour12: false
+      }).split(/[\,\s:]+/);
+      const [m, day, y] = parts[0].split('/');
+      const keyDate = new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(day, 10), 0, 0, 0);
+      const key = `${y}-${m}-${day}`;
+      if (!map.has(key)) map.set(key, { date: keyDate, timestamp: baseTs, items: [] });
       map.get(key)!.items.push(ev);
     });
     const arr = Array.from(map.values()).sort(
       (a, b) => a.date.getTime() - b.date.getTime()
     );
     return arr;
-  }, [filteredEvents]);
+  }, [filteredEvents, MOSQUE_TZ]);
 
   // Build data for SectionList (sticky headers)
   const sectionListData = useMemo(() => {
     return sections.map((s) => ({
       title: s.date.toLocaleDateString('en-US', {
         weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+        timeZone: MOSQUE_TZ,
       }),
       date: s.date,
       relBadge: getRelativeBadge(s.timestamp),
       data: s.items,
     }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sections]);
+  }, [sections, MOSQUE_TZ, getRelativeBadge]);
 
   return (
     <View style={styles.container}>

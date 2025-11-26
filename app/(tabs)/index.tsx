@@ -149,6 +149,7 @@ export default function HomeScreen(): React.JSX.Element {
       day: "2-digit",
       month: "long",
       year: "numeric",
+      timeZone: (mosqueSettings as any)?.timezone || "Australia/Sydney",
     });
   };
 
@@ -159,6 +160,7 @@ export default function HomeScreen(): React.JSX.Element {
         day: "numeric",
         month: "long",
         year: "numeric",
+        timeZone: (mosqueSettings as any)?.timezone || "Australia/Sydney",
       }).format(date);
 
       return islamicDate;
@@ -166,6 +168,53 @@ export default function HomeScreen(): React.JSX.Element {
       console.error("Error formatting Islamic date:", error);
       return "";
     }
+  };
+
+  // ====== Timezone-aware helpers (uses mosqueSettings.timezone when available) ======
+  const MOSQUE_TZ: string = (mosqueSettings as any)?.timezone || "Australia/Sydney";
+
+  // Get current wall-clock components using Intl parts
+  const getSydneyNowParts = (): { year: number; month: number; day: number; hour: number; minute: number } => {
+    const parts = new Intl.DateTimeFormat("en-AU", {
+      timeZone: MOSQUE_TZ,
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: false,
+    }).formatToParts(new Date());
+
+    const map: Record<string, number> = {} as any;
+    for (const p of parts) {
+      if (p.type === "year" || p.type === "month" || p.type === "day" || p.type === "hour" || p.type === "minute") {
+        map[p.type] = parseInt(p.value, 10);
+      }
+    }
+    return { year: map.year, month: map.month, day: map.day, hour: map.hour, minute: map.minute };
+  };
+
+  // Parse a 12-hour time string like "5:30 PM" into minutes since midnight
+  const parseTimeToMinutes = (timeString: string | undefined): number | null => {
+    if (!timeString) return null;
+    const match = timeString.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return null;
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const period = match[3].toUpperCase();
+    if (period === "PM" && hours !== 12) hours += 12;
+    if (period === "AM" && hours === 12) hours = 0;
+    return hours * 60 + minutes;
+  };
+
+  // Format a difference in minutes to "X Hours Y Minutes"
+  const formatMinuteDiff = (diffMins: number): string => {
+    const hours = Math.floor(diffMins / 60);
+    const minutes = diffMins % 60;
+    if (hours > 0) {
+      return `${hours} Hour${hours > 1 ? "s" : ""} ${minutes} Minute${minutes !== 1 ? "s" : ""}`;
+    }
+    return `${minutes} Minute${minutes !== 1 ? "s" : ""}`;
   };
 
   // Get the displayed iqama time
@@ -180,90 +229,31 @@ export default function HomeScreen(): React.JSX.Element {
     return calculateIqamaTime(adhanTime, iqamaType, fixedIqama, offset);
   };
 
-  // Parse time string to Date object
-  const parseTimeToDate = (timeString: string | undefined): Date | null => {
-    if (!timeString) return null;
-
-    try {
-      const today = new Date();
-      const timeMatch = timeString.match(/(\d+):(\d+)\s*(AM|PM)/i);
-
-      if (!timeMatch) return null;
-
-      let hours = parseInt(timeMatch[1]);
-      const minutes = parseInt(timeMatch[2]);
-      const period = timeMatch[3].toUpperCase();
-
-      if (period === "PM" && hours !== 12) {
-        hours += 12;
-      } else if (period === "AM" && hours === 12) {
-        hours = 0;
-      }
-
-      const prayerDate = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate(),
-        hours,
-        minutes,
-        0
-      );
-      return prayerDate;
-    } catch (error) {
-      console.error("Error parsing time:", error);
-      return null;
-    }
-  };
-
-  // Calculate next prayer
+  // Calculate next prayer using Sydney timezone wall-clock
   const getNextPrayer = (): { name: string; timeRemaining: string } | null => {
-    const now = new Date();
+    const { hour, minute } = getSydneyNowParts();
+    const nowMinutes = hour * 60 + minute;
 
-    const prayers = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
-    const prayerTimesWithDates = prayers.map((prayer) => ({
-      name: prayer.charAt(0).toUpperCase() + prayer.slice(1),
-      iqamaTime: parseTimeToDate(getDisplayedIqamaTime(prayer)),
-    }));
+    const prayerKeys = ["fajr", "dhuhr", "asr", "maghrib", "isha"] as const;
+    const schedule = prayerKeys.map((key) => ({
+      name: key.charAt(0).toUpperCase() + key.slice(1),
+      minutes: parseTimeToMinutes(getDisplayedIqamaTime(key)),
+    })).filter((p) => p.minutes !== null) as { name: string; minutes: number }[];
 
-    for (const prayer of prayerTimesWithDates) {
-      if (prayer.iqamaTime && prayer.iqamaTime > now) {
-        const diffMs = prayer.iqamaTime.getTime() - now.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        const hours = Math.floor(diffMins / 60);
-        const minutes = diffMins % 60;
-
-        let timeRemaining = "";
-        if (hours > 0) {
-          timeRemaining = `${hours} Hour${
-            hours > 1 ? "s" : ""
-          } ${minutes} Minute${minutes !== 1 ? "s" : ""}`;
-        } else {
-          timeRemaining = `${minutes} Minute${minutes !== 1 ? "s" : ""}`;
-        }
-
-        return { name: prayer.name, timeRemaining };
+    // Find the first prayer later today
+    for (const p of schedule) {
+      if (p.minutes > nowMinutes) {
+        const diff = p.minutes - nowMinutes;
+        return { name: p.name, timeRemaining: formatMinuteDiff(diff) };
       }
     }
 
-    // Next prayer is Fajr tomorrow
-    const fajrIqama = getDisplayedIqamaTime("fajr");
-    const fajrTime = parseTimeToDate(fajrIqama);
-    if (fajrTime) {
-      const tomorrow = new Date(fajrTime);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const diffMs = tomorrow.getTime() - now.getTime();
-      const diffMins = Math.floor(diffMs / 60000);
-      const hours = Math.floor(diffMins / 60);
-      const minutes = diffMins % 60;
-
-      return {
-        name: "Fajr",
-        timeRemaining: `${hours} Hour${hours > 1 ? "s" : ""} ${minutes} Minute${
-          minutes !== 1 ? "s" : ""
-        }`,
-      };
+    // Otherwise, next prayer is tomorrow's Fajr
+    const fajrMinutes = parseTimeToMinutes(getDisplayedIqamaTime("fajr"));
+    if (fajrMinutes !== null) {
+      const diff = (24 * 60 - nowMinutes) + fajrMinutes;
+      return { name: "Fajr", timeRemaining: formatMinuteDiff(diff) };
     }
-
     return null;
   };
 

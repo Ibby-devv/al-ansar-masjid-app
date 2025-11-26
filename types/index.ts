@@ -51,6 +51,7 @@ export interface MosqueSettings {
   imam?: string;
   latitude?: number;
   longitude?: number;
+  timezone?: string; // IANA timezone identifier (e.g., 'Australia/Sydney')
   calculation_method?: 'MuslimWorldLeague' | 'Egyptian' | 'Karachi' | 'UmmAlQura' | 'Dubai' | 'MoonsightingCommittee' | 'NorthAmerica' | 'Kuwait' | 'Qatar' | 'Singapore' | 'Tehran' | 'Turkey';
   auto_fetch_maghrib?: boolean;
   last_updated?: FirebaseFirestoreTypes.Timestamp;
