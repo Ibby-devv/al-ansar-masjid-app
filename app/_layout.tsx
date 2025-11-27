@@ -1,11 +1,12 @@
 import LoadingScreen from '@/components/LoadingScreen';
 import {
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-    Poppins_700Bold,
-    useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+  useFonts,
 } from '@expo-google-fonts/poppins';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { Stack } from 'expo-router';
 import { useEffect, useRef } from 'react';
@@ -27,6 +28,9 @@ export default function RootLayout() {
   useEffect(() => {
     // Initialize FCM on app startup
     initializeFCM();
+
+    // Monitor cache size on app startup
+    monitorCacheSize();
 
     // Update lastSeen when app comes to foreground
     const subscription = AppState.addEventListener('change', nextAppState => {
@@ -52,6 +56,31 @@ export default function RootLayout() {
       await FCMService.updateLastSeen();
     } catch (error) {
       console.error('❌ Failed to initialize FCM:', error);
+    }
+  };
+
+  /**
+   * Monitor AsyncStorage cache size on app startup
+   * Logs cache statistics in development mode
+   */
+  const monitorCacheSize = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const cacheKeys = keys.filter(key => key.startsWith('@cached_') || key.startsWith('@'));
+      
+      if (__DEV__) {
+        console.log(`📊 AsyncStorage cache entries: ${cacheKeys.length}`);
+        
+        // Optionally log cache keys for debugging
+        if (cacheKeys.length > 0) {
+          console.log('Cache keys:', cacheKeys);
+        }
+      }
+      
+      // Future enhancement: Implement LRU or size-based eviction if needed
+      // For now, real-time listeners keep data fresh, so old entries are overwritten
+    } catch (error) {
+      console.error('Error monitoring cache:', error);
     }
   };
 

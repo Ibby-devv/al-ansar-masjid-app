@@ -3,18 +3,17 @@
 // Location: src/hooks/useDonation.ts
 // ============================================================================
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
+import { CACHE_KEYS } from '../constants/cacheKeys';
 import { db, regionalFunctions } from '../firebase';
 import {
-  Donation,
-  DonationFormData,
-  DonationSettings,
-  PaymentIntentResponse,
-  SubscriptionResponse
+    Donation,
+    DonationFormData,
+    DonationSettings,
+    PaymentIntentResponse,
+    SubscriptionResponse
 } from '../types/donation';
-
-const SETTINGS_CACHE_KEY = '@donation_settings_cache';
+import { getCachedData, setCachedData } from '../utils/cache';
 
 export const useDonation = () => {
   const [loading, setLoading] = useState(true);
@@ -30,10 +29,9 @@ export const useDonation = () => {
     const loadSettings = async () => {
       try {
         // 1. Load from cache first (instant)
-        const cachedData = await AsyncStorage.getItem(SETTINGS_CACHE_KEY);
+        const cachedData = await getCachedData<DonationSettings>(CACHE_KEYS.DONATION_SETTINGS);
         if (cachedData) {
-          const parsed = JSON.parse(cachedData);
-          setSettings(parsed);
+          setSettings(cachedData);
           setLoading(false);
           console.log('✅ Donation settings loaded from cache');
         }
@@ -50,16 +48,13 @@ export const useDonation = () => {
           const freshData = docSnapshot.data() as DonationSettings;
           
           // Only update if data actually changed (prevent unnecessary re-renders)
-          const dataChanged = JSON.stringify(freshData) !== JSON.stringify(cachedData ? JSON.parse(cachedData) : null);
+          const dataChanged = JSON.stringify(freshData) !== JSON.stringify(cachedData);
           
           if (dataChanged) {
             setSettings(freshData);
 
             // Update cache
-            await AsyncStorage.setItem(
-              SETTINGS_CACHE_KEY,
-              JSON.stringify(freshData)
-            );
+            await setCachedData(CACHE_KEYS.DONATION_SETTINGS, freshData);
 
             console.log('✅ Donation settings updated from server');
           } else {

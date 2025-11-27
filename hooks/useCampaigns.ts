@@ -4,13 +4,11 @@
 // Fetches active campaigns from Firestore - React Native Firebase version
 // ============================================================================
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import { useEffect, useState } from 'react';
-import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
-import firestore from '@react-native-firebase/firestore';
+import { CACHE_KEYS } from '../constants/cacheKeys';
 import { db } from '../firebase';
-
-const CAMPAIGNS_CACHE_KEY = '@campaigns_cache';
+import { getCachedData, setCachedData } from '../utils/cache';
 
 export interface Campaign {
   id: string;
@@ -62,11 +60,10 @@ export function useCampaigns() {
   const loadCampaigns = async () => {
     try {
       // 1. Load from cache first (instant)
-      const cachedData = await AsyncStorage.getItem(CAMPAIGNS_CACHE_KEY);
+      const cachedData = await getCachedData<any[]>(CACHE_KEYS.CAMPAIGNS);
       if (cachedData) {
-        const parsed = JSON.parse(cachedData);
         // Deserialize Timestamps from cache
-        const deserialized = parsed.map(deserializeCampaign);
+        const deserialized = cachedData.map(deserializeCampaign);
         setCampaigns(deserialized);
         setLoading(false);
         console.log('✅ Campaigns loaded from cache:', deserialized.length);
@@ -92,10 +89,7 @@ export function useCampaigns() {
 
             // Update cache - serialize Timestamps before storing
             const serialized = loadedCampaigns.map(serializeCampaign);
-            await AsyncStorage.setItem(
-              CAMPAIGNS_CACHE_KEY,
-              JSON.stringify(serialized)
-            );
+            await setCachedData(CACHE_KEYS.CAMPAIGNS, serialized);
 
             const fromCache = querySnapshot.metadata.fromCache;
             console.log(
