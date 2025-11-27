@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -22,11 +22,14 @@ import UpdatingBanner from "../../components/ui/UpdatingBanner";
 import EmptyState from "../../components/EmptyState";
 import LoadingScreen from "../../components/LoadingScreen";
 
+// Import theme context
+import { useTheme } from "../../contexts/ThemeContext";
+import type { AppTheme } from "../../hooks/useAppTheme";
+
 // Import custom hooks
 import { useFirebaseData } from "../../hooks/useFirebaseData";
 
 // Import types and utility
-import { Theme } from "../../constants/theme";
 import { Prayer, calculateIqamaTime } from "../../types";
 
 type ViewType = "prayer" | "jumuah";
@@ -41,11 +44,15 @@ const getOrdinalSuffix = (num: number): string => {
 };
 
 export default function HomeScreen(): React.JSX.Element {
+  const theme = useTheme();
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [activeView, setActiveView] = useState<ViewType>("prayer");
 
   // Load data from Firebase using custom hooks
   const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating, error } = useFirebaseData();
+  
+  // Memoize styles based on theme
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
 
   // Format timestamp with both date and time for better context
@@ -310,7 +317,7 @@ export default function HomeScreen(): React.JSX.Element {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header with Gradient */}
         <LinearGradient
-          colors={[Theme.colors.brand.navy[800], Theme.colors.brand.navy[700], Theme.colors.brand.navy[900]]}
+          colors={theme.gradients.header}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.headerGradient}
@@ -329,7 +336,7 @@ export default function HomeScreen(): React.JSX.Element {
                 style={styles.settingsButton}
                 onPress={() => router.push("/settings")}
               >
-                <Ionicons name="settings-outline" size={24} color={Theme.colors.text.inverse} />
+                <Ionicons name="settings-outline" size={24} color={theme.colors.text.inverse} />
               </TouchableOpacity>
             </View>
             
@@ -412,7 +419,7 @@ export default function HomeScreen(): React.JSX.Element {
                         <Ionicons
                           name={prayer.icon as any}
                           size={18}
-                          color={isNextPrayer ? Theme.colors.brand.gold[600] : Theme.colors.accent.blue}
+                          color={isNextPrayer ? theme.colors.brand.gold[600] : theme.colors.accent.blue}
                         />
                       </View>
                       <Text style={[styles.rowName, isNextPrayer && styles.nextPrayerText]}>
@@ -475,7 +482,7 @@ export default function HomeScreen(): React.JSX.Element {
               jumuahTimes.times.map((time, index) => (
                 <View key={time.id} style={styles.jumuahCard}>
                   <View style={styles.jumuahHeader}>
-                    <Ionicons name="calendar" size={24} color={Theme.colors.brand.gold[600]} />
+                    <Ionicons name="calendar" size={24} color={theme.colors.brand.gold[600]} />
                     <Text style={styles.jumuahCardTitle}>
                       {jumuahTimes.times.length === 1
                         ? "Jumu'ah"
@@ -502,19 +509,19 @@ export default function HomeScreen(): React.JSX.Element {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.surface.muted,
+    backgroundColor: theme.colors.surface.muted,
   },
   scrollView: {
     flex: 1,
   },
   headerGradient: {
-    paddingBottom: Theme.spacing.xl,
-    borderBottomLeftRadius: Theme.radius.xl,
-    borderBottomRightRadius: Theme.radius.xl,
-    ...Theme.shadow.header,
+    paddingBottom: theme.spacing.xl,
+    borderBottomLeftRadius: theme.radius.xl,
+    borderBottomRightRadius: theme.radius.xl,
+    ...theme.shadow.header,
   },
   patternOverlay: {
     position: "absolute",
@@ -526,17 +533,17 @@ const styles = StyleSheet.create({
   headerTop: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    paddingHorizontal: Theme.spacing.lg,
-    paddingTop: Theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.sm,
   },
   settingsButton: {
     padding: 6,
-    borderRadius: Theme.spacing.lg,
+    borderRadius: theme.spacing.lg,
     backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
   heroSection: {
     alignItems: "center",
-    paddingHorizontal: Theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
     paddingTop: 6,
     paddingBottom: 4,
   },
@@ -554,51 +561,51 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.06)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
-    marginBottom: Theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
   },
   mosqueName: {
-    fontSize: Theme.typography.h1,
+    fontSize: theme.typography.h1,
     fontWeight: "bold",
-    color: Theme.colors.text.inverse,
+    color: theme.colors.text.inverse,
     marginBottom: 4,
     textAlign: "center",
   },
   currentDate: {
     fontSize: 13,
-    color: Theme.colors.text.subtle,
+    color: theme.colors.text.subtle,
     marginBottom: 1,
     textAlign: "center",
   },
   islamicDate: {
-    fontSize: Theme.typography.small,
-    color: Theme.colors.text.subtle,
+    fontSize: theme.typography.small,
+    color: theme.colors.text.subtle,
     textAlign: "center",
   },
   prayerCardsContainer: {
-    paddingHorizontal: Theme.spacing.lg,
-    paddingBottom: Theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.md,
   },
   prayerTableCard: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.lg,
-    paddingVertical: Theme.spacing.sm,
-    ...Theme.shadow.soft,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.lg,
+    paddingVertical: theme.spacing.sm,
+    ...theme.shadow.soft,
   },
   tableRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: Theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
     paddingVertical: 14,
   },
   tableHeaderRow: {
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
   },
   tableRowDivider: {
     borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.border.base,
+    borderBottomColor: theme.colors.border.base,
   },
   nextRow: {
-    backgroundColor: Theme.colors.accent.amberSoft,
+    backgroundColor: theme.colors.accent.amberSoft,
   },
   rowLeft: {
     flex: 2,
@@ -609,43 +616,43 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Theme.colors.accent.blueSoft,
+    backgroundColor: theme.colors.accent.blueSoft,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: Theme.spacing.sm,
+    marginRight: theme.spacing.sm,
   },
   rowName: {
-    fontSize: Theme.typography.h3,
-    color: Theme.colors.text.strong,
+    fontSize: theme.typography.h3,
+    color: theme.colors.text.strong,
     fontWeight: "700",
   },
   rowTime: {
     flex: 1,
     textAlign: "center",
-    fontSize: Theme.typography.h3,
-    color: Theme.colors.text.base,
+    fontSize: theme.typography.h3,
+    color: theme.colors.text.base,
     fontWeight: "700",
   },
   rowHeaderLabel: {
-    fontSize: Theme.typography.small,
-    color: Theme.colors.text.muted,
+    fontSize: theme.typography.small,
+    color: theme.colors.text.muted,
     fontWeight: "800",
   },
   rowIqama: {
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
   },
   prayerCard: {
-    backgroundColor: Theme.colors.surface.base,
+    backgroundColor: theme.colors.surface.base,
     borderRadius: 14,
-    padding: Theme.spacing.md,
-    marginBottom: Theme.spacing.sm,
-    ...Theme.shadow.soft,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+    ...theme.shadow.soft,
   },
   nextPrayerCard: {
-    backgroundColor: "#fffbeb",
+    backgroundColor: theme.colors.accent.amberSoft,
     borderWidth: 2,
-    borderColor: Theme.colors.brand.gold[400],
-    shadowColor: Theme.colors.brand.gold[600],
+    borderColor: theme.colors.brand.gold[400],
+    shadowColor: theme.colors.brand.gold[600],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
@@ -663,31 +670,31 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: Theme.colors.accent.blueSoft,
+    backgroundColor: theme.colors.accent.blueSoft,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
   },
   iconCircleActive: {
-    backgroundColor: "#fef3c7",
+    backgroundColor: theme.colors.accent.amberSoft,
   },
   prayerCardName: {
-    fontSize: Theme.typography.h3,
+    fontSize: theme.typography.h3,
     fontWeight: "700",
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     flex: 1,
   },
   nextPrayerText: {
-    color: "#92400e",
+    color: theme.colors.brand.gold[600],
   },
   nextBadge: {
-    backgroundColor: Theme.colors.brand.gold[600],
-    paddingHorizontal: Theme.spacing.sm,
+    backgroundColor: theme.colors.brand.gold[600],
+    paddingHorizontal: theme.spacing.sm,
     paddingVertical: 3,
     borderRadius: 10,
   },
   nextBadgeText: {
-    color: Theme.colors.text.inverse,
+    color: theme.colors.text.inverse,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.5,
@@ -695,13 +702,13 @@ const styles = StyleSheet.create({
   countdownText: {
     fontSize: 13,
     fontWeight: "600",
-    color: Theme.colors.brand.gold[600],
+    color: theme.colors.brand.gold[600],
     marginLeft: 46,
   },
   prayerCardTimes: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
     borderRadius: 10,
     padding: 10,
   },
@@ -712,44 +719,44 @@ const styles = StyleSheet.create({
   timeDivider: {
     width: 1,
     height: 35,
-    backgroundColor: Theme.colors.border.soft,
+    backgroundColor: theme.colors.border.soft,
     marginHorizontal: 6,
   },
   timeLabel: {
     fontSize: 11,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
     marginTop: 3,
     marginBottom: 1,
   },
   timeValue: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: "700",
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
   },
   iqamaTime: {
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
   },
   jumuahCardsContainer: {
-    paddingHorizontal: Theme.spacing.lg,
-    paddingBottom: Theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.md,
   },
   jumuahCard: {
-    backgroundColor: Theme.colors.surface.base,
+    backgroundColor: theme.colors.surface.base,
     borderRadius: 14,
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.sm,
-    ...Theme.shadow.soft,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.sm,
+    ...theme.shadow.soft,
   },
   jumuahHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: Theme.spacing.md,
+    marginBottom: theme.spacing.md,
   },
   jumuahCardTitle: {
-    fontSize: Theme.typography.h3,
+    fontSize: theme.typography.h3,
     fontWeight: "700",
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     marginLeft: 10,
     flex: 1,
   },
@@ -757,59 +764,59 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
     borderRadius: 10,
-    padding: Theme.spacing.md,
+    padding: theme.spacing.md,
   },
   jumuahLabel: {
-    fontSize: Theme.typography.body,
-    color: Theme.colors.text.muted,
+    fontSize: theme.typography.body,
+    color: theme.colors.text.muted,
     fontWeight: "500",
   },
   jumuahTime: {
-    fontSize: Theme.typography.h2,
+    fontSize: theme.typography.h2,
     fontWeight: "700",
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
   },
   staleBanner: {
-    backgroundColor: Theme.colors.accent.amberSoft,
+    backgroundColor: theme.colors.accent.amberSoft,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginTop: 12,
     borderWidth: 1,
-    borderColor: Theme.colors.brand.gold[400],
+    borderColor: theme.colors.brand.gold[400],
   },
   staleBannerText: {
     fontSize: 12,
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     fontWeight: '600',
   },
   skelName: {
     width: 60,
     height: 16,
     borderRadius: 4,
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
   },
   skelTime: {
     flex: 1,
     height: 18,
     borderRadius: 4,
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
     marginHorizontal: 4,
   },
   jumuahSkelTitle: {
     flex: 1,
     height: 20,
     borderRadius: 6,
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
     marginLeft: 10,
   },
   jumuahSkelLine: {
     width: 90,
     height: 22,
     borderRadius: 6,
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
   },
   updatingContainer: {
     marginTop: 12,

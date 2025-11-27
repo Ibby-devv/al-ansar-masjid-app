@@ -9,9 +9,11 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
 import { AppState, Text as RNText, TextInput as RNTextInput } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ThemeProvider } from '../contexts/ThemeContext';
 import FCMService from '../services/FCMService';
 
 const STRIPE_PUBLISHABLE_KEY = 'pk_test_51SIKZ2LsKTjvYA4a7qJKDuUEIi0cosiLMk4VSxeMy2DXkHCzjJiwBsk5wpp6NXsBo5dwp0bwUoeMXupsvvZxLuxz008S6hj6Ej';
@@ -102,17 +104,20 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      {!fontsLoaded ? (
-        <LoadingScreen />
-      ) : (
-      <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="settings" options={{ headerShown: false }} />
-          <Stack.Screen name="donations" options={{ headerShown: false }} />
-        </Stack>
-      </StripeProvider>
-      )}
+      <ThemeProvider>
+        <StatusBar style="auto" />
+        {!fontsLoaded ? (
+          <LoadingScreen />
+        ) : (
+        <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="settings" options={{ headerShown: false }} />
+            <Stack.Screen name="donations" options={{ headerShown: false }} />
+          </Stack>
+        </StripeProvider>
+        )}
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

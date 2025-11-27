@@ -59,46 +59,40 @@ export const Fonts = Platform.select({
 // App theme tokens (brand palette, spacing, radii, typography)
 export const Theme = {
   colors: {
-    brand: {
-      navy: {
-        900: '#0b1220',
-        800: '#172554',
-        700: '#1e3a8a',
-        600: '#1d4ed8',
+    light: {
+      brand: {
+        navy: { 900: '#0b1220', 800: '#172554', 700: '#1e3a8a', 600: '#1e40af' },
+        gold: { 600: '#d97706', 400: '#f59e0b' },
       },
-      gold: {
-        600: '#d97706',
-        400: '#fbbf24',
+      surface: { base: '#ffffff', soft: '#f8fafc', muted: '#f1f5f9', card: '#ffffff' },
+      text: { base: '#0f172a', muted: '#64748b', subtle: '#94a3b8', inverse: '#ffffff', strong: '#1f2937' },
+      border: { base: '#e5e7eb', soft: '#e2e8f0' },
+      accent: { blueSoft: '#eff6ff', blue: '#60a5fa', amberSoft: '#fffbeb', green: '#22c55e', amber: '#f59e0b' },
+      error: { 500: '#ef4444', 100: '#fee2e2' },
+      tabBar: { background: '#ffffff', border: '#e5e7eb', activeTint: '#1e3a8a', inactiveTint: '#9ca3af' },
+      iconBackground: { map: '#ef4444', phone: '#22c55e', email: '#f59e0b', website: '#0ea5e9', imam: '#d97706', version: '#8b5cf6', developer: '#6366f1', facebook: '#1877F2' },
+      progress: { background: '#e5e7eb', fill: '#3b82f6', complete: '#10b981' },
+      compass: { background: '#0f2945', face: '#f5efeb', accent: '#f4a261', muted: 'rgba(255,255,255,0.6)' },
+    },
+    dark: {
+      brand: {
+        navy: { 900: '#1e3a8a', 800: '#1e40af', 700: '#2563eb', 600: '#3b82f6' },
+        gold: { 600: '#f59e0b', 400: '#fbbf24' },
       },
+      surface: { base: '#111827', soft: '#1f2937', muted: '#374151', card: '#1f2937' },
+      text: { base: '#f9fafb', muted: '#9ca3af', subtle: '#6b7280', inverse: '#0f172a', strong: '#ffffff' },
+      border: { base: '#374151', soft: '#4b5563' },
+      accent: { blueSoft: '#1e3a8a', blue: '#60a5fa', amberSoft: '#422006', green: '#34d399', amber: '#fbbf24' },
+      error: { 500: '#ef4444', 100: '#7f1d1d' },
+      tabBar: { background: '#1a1a1a', border: '#374151', activeTint: '#60a5fa', inactiveTint: '#6b7280' },
+      iconBackground: { map: '#dc2626', phone: '#16a34a', email: '#d97706', website: '#0284c7', imam: '#f59e0b', version: '#a78bfa', developer: '#818cf8', facebook: '#1877F2' },
+      progress: { background: '#374151', fill: '#60a5fa', complete: '#34d399' },
+      compass: { background: '#0b1220', face: '#1f2937', accent: '#fb923c', muted: 'rgba(255,255,255,0.3)' },
     },
-    surface: {
-      base: '#ffffff',
-      soft: '#f8fafc',
-      muted: '#f1f5f9',
-      card: '#ffffff',
-    },
-    text: {
-      base: '#0f172a',
-      muted: '#64748b',
-      subtle: '#94a3b8',
-      inverse: '#ffffff',
-      strong: '#1f2937',
-    },
-    border: {
-      base: '#e5e7eb',
-      soft: '#e2e8f0',
-    },
-    accent: {
-      blueSoft: '#eff6ff',
-      blue: '#60a5fa',
-      amberSoft: '#fff7ed',
-      green: '#22c55e',
-      amber: '#f59e0b',
-    },
-    error: {
-      500: '#ef4444', // red-500
-      100: '#fee2e2', // red-100
-    },
+  },
+  gradients: {
+    light: { header: ['#172554', '#1e3a8a', '#0b1220'] as const },
+    dark: { header: ['#1e3a8a', '#1e40af', '#172554'] as const },
   },
   spacing: {
     xs: 4,
@@ -139,3 +133,7 @@ export const Theme = {
     },
   },
 } as const;
+
+// Legacy alias for backward compatibility during migration
+// TODO: Remove after all components are migrated to useTheme()
+export const LegacyThemeColors = Theme.colors.light;

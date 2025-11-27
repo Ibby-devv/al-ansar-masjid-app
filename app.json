@@ -9,6 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "userInterfaceStyle": "automatic",
       "supportsTablet": true,
       "bundleIdentifier": "com.alansarmasjid.app",
       "infoPlist": {
@@ -27,6 +28,7 @@
       }
     },
     "android": {
+      "userInterfaceStyle": "automatic",
       "versionCode": 19,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
