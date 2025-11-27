@@ -5,7 +5,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useStripe } from "@stripe/stripe-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -20,24 +20,29 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context"; // Import custom hooks
+import { SafeAreaView } from "react-native-safe-area-context";
 import CampaignCard from "../../../components/CampaignCard";
 import DonationErrorModal, { DonationError } from "../../../components/DonationErrorModal";
 import DonationSuccessModal from "../../../components/DonationSuccessModal";
 import EmptyState from "../../../components/EmptyState";
 import GeneralDonationCard from "../../../components/GeneralDonationCard";
-import { Theme } from "../../../constants/theme";
+import { useTheme } from "../../../contexts/ThemeContext";
+import type { AppTheme } from "../../../hooks/useAppTheme";
 import { Campaign, useCampaigns } from "../../../hooks/useCampaigns";
 import { useDonation } from "../../../hooks/useDonation";
 import { useFirebaseData } from "../../../hooks/useFirebaseData";
 import { DonationFormData } from "../../../types/donation";
 
 export default function GiveTab(): React.JSX.Element | null {
+  const theme = useTheme();
   const { mosqueSettings } = useFirebaseData();
   const { campaigns } = useCampaigns();
   const { settings, loading, error, createDonation, createSubscription } =
     useDonation();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  
+  // Memoize styles based on theme
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Form state
   const [selectedType, setSelectedType] = useState<string>("");
@@ -333,7 +338,7 @@ export default function GiveTab(): React.JSX.Element | null {
     return (
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Theme.colors.brand.navy[700]} />
+          <ActivityIndicator size="large" color={theme.colors.brand.navy[700]} />
           <Text style={styles.loadingText}>Loading donation options...</Text>
         </View>
       </SafeAreaView>
@@ -402,7 +407,7 @@ export default function GiveTab(): React.JSX.Element | null {
                       onPress={handleBackToCampaigns}
                     >
                       <View style={styles.backButtonContent}>
-                        <Ionicons name="arrow-back-circle" size={28} color={Theme.colors.brand.navy[700]} />
+                        <Ionicons name="arrow-back-circle" size={28} color={theme.colors.brand.navy[700]} />
                         <View>
                           <Text style={styles.backButtonText}>Back to Campaigns</Text>
                           <Text style={styles.backButtonSubtext}>Choose a different cause</Text>
@@ -416,7 +421,7 @@ export default function GiveTab(): React.JSX.Element | null {
                 {selectedCampaign && (
                   <View style={styles.selectedCampaignBanner}>
                     <View style={styles.campaignBannerIcon}>
-                      <Ionicons name="heart" size={20} color={Theme.colors.brand.navy[700]} />
+                      <Ionicons name="heart" size={20} color={theme.colors.brand.navy[700]} />
                     </View>
                     <View style={styles.campaignBannerText}>
                       <Text style={styles.campaignBannerLabel}>Donating to</Text>
@@ -432,7 +437,7 @@ export default function GiveTab(): React.JSX.Element | null {
                 {!selectedCampaign && (
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                      <Ionicons name="list" size={20} color={Theme.colors.brand.navy[700]} />
+                      <Ionicons name="list" size={20} color={theme.colors.brand.navy[700]} />
                       <Text style={styles.label}>Donation Type *</Text>
                     </View>
                     <View style={styles.pickerContainer}>
@@ -464,7 +469,7 @@ export default function GiveTab(): React.JSX.Element | null {
                 {/* Amount Selection */}
                 <View style={styles.section}>
                   <View style={styles.sectionHeader}>
-                    <Ionicons name="cash" size={20} color={Theme.colors.brand.gold[600]} />
+                    <Ionicons name="cash" size={20} color={theme.colors.brand.gold[600]} />
                     <Text style={styles.label}>Amount (AUD) *</Text>
                   </View>
                   <View style={styles.amountGrid}>
@@ -496,7 +501,7 @@ export default function GiveTab(): React.JSX.Element | null {
                       style={styles.customAmountButton}
                       onPress={handleCustomAmountButtonPress}
                     >
-                      <Ionicons name="create-outline" size={20} color={Theme.colors.brand.navy[700]} />
+                      <Ionicons name="create-outline" size={20} color={theme.colors.brand.navy[700]} />
                       <Text style={styles.customAmountButtonText}>
                         Enter custom amount
                       </Text>
@@ -506,7 +511,7 @@ export default function GiveTab(): React.JSX.Element | null {
                       ref={customAmountInputRef}
                       style={styles.input}
                       placeholder="Enter custom amount"
-                      placeholderTextColor={Theme.colors.text.muted}
+                      placeholderTextColor={theme.colors.text.muted}
                       keyboardType="numeric"
                       value={customAmount}
                       onChangeText={handleCustomAmount}
@@ -529,7 +534,7 @@ export default function GiveTab(): React.JSX.Element | null {
                     <Ionicons
                       name={isRecurring ? "checkbox" : "square-outline"}
                       size={24}
-                      color={Theme.colors.brand.navy[700]}
+                      color={theme.colors.brand.navy[700]}
                     />
                     <Text style={styles.checkboxLabel}>Make this recurring</Text>
                   </TouchableOpacity>
@@ -584,7 +589,7 @@ export default function GiveTab(): React.JSX.Element | null {
                     <Ionicons
                       name={isAnonymous ? "checkbox" : "square-outline"}
                       size={24}
-                      color={Theme.colors.brand.navy[700]}
+                      color={theme.colors.brand.navy[700]}
                     />
                     <Text
                       style={[
@@ -602,14 +607,14 @@ export default function GiveTab(): React.JSX.Element | null {
                 {(!isAnonymous || isRecurring) && (
                   <View style={styles.donorInfoSection}>
                     <View style={styles.sectionHeader}>
-                      <Ionicons name="person" size={20} color={Theme.colors.brand.navy[700]} />
+                      <Ionicons name="person" size={20} color={theme.colors.brand.navy[700]} />
                       <Text style={styles.label}>Your Information</Text>
                     </View>
 
                     <TextInput
                       style={styles.input}
                       placeholder="Full Name *"
-                      placeholderTextColor={Theme.colors.text.muted}
+                      placeholderTextColor={theme.colors.text.muted}
                       value={donorName}
                       onChangeText={setDonorName}
                       autoCapitalize="words"
@@ -618,7 +623,7 @@ export default function GiveTab(): React.JSX.Element | null {
                     <TextInput
                       style={styles.input}
                       placeholder={isRecurring ? "Email *" : "Email (optional)"}
-                      placeholderTextColor={Theme.colors.text.muted}
+                      placeholderTextColor={theme.colors.text.muted}
                       value={donorEmail}
                       onChangeText={setDonorEmail}
                       keyboardType="email-address"
@@ -630,7 +635,7 @@ export default function GiveTab(): React.JSX.Element | null {
                         <Ionicons
                           name="information-circle"
                           size={20}
-                          color={Theme.colors.brand.navy[700]}
+                          color={theme.colors.brand.navy[700]}
                         />
                         <Text style={styles.infoText}>
                           Email required to manage your recurring donation
@@ -661,7 +666,7 @@ export default function GiveTab(): React.JSX.Element | null {
                       </View>
                     )}
                     <View style={styles.paymentMethodBadge}>
-                      <Ionicons name="card" size={20} color={Theme.colors.brand.navy[700]} />
+                      <Ionicons name="card" size={20} color={theme.colors.brand.navy[700]} />
                       <Text style={styles.paymentMethodText}>Card</Text>
                     </View>
                   </View>
@@ -690,7 +695,7 @@ export default function GiveTab(): React.JSX.Element | null {
 
                 {/* Security Note */}
                 <View style={styles.securityNote}>
-                  <Ionicons name="shield-checkmark" size={20} color={Theme.colors.accent.green} />
+                  <Ionicons name="shield-checkmark" size={20} color={theme.colors.accent.green} />
                   <Text style={styles.securityText}>
                     Secure payment powered by Stripe
                   </Text>
@@ -776,85 +781,85 @@ export default function GiveTab(): React.JSX.Element | null {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.surface.muted,
+    backgroundColor: theme.colors.surface.muted,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Theme.colors.surface.muted,
+    backgroundColor: theme.colors.surface.muted,
   },
   loadingText: {
-    marginTop: Theme.spacing.lg,
-    fontSize: Theme.spacing.lg,
-    color: Theme.colors.text.muted,
+    marginTop: theme.spacing.lg,
+    fontSize: theme.spacing.lg,
+    color: theme.colors.text.muted,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    paddingTop: Theme.spacing.xxl,
+    paddingTop: theme.spacing.xxl,
     paddingBottom: 40,
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: Theme.colors.surface.muted,
-    padding: Theme.spacing.xl,
+    backgroundColor: theme.colors.surface.muted,
+    padding: theme.spacing.xl,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    marginTop: -Theme.spacing.xl,
+    marginTop: -theme.spacing.xl,
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: Theme.colors.text.strong,
-    marginBottom: Theme.spacing.xl,
+    color: theme.colors.text.strong,
+    marginBottom: theme.spacing.xl,
   },
   backButtonContainer: {
-    marginBottom: Theme.spacing.xxl,
+    marginBottom: theme.spacing.xxl,
   },
   backButton: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
-    ...Theme.shadow.soft,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
+    ...theme.shadow.soft,
   },
   backButtonContent: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Theme.spacing.md,
+    gap: theme.spacing.md,
   },
   backButtonText: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: "700",
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
   },
   backButtonSubtext: {
-    fontSize: Theme.typography.small,
-    color: Theme.colors.text.muted,
+    fontSize: theme.typography.small,
+    color: theme.colors.text.muted,
     marginTop: 2,
   },
   selectedCampaignBanner: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Theme.spacing.md,
-    backgroundColor: Theme.colors.accent.amberSoft,
-    padding: Theme.spacing.lg,
-    borderRadius: Theme.radius.md,
-    marginBottom: Theme.spacing.xxl,
+    gap: theme.spacing.md,
+    backgroundColor: theme.colors.accent.amberSoft,
+    padding: theme.spacing.lg,
+    borderRadius: theme.radius.md,
+    marginBottom: theme.spacing.xxl,
     borderLeftWidth: 4,
-    borderLeftColor: Theme.colors.brand.gold[600],
-    ...Theme.shadow.soft,
+    borderLeftColor: theme.colors.brand.gold[600],
+    ...theme.shadow.soft,
   },
   campaignBannerIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Theme.colors.surface.base,
+    backgroundColor: theme.colors.surface.base,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -862,34 +867,34 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   campaignBannerLabel: {
-    fontSize: Theme.typography.small,
-    color: Theme.colors.text.muted,
+    fontSize: theme.typography.small,
+    color: theme.colors.text.muted,
     marginBottom: 2,
   },
   selectedCampaignText: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: "700",
-    color: Theme.colors.brand.gold[600],
+    color: theme.colors.brand.gold[600],
   },
   section: {
-    marginBottom: Theme.spacing.xxl,
+    marginBottom: theme.spacing.xxl,
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Theme.spacing.sm,
-    marginBottom: Theme.spacing.md,
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
   },
   label: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: "600",
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
   },
   pickerContainer: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
     borderWidth: 2,
-    borderColor: Theme.colors.border.base,
+    borderColor: theme.colors.border.base,
     overflow: "hidden",
   },
   picker: {
@@ -898,208 +903,208 @@ const styles = StyleSheet.create({
   amountGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Theme.spacing.md,
-    marginBottom: Theme.spacing.md,
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.md,
   },
   amountButton: {
     flex: 1,
     minWidth: "30%",
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
     alignItems: "center",
     borderWidth: 2,
-    borderColor: Theme.colors.border.base,
+    borderColor: theme.colors.border.base,
   },
   amountButtonSelected: {
-    borderColor: Theme.colors.brand.navy[700],
-    backgroundColor: Theme.colors.brand.navy[700],
+    borderColor: theme.colors.brand.navy[700],
+    backgroundColor: theme.colors.brand.navy[700],
   },
   amountButtonText: {
-    fontSize: Theme.typography.h3,
+    fontSize: theme.typography.h3,
     fontWeight: "bold",
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
   },
   amountButtonTextSelected: {
-    color: Theme.colors.text.inverse,
+    color: theme.colors.text.inverse,
   },
   input: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
-    fontSize: Theme.spacing.lg,
-    color: Theme.colors.text.strong,
-    marginBottom: Theme.spacing.md,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
+    fontSize: theme.spacing.lg,
+    color: theme.colors.text.strong,
+    marginBottom: theme.spacing.md,
     borderWidth: 2,
-    borderColor: Theme.colors.border.base,
+    borderColor: theme.colors.border.base,
   },
   checkboxRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Theme.spacing.md,
+    gap: theme.spacing.md,
   },
   recurringSection: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xl,
-    ...Theme.shadow.soft,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+    ...theme.shadow.soft,
   },
   anonymousSection: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xl,
-    ...Theme.shadow.soft,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+    ...theme.shadow.soft,
   },
   donorInfoSection: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xl,
-    ...Theme.shadow.soft,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+    ...theme.shadow.soft,
   },
   checkboxLabel: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: "600",
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
   },
   frequencyButtonsContainer: {
-    marginTop: Theme.spacing.lg,
-    paddingTop: Theme.spacing.lg,
+    marginTop: theme.spacing.lg,
+    paddingTop: theme.spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: Theme.colors.border.base,
+    borderTopColor: theme.colors.border.base,
   },
   frequencyLabel: {
-    fontSize: Theme.typography.body,
+    fontSize: theme.typography.body,
     fontWeight: "600",
-    color: Theme.colors.text.muted,
-    marginBottom: Theme.spacing.md,
+    color: theme.colors.text.muted,
+    marginBottom: theme.spacing.md,
   },
   frequencyButtonsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Theme.spacing.md,
+    gap: theme.spacing.md,
   },
   frequencyButton: {
     flex: 1,
     minWidth: "45%",
-    backgroundColor: Theme.colors.surface.muted,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
+    backgroundColor: theme.colors.surface.muted,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
     alignItems: "center",
     borderWidth: 2,
-    borderColor: Theme.colors.border.base,
+    borderColor: theme.colors.border.base,
   },
   frequencyButtonSelected: {
-    backgroundColor: Theme.colors.accent.blueSoft,
-    borderColor: Theme.colors.brand.navy[700],
+    backgroundColor: theme.colors.accent.blueSoft,
+    borderColor: theme.colors.brand.navy[700],
   },
   frequencyButtonText: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: "600",
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
   },
   frequencyButtonTextSelected: {
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
     fontWeight: "700",
   },
   paymentMethodsInfo: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xl,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
   },
   paymentMethodsTitle: {
-    fontSize: Theme.typography.body,
+    fontSize: theme.typography.body,
     fontWeight: "600",
-    color: Theme.colors.text.muted,
-    marginBottom: Theme.spacing.md,
+    color: theme.colors.text.muted,
+    marginBottom: theme.spacing.md,
   },
   paymentMethodsIcons: {
     flexDirection: "row",
-    gap: Theme.spacing.md,
+    gap: theme.spacing.md,
   },
   paymentMethodBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    paddingHorizontal: Theme.spacing.md,
-    paddingVertical: Theme.spacing.sm,
-    backgroundColor: Theme.colors.surface.soft,
-    borderRadius: Theme.radius.sm,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    backgroundColor: theme.colors.surface.soft,
+    borderRadius: theme.radius.sm,
   },
   paymentMethodText: {
     fontSize: 13,
     fontWeight: "600",
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
   },
   donateButton: {
-    backgroundColor: Theme.colors.brand.navy[700],
-    borderRadius: Theme.radius.md,
-    padding: Theme.typography.h3,
+    backgroundColor: theme.colors.brand.navy[700],
+    borderRadius: theme.radius.md,
+    padding: theme.typography.h3,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: Theme.spacing.md,
-    ...Theme.shadow.header,
+    gap: theme.spacing.md,
+    ...theme.shadow.header,
   },
   donateButtonDisabled: {
-    backgroundColor: Theme.colors.text.muted,
+    backgroundColor: theme.colors.text.muted,
     shadowOpacity: 0,
     elevation: 0,
   },
   donateButtonText: {
-    color: Theme.colors.text.inverse,
-    fontSize: Theme.typography.h3,
+    color: theme.colors.text.inverse,
+    fontSize: theme.typography.h3,
     fontWeight: "bold",
   },
   securityNote: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: Theme.spacing.sm,
-    marginTop: Theme.spacing.lg,
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.lg,
   },
   securityText: {
-    fontSize: Theme.typography.body,
-    color: Theme.colors.text.muted,
+    fontSize: theme.typography.body,
+    color: theme.colors.text.muted,
   },
   checkboxRowDisabled: {
     opacity: 0.5,
   },
   checkboxLabelDisabled: {
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
   },
   infoBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Theme.colors.accent.blueSoft,
-    padding: Theme.spacing.md,
-    borderRadius: Theme.radius.sm,
-    gap: Theme.spacing.sm,
-    marginTop: Theme.spacing.sm,
+    backgroundColor: theme.colors.accent.blueSoft,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.sm,
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.sm,
   },
   infoText: {
     flex: 1,
     fontSize: 13,
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
     lineHeight: 18,
   },
   customAmountButton: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
     borderWidth: 2,
-    borderColor: Theme.colors.border.base,
+    borderColor: theme.colors.border.base,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: Theme.spacing.sm,
+    gap: theme.spacing.sm,
   },
   customAmountButtonText: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: "600",
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
   },
 });

@@ -4,19 +4,24 @@
 // Displays general donation option when campaigns are present
 // ============================================================================
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../contexts/ThemeContext';
+import type { AppTheme } from '../hooks/useAppTheme';
 
 interface GeneralDonationCardProps {
   onPress: () => void;
 }
 
-export default function GeneralDonationCard({ onPress }: GeneralDonationCardProps) {
+export default function GeneralDonationCard({ onPress }: GeneralDonationCardProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.iconContainer}>
-        <Ionicons name="heart" size={32} color="#1e3a8a" />
+        <Ionicons name="heart" size={32} color={theme.colors.brand.navy[700]} />
       </View>
       
       <View style={styles.content}>
@@ -26,14 +31,14 @@ export default function GeneralDonationCard({ onPress }: GeneralDonationCardProp
         </Text>
       </View>
 
-      <Ionicons name="chevron-forward" size={24} color="#9ca3af" />
+      <Ionicons name="chevron-forward" size={24} color={theme.colors.text.muted} />
     </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.surface.base,
     borderRadius: 16,
     padding: 16,
     flexDirection: 'row',
@@ -45,13 +50,13 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     borderLeftWidth: 4,
-    borderLeftColor: '#10b981',
+    borderLeftColor: theme.colors.accent.green,
   },
   iconContainer: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#eff6ff',
+    backgroundColor: theme.colors.accent.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -62,12 +67,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: theme.colors.text.strong,
     marginBottom: 4,
   },
   description: {
     fontSize: 14,
-    color: '#6b7280',
+    color: theme.colors.text.muted,
     lineHeight: 18,
   },
 });

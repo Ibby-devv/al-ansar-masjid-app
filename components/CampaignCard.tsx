@@ -5,8 +5,10 @@
 // ============================================================================
 
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
+import type { AppTheme } from '../hooks/useAppTheme';
 import { Campaign } from '../hooks/useCampaigns';
 
 interface CampaignCardProps {
@@ -14,7 +16,10 @@ interface CampaignCardProps {
   onPress: () => void;
 }
 
-export default function CampaignCard({ campaign, onPress }: CampaignCardProps) {
+export default function CampaignCard({ campaign, onPress }: CampaignCardProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   // Calculate progress percentage
   const progress = campaign.goal_amount > 0 
     ? (campaign.current_amount / campaign.goal_amount) * 100 
@@ -75,7 +80,7 @@ export default function CampaignCard({ campaign, onPress }: CampaignCardProps) {
                     outputRange: ['0%', '100%'],
                     extrapolate: 'clamp',
                   }),
-                  backgroundColor: progress >= 100 ? '#10b981' : '#3b82f6'
+                  backgroundColor: progress >= 100 ? theme.colors.progress.complete : theme.colors.progress.fill
                 }
               ]} 
             />
@@ -104,7 +109,7 @@ export default function CampaignCard({ campaign, onPress }: CampaignCardProps) {
 
         {/* Donate Button */}
         <TouchableOpacity style={styles.donateButton} onPress={onPress}>
-          <Ionicons name="heart" size={20} color="#fff" />
+          <Ionicons name="heart" size={20} color={theme.colors.text.inverse} />
           <Text style={styles.donateButtonText}>Donate Now</Text>
         </TouchableOpacity>
       </View>
@@ -112,9 +117,9 @@ export default function CampaignCard({ campaign, onPress }: CampaignCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.surface.base,
     borderRadius: 16,
     overflow: 'hidden',
     marginBottom: 16,
@@ -127,7 +132,7 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: 180,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: theme.colors.border.base,
   },
   content: {
     padding: 16,
@@ -135,12 +140,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: theme.colors.text.strong,
     marginBottom: 8,
   },
   description: {
     fontSize: 14,
-    color: '#6b7280',
+    color: theme.colors.text.muted,
     lineHeight: 20,
     marginBottom: 16,
   },
@@ -149,7 +154,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 12,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: theme.colors.progress.background,
     borderRadius: 6,
     overflow: 'hidden',
     marginBottom: 8,
@@ -165,12 +170,12 @@ const styles = StyleSheet.create({
   },
   progressAmount: {
     fontSize: 14,
-    color: '#6b7280',
+    color: theme.colors.text.muted,
     fontWeight: '600',
   },
   progressPercentage: {
     fontSize: 14,
-    color: '#6b7280',
+    color: theme.colors.text.muted,
     fontWeight: '600',
   },
   goalRow: {
@@ -180,16 +185,16 @@ const styles = StyleSheet.create({
   },
   goalText: {
     fontSize: 15,
-    color: '#1f2937',
+    color: theme.colors.text.strong,
     fontWeight: '700',
   },
   goalReached: {
     fontSize: 13,
-    color: '#10b981',
+    color: theme.colors.progress.complete,
     fontWeight: '700',
   },
   donateButton: {
-    backgroundColor: '#1e3a8a',
+    backgroundColor: theme.colors.brand.navy[700],
     borderRadius: 12,
     paddingVertical: 14,
     flexDirection: 'row',
@@ -198,7 +203,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   donateButtonText: {
-    color: '#fff',
+    color: theme.colors.text.inverse,
     fontSize: 16,
     fontWeight: 'bold',
   },

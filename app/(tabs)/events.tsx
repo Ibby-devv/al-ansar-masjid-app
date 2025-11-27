@@ -9,19 +9,24 @@ import Badge from '../../components/ui/Badge';
 import Card from '../../components/ui/Card';
 import PillButton from '../../components/ui/PillButton';
 import SectionHeader from '../../components/ui/SectionHeader';
-import { Theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import type { AppTheme } from '../../hooks/useAppTheme';
 
 // Import custom hooks
-import { useEventCategories } from '../../hooks/useEventCategories'; // ✅ NEW: Import categories hook
+import { useEventCategories } from '../../hooks/useEventCategories';
 import { useEvents } from '../../hooks/useEvents';
 import { useFirebaseData } from '../../hooks/useFirebaseData';
 
 export default function EventsScreen(): React.JSX.Element {
+  const theme = useTheme();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  
+  // Memoize styles based on theme
+  const styles = useMemo(() => createStyles(theme), [theme]);
   
   // Load events and categories from Firebase
   const { upcomingEvents, loading: eventsLoading } = useEvents();
-  const { categories, loading: categoriesLoading } = useEventCategories();  // ✅ NEW: Load categories
+  const { categories, loading: categoriesLoading } = useEventCategories();
   const { mosqueSettings } = useFirebaseData();
 
   // Helpers for prominent date display and relative badges
@@ -138,7 +143,7 @@ export default function EventsScreen(): React.JSX.Element {
 
       {/* Header with Gradient */}
       <LinearGradient
-        colors={[Theme.colors.brand.navy[800], Theme.colors.brand.navy[700], Theme.colors.brand.navy[900]]}
+        colors={theme.gradients.header}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
@@ -156,7 +161,7 @@ export default function EventsScreen(): React.JSX.Element {
               {mosqueSettings?.name || 'Al Ansar Masjid Yagoona'}
             </Text>
             <View style={styles.headerSubtitleRow}>
-              <Ionicons name="calendar" size={16} color={Theme.colors.text.subtle} style={{ marginRight: 6 }} />
+              <Ionicons name="calendar" size={16} color={theme.colors.text.subtle} style={{ marginRight: 6 }} />
               <Text style={styles.headerSubtitle}>Upcoming Events</Text>
             </View>
           </View>
@@ -252,19 +257,19 @@ export default function EventsScreen(): React.JSX.Element {
                       )}
                       {event.location && (
                         <View style={styles.metaItem}>
-                          <Ionicons name="location-outline" size={16} color={Theme.colors.text.muted} />
+                          <Ionicons name="location-outline" size={16} color={theme.colors.text.muted} />
                           <Text style={styles.metaText}>{event.location}</Text>
                         </View>
                       )}
                       {event.speaker && (
                         <View style={styles.metaItem}>
-                          <Ionicons name="person-outline" size={16} color={Theme.colors.text.muted} />
+                          <Ionicons name="person-outline" size={16} color={theme.colors.text.muted} />
                           <Text style={styles.metaText}>Speaker: {event.speaker}</Text>
                         </View>
                       )}
                       {event.rsvp_enabled && (
                         <View style={styles.metaItem}>
-                          <Ionicons name="people-outline" size={16} color={Theme.colors.text.muted} />
+                          <Ionicons name="people-outline" size={16} color={theme.colors.text.muted} />
                           <Text style={styles.metaText}>
                             {event.rsvp_count || 0} / {event.rsvp_limit || 'Unlimited'} RSVPs
                           </Text>
@@ -298,16 +303,16 @@ export default function EventsScreen(): React.JSX.Element {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.surface.muted,
+    backgroundColor: theme.colors.surface.muted,
   },
   headerGradient: {
-    paddingBottom: Theme.spacing.xl,
-    borderBottomLeftRadius: Theme.radius.xl,
-    borderBottomRightRadius: Theme.radius.xl,
-    ...Theme.shadow.header,
+    paddingBottom: theme.spacing.xl,
+    borderBottomLeftRadius: theme.radius.xl,
+    borderBottomRightRadius: theme.radius.xl,
+    ...theme.shadow.header,
   },
   patternOverlay: {
     position: 'absolute',
@@ -318,20 +323,20 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     alignItems: 'center',
-  paddingHorizontal: Theme.spacing.lg,
-  paddingTop: Theme.spacing.md,
-  paddingBottom: Theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.sm,
   },
   headerTitle: {
-  fontSize: 26,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#fff',
+    color: theme.colors.text.inverse,
     marginBottom: 6,
     textAlign: 'center',
   },
   headerSubtitle: {
-  fontSize: 16,
-    color: '#cbd5e1',
+    fontSize: 16,
+    color: theme.colors.text.subtle,
     textAlign: 'center',
   },
   headerSubtitleRow: {
@@ -340,13 +345,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   categoryFilterWrapper: {
-    backgroundColor: Theme.colors.surface.card,
-    marginHorizontal: Theme.spacing.lg,
-    borderRadius: Theme.radius.pill,
+    backgroundColor: theme.colors.surface.card,
+    marginHorizontal: theme.spacing.lg,
+    borderRadius: theme.radius.pill,
     padding: 3,
     marginTop: -12,
     marginBottom: 12,
-    ...Theme.shadow.soft,
+    ...theme.shadow.soft,
   },
   categoryFilterContent: {
     paddingHorizontal: 8,
@@ -357,14 +362,14 @@ const styles = StyleSheet.create({
   categoryButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
   },
   categoryButtonTextActive: {
-    color: '#fff',
+    color: theme.colors.text.inverse,
   },
   eventsContainer: {
     flex: 1,
-    backgroundColor: Theme.colors.surface.muted,
+    backgroundColor: theme.colors.surface.muted,
   },
   eventsScrollView: {
     flex: 1,
@@ -382,13 +387,13 @@ const styles = StyleSheet.create({
   emptyStateTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     marginTop: 16,
     marginBottom: 8,
   },
   emptyStateText: {
     fontSize: 14,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
     textAlign: 'center',
   },
   sectionHeader: {
@@ -402,8 +407,8 @@ const styles = StyleSheet.create({
   eventImage: {
     width: '100%',
     height: 180,
-    backgroundColor: '#e5e7eb',
-    marginBottom: Theme.spacing.md,
+    backgroundColor: theme.colors.border.base,
+    marginBottom: theme.spacing.md,
   },
   cardRow: {
     flexDirection: 'row',
@@ -412,32 +417,32 @@ const styles = StyleSheet.create({
     width: 72,
     paddingVertical: 8,
     borderRadius: 12,
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
     borderWidth: 1,
-    borderColor: Theme.colors.border.base,
+    borderColor: theme.colors.border.base,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   dateBadgeHighlight: {
-    borderColor: Theme.colors.accent.amber,
-    backgroundColor: Theme.colors.accent.amberSoft,
+    borderColor: theme.colors.accent.amber,
+    backgroundColor: theme.colors.accent.amberSoft,
   },
   dateWeekday: {
     fontSize: 11,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   dateDay: {
     fontSize: 28,
-    color: Theme.colors.text.base,
+    color: theme.colors.text.base,
     fontWeight: '800',
     lineHeight: 32,
   },
   dateMonth: {
     fontSize: 12,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
     fontWeight: '700',
   },
   cardContent: {
@@ -463,7 +468,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 17,
     fontWeight: '800',
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     marginRight: 8,
   },
   metaRow: {
@@ -481,9 +486,9 @@ const styles = StyleSheet.create({
   timeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Theme.colors.accent.blueSoft,
+    backgroundColor: theme.colors.accent.blueSoft,
     borderWidth: 1,
-    borderColor: Theme.colors.accent.blue,
+    borderColor: theme.colors.accent.blue,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
@@ -492,7 +497,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 17,
     fontWeight: '800',
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
   },
   metaItem: {
     flexDirection: 'row',
@@ -501,7 +506,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 13,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
     marginLeft: 6,
   },
   relativeBadge: {
@@ -515,7 +520,7 @@ const styles = StyleSheet.create({
   },
   eventDescription: {
     fontSize: 14,
-    color: '#6b7280',
+    color: theme.colors.text.muted,
     marginTop: 4,
     lineHeight: 20,
   },

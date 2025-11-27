@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle } from "react-native";
+import { useTheme } from "../../contexts/ThemeContext";
+import type { AppTheme } from "../../hooks/useAppTheme";
 
 type PillButtonProps = {
   label: string;
@@ -9,7 +11,10 @@ type PillButtonProps = {
   textStyle?: TextStyle | TextStyle[];
 };
 
-export default function PillButton({ label, selected, onPress, style, textStyle }: PillButtonProps) {
+export default function PillButton({ label, selected, onPress, style, textStyle }: PillButtonProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -27,7 +32,7 @@ export default function PillButton({ label, selected, onPress, style, textStyle 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   base: {
     paddingVertical: 10,
     paddingHorizontal: 14,
@@ -37,13 +42,13 @@ const styles = StyleSheet.create({
     minHeight: 38,
   },
   unselected: {
-    backgroundColor: "#e2e8f0",
-    borderColor: "#cbd5e1",
+    backgroundColor: theme.colors.border.soft,
+    borderColor: theme.colors.border.base,
   },
   selected: {
-    backgroundColor: "#1e3a8a",
-    borderColor: "#1e3a8a",
-    shadowColor: "#1e3a8a",
+    backgroundColor: theme.colors.brand.navy[700],
+    borderColor: theme.colors.brand.navy[700],
+    shadowColor: theme.colors.brand.navy[700],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -56,9 +61,9 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   textUnselected: {
-    color: "#0f172a",
+    color: theme.colors.text.base,
   },
   textSelected: {
-    color: "#fff",
+    color: theme.colors.text.inverse,
   },
 });

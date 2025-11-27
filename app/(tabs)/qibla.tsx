@@ -3,7 +3,7 @@ import { FontFamily } from '@/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Linking, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CompassView } from '../../components/QiblaCompass/components/CompassView';
@@ -15,20 +15,22 @@ import { useLocation } from '../../components/QiblaCompass/hooks/useLocation';
 import { usePlacename } from '../../components/QiblaCompass/hooks/usePlacename';
 import { useQiblaDirection } from '../../components/QiblaCompass/hooks/useQiblaDirection';
 import { getShortestAngle, isWithinTolerance } from '../../components/QiblaCompass/utils/angleUtils';
+import { useTheme } from '../../contexts/ThemeContext';
+import type { AppTheme } from '../../hooks/useAppTheme';
 
-const NAVY = '#0f2945';
-const LIGHT = '#f5efeb';
-const ACCENT = '#f4a261';
-const MUTED = 'rgba(255,255,255,0.6)';
 const TOLERANCE = 10; // degrees
 
 export default function QiblaScreen(): React.JSX.Element {
+  const theme = useTheme();
   const isFocused = useIsFocused();
   const { coordinates, isLoading, error, hasPermission, retry } = useLocation();
   const { name: place, loading: isLoadingPlace } = usePlacename(coordinates);
   const { data: heading, isAvailable, error: headingError } = useHeading();
   const { direction: qiblaDirection, isValid } = useQiblaDirection(coordinates);
   const { data: motion } = useDeviceMotion();
+
+  // Memoize styles based on theme
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [showDebug, setShowDebug] = useState(false);
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -139,7 +141,7 @@ export default function QiblaScreen(): React.JSX.Element {
             >
               {isLoadingPlace ? 'Locating…' : (place || 'Location unavailable')}
             </ThemedText>
-            <Ionicons name="chevron-down" size={16} color={MUTED} />
+            <Ionicons name="chevron-down" size={16} color={theme.colors.compass.muted} />
           </View>
         </View>
         <TouchableOpacity 
@@ -250,12 +252,12 @@ export default function QiblaScreen(): React.JSX.Element {
             isAligned={aligned}
             showInstruction={false}
             theme={{
-              faceColor: LIGHT,
+              faceColor: theme.colors.compass.face,
               borderColor: 'rgba(255,255,255,0.7)',
               tickColor: 'rgba(0,0,0,0.1)',
               tickMajorColor: 'rgba(0,0,0,0.25)',
-              pointerColor: ACCENT,
-              pointerAlignedColor: '#2ecc71',
+              pointerColor: theme.colors.compass.accent,
+              pointerAlignedColor: theme.colors.accent.green,
               cardinalColor: 'rgba(0,0,0,0.2)',
             }}
           />
@@ -278,10 +280,10 @@ export default function QiblaScreen(): React.JSX.Element {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: NAVY,
+    backgroundColor: theme.colors.compass.background,
   },
   topBar: {
     paddingHorizontal: 20,
@@ -292,7 +294,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   locationLabel: {
-    color: MUTED,
+    color: theme.colors.compass.muted,
     fontSize: 14,
     letterSpacing: 1,
     marginBottom: 6,
@@ -312,7 +314,7 @@ const styles = StyleSheet.create({
     maxWidth: '80%',
   },
   locationText: {
-    color: '#f3b17b',
+    color: theme.colors.compass.accent,
     fontSize: 24,
     fontFamily: FontFamily.bold,
     lineHeight: 32,
@@ -327,7 +329,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   infoText: {
-    color: '#fff',
+    color: theme.colors.text.inverse,
     fontSize: 18,
     fontFamily: FontFamily.bold,
   },
@@ -339,7 +341,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   stateText: {
-    color: '#cbd5e1',
+    color: theme.colors.text.muted,
     textAlign: 'center',
     fontFamily: FontFamily.regular,
   },
@@ -356,7 +358,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionButtonText: {
-    color: '#e5e7eb',
+    color: theme.colors.text.base,
     fontFamily: FontFamily.semibold,
     fontSize: 14,
     lineHeight: 20,
@@ -375,16 +377,16 @@ const styles = StyleSheet.create({
   },
   instructionText: {
     fontSize: 32,
-    color: '#e5e7eb',
+    color: theme.colors.text.base,
     fontFamily: FontFamily.bold,
     textAlign: 'center',
     lineHeight: 40,
   },
   instructionAligned: {
-    color: ACCENT,
+    color: theme.colors.compass.accent,
   },
   instructionEmph: {
-    color: '#ffffff',
+    color: theme.colors.text.inverse,
     fontFamily: FontFamily.bold,
     fontSize: 32,
     lineHeight: 40,
@@ -402,7 +404,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   hintText: {
-    color: '#cbd5e1',
+    color: theme.colors.text.muted,
     fontSize: 13,
     fontFamily: FontFamily.medium,
     lineHeight: 18,
@@ -410,7 +412,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   hintDismiss: {
-    color: '#94a3b8',
+    color: theme.colors.text.subtle,
     fontSize: 12,
     fontFamily: FontFamily.semibold,
     paddingHorizontal: 4,
