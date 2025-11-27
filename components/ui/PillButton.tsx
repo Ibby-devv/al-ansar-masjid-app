@@ -64,6 +64,6 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     color: theme.colors.text.base,
   },
   textSelected: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
   },
 });

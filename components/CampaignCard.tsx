@@ -109,7 +109,7 @@ export default function CampaignCard({ campaign, onPress }: CampaignCardProps): 
 
         {/* Donate Button */}
         <TouchableOpacity style={styles.donateButton} onPress={onPress}>
-          <Ionicons name="heart" size={20} color={theme.colors.text.inverse} />
+          <Ionicons name="heart" size={20} color={theme.colors.text.header} />
           <Text style={styles.donateButtonText}>Donate Now</Text>
         </TouchableOpacity>
       </View>
@@ -203,7 +203,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     gap: 8,
   },
   donateButtonText: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
     fontSize: 16,
     fontWeight: 'bold',
   },

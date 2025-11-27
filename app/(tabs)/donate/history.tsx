@@ -219,10 +219,10 @@ export default function HistoryTab(): React.JSX.Element {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color={theme.colors.text.inverse} />
+                <ActivityIndicator color={theme.colors.text.header} />
               ) : (
                 <>
-                  <Ionicons name="search" size={20} color={theme.colors.text.inverse} />
+                  <Ionicons name="search" size={20} color={theme.colors.text.header} />
                   <Text style={styles.loadButtonText}>Load Donations</Text>
                 </>
               )}
@@ -365,7 +365,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     backgroundColor: theme.colors.text.muted,
   },
   loadButtonText: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
     fontSize: theme.spacing.lg,
     fontWeight: "600",
   },

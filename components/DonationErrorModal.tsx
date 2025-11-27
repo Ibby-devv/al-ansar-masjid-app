@@ -100,7 +100,7 @@ export default function DonationErrorModal({
             {/* Error Icon */}
             <View style={styles.iconContainer}>
               <View style={styles.errorCircle}>
-                <Ionicons name={details.icon} size={60} color={theme.colors.text.inverse} />
+                <Ionicons name={details.icon} size={60} color={theme.colors.text.header} />
               </View>
             </View>
 
@@ -139,7 +139,7 @@ export default function DonationErrorModal({
             <View style={styles.actions}>
               {details.showRetry && onRetry && (
                 <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
-                  <Ionicons name="refresh" size={20} color={theme.colors.text.inverse} />
+                  <Ionicons name="refresh" size={20} color={theme.colors.text.header} />
                   <Text style={styles.retryButtonText}>Try Again</Text>
                 </TouchableOpacity>
               )}
@@ -266,7 +266,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   retryButtonText: {
     fontSize: theme.spacing.lg,
     fontWeight: 'bold',
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
   },
   closeButton: {
     backgroundColor: theme.colors.brand.navy[700],
@@ -282,7 +282,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   closeButtonText: {
     fontSize: theme.spacing.lg,
     fontWeight: '600',
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
   },
   closeButtonTextSecondary: {
     color: theme.colors.text.strong,

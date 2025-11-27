@@ -121,10 +121,10 @@ export default function ManageTab(): React.JSX.Element {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color={theme.colors.text.inverse} />
+            <ActivityIndicator color={theme.colors.text.header} />
           ) : (
             <>
-              <Ionicons name="mail" size={24} color={theme.colors.text.inverse} />
+              <Ionicons name="mail" size={24} color={theme.colors.text.header} />
               <Text style={styles.sendButtonText}>Send Management Link</Text>
             </>
           )}

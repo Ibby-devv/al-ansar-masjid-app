@@ -64,6 +64,6 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     fontWeight: "600",
   },
   textSelected: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
   },
 });
