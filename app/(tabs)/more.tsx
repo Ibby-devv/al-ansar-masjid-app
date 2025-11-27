@@ -1,20 +1,26 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Linking, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, Vibration, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PatternOverlay from '../../components/PatternOverlay';
 import InstagramIcon from '../../components/ui/InstagramIcon';
 import EmptyState from '../../components/EmptyState';
-import { Theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import type { AppTheme } from '../../hooks/useAppTheme';
 
 // Import custom hooks
 import { useFirebaseData } from '../../hooks/useFirebaseData';
 
 export default function MoreScreen(): React.JSX.Element {
+  const theme = useTheme();
   const { mosqueSettings, loading, error } = useFirebaseData();
+  
+  // Memoize styles based on theme
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   // App version info (marketing version + build number)
   const appVersion = DeviceInfo.getVersion();
   const buildNumber = DeviceInfo.getBuildNumber();
@@ -138,7 +144,7 @@ export default function MoreScreen(): React.JSX.Element {
 
       {/* Header with Gradient */}
       <LinearGradient
-        colors={[Theme.colors.brand.navy[800], Theme.colors.brand.navy[700], Theme.colors.brand.navy[900]]}
+        colors={theme.gradients.header}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.headerGradient}
@@ -349,16 +355,16 @@ export default function MoreScreen(): React.JSX.Element {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.surface.muted,
+    backgroundColor: theme.colors.surface.muted,
   },
   headerGradient: {
-    paddingBottom: Theme.spacing.xl,
-    borderBottomLeftRadius: Theme.radius.xl,
-    borderBottomRightRadius: Theme.radius.xl,
-    ...Theme.shadow.header,
+    paddingBottom: theme.spacing.xl,
+    borderBottomLeftRadius: theme.radius.xl,
+    borderBottomRightRadius: theme.radius.xl,
+    ...theme.shadow.header,
   },
   patternOverlay: {
     position: 'absolute',
@@ -371,121 +377,121 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: Theme.spacing.lg,
-    paddingTop: Theme.spacing.md,
-    paddingBottom: Theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
+    paddingBottom: theme.spacing.sm,
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: Theme.colors.text.inverse,
+    color: theme.colors.text.inverse,
     marginBottom: 6,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: Theme.colors.text.subtle,
+    color: theme.colors.text.subtle,
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: Theme.colors.surface.muted,
-    padding: Theme.spacing.lg,
+    backgroundColor: theme.colors.surface.muted,
+    padding: theme.spacing.lg,
   },
   section: {
-    marginBottom: Theme.spacing.xl,
+    marginBottom: theme.spacing.xl,
   },
   sectionHeader: {
-    marginBottom: Theme.spacing.md,
+    marginBottom: theme.spacing.md,
     paddingLeft: 4,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 13,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
     fontWeight: '500',
   },
   infoItem: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.md,
-    marginBottom: Theme.spacing.sm,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    ...Theme.shadow.soft,
+    ...theme.shadow.soft,
   },
   infoIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   facebookIconBg: {
-    backgroundColor: '#1877F2',
+    backgroundColor: theme.colors.iconBackground.facebook,
   },
   iconMapBg: {
-    backgroundColor: '#ef4444', // red-500
+    backgroundColor: theme.colors.iconBackground.map,
   },
   iconPhoneBg: {
-    backgroundColor: '#22c55e', // green-500
+    backgroundColor: theme.colors.iconBackground.phone,
   },
   iconEmailBg: {
-    backgroundColor: '#f59e0b', // amber-500
+    backgroundColor: theme.colors.iconBackground.email,
   },
   iconWebsiteBg: {
-    backgroundColor: '#0ea5e9', // sky-500
+    backgroundColor: theme.colors.iconBackground.website,
   },
   iconImamBg: {
-    backgroundColor: Theme.colors.brand.gold[600], // gold for leadership/honor
+    backgroundColor: theme.colors.iconBackground.imam,
   },
   iconVersionBg: {
-    backgroundColor: '#8b5cf6', // violet-500 for tech/version
+    backgroundColor: theme.colors.iconBackground.version,
   },
   iconDeveloperBg: {
-    backgroundColor: '#6366f1', // indigo-500 for developer/code
+    backgroundColor: theme.colors.iconBackground.developer,
   },
   iconSettingsBg: {
-    backgroundColor: '#8b5cf6', // violet-500 for settings/notifications
+    backgroundColor: theme.colors.iconBackground.version,
   },
   infoTextContainer: {
     flex: 1,
   },
   infoLabel: {
     fontSize: 12,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
     marginBottom: 2,
   },
   infoValue: {
     fontSize: 15,
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     fontWeight: '500',
   },
   infoHint: {
     fontSize: 12,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
     marginTop: 2,
   },
   actionItem: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.md,
-    marginBottom: Theme.spacing.sm,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    ...Theme.shadow.soft,
+    ...theme.shadow.soft,
   },
   actionIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -495,28 +501,28 @@ const styles = StyleSheet.create({
   },
   actionLabel: {
     fontSize: 15,
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     fontWeight: '600',
     marginBottom: 2,
   },
   actionSubtext: {
     fontSize: 12,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
   },
   footer: {
-    marginTop: Theme.spacing.xl,
-    paddingTop: Theme.spacing.xl,
+    marginTop: theme.spacing.xl,
+    paddingTop: theme.spacing.xl,
     borderTopWidth: 1,
-    borderTopColor: Theme.colors.border.base,
+    borderTopColor: theme.colors.border.base,
     alignItems: 'center',
   },
   footerText: {
     fontSize: 14,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
     marginBottom: 4,
   },
   footerSubtext: {
     fontSize: 12,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
   },
 });

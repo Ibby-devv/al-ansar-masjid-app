@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Clipboard, Platform, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Clipboard, Platform, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import FCMService from '../services/FCMService';
 import NotificationService from '../services/NotificationService';
 
@@ -171,7 +171,7 @@ export default function NotificationSettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <View>
       <Text style={styles.title}>Notifications</Text>
       
       <View style={styles.card}>
@@ -302,7 +302,7 @@ export default function NotificationSettingsScreen() {
           </Text>
         </View>
       )}
-    </ScrollView>
+    </View>
   );
 }
 
