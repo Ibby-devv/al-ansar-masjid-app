@@ -341,7 +341,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     borderRadius: 10,
   },
   stateText: {
-    color: theme.colors.text.muted,
+    color: theme.colors.compass.muted,
     textAlign: 'center',
     fontFamily: FontFamily.regular,
   },
@@ -358,7 +358,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     alignItems: 'center',
   },
   actionButtonText: {
-    color: theme.colors.text.base,
+    color: theme.colors.text.header,
     fontFamily: FontFamily.semibold,
     fontSize: 14,
     lineHeight: 20,
@@ -377,7 +377,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   instructionText: {
     fontSize: 32,
-    color: theme.colors.text.base,
+    color: theme.colors.text.header,
     fontFamily: FontFamily.bold,
     textAlign: 'center',
     lineHeight: 40,
