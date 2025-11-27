@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
-import { Theme } from "../../constants/theme";
+import { useTheme } from "../../contexts/ThemeContext";
+import type { AppTheme } from "../../hooks/useAppTheme";
 
 type BadgeProps = {
   label: string;
@@ -14,26 +15,32 @@ type BadgeProps = {
 
 export default function Badge({
   label,
-  bgColor = Theme.colors.border.base,
-  textColor = Theme.colors.text.base,
+  bgColor,
+  textColor,
   style,
   textStyle,
   pill = true,
   uppercase = true,
-}: BadgeProps) {
+}: BadgeProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
+  const backgroundColor = bgColor ?? theme.colors.border.base;
+  const color = textColor ?? theme.colors.text.base;
+  
   return (
     <View
       style={[
         styles.badge,
         pill && styles.badgePill,
-        { backgroundColor: bgColor },
+        { backgroundColor },
         style,
       ]}
     >
       <Text
         style={[
           styles.badgeText,
-          { color: textColor },
+          { color },
           uppercase && styles.upper,
           textStyle,
         ]}
@@ -44,13 +51,13 @@ export default function Badge({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   badge: {
-    paddingVertical: Theme.spacing.xs,
-    paddingHorizontal: Theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    paddingHorizontal: theme.spacing.md,
   },
   badgePill: {
-    borderRadius: Theme.radius.pill,
+    borderRadius: theme.radius.pill,
   },
   badgeText: {
     fontSize: 10,

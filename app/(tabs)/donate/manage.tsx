@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -10,10 +10,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Theme } from '../../../constants/theme';
+import { useTheme } from '../../../contexts/ThemeContext';
+import type { AppTheme } from '../../../hooks/useAppTheme';
 import { regionalFunctions } from '../../../firebase';
 
-export default function ManageTab() {
+export default function ManageTab(): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -54,7 +58,7 @@ export default function ManageTab() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerIcon}>
-            <Ionicons name="settings" size={32} color={Theme.colors.brand.navy[700]} />
+            <Ionicons name="settings" size={32} color={theme.colors.brand.navy[700]} />
           </View>
           <Text style={styles.headerTitle}>Manage Your Donations</Text>
           <Text style={styles.headerSubtitle}>
@@ -101,7 +105,7 @@ export default function ManageTab() {
           <TextInput
             style={styles.input}
             placeholder="email@example.com"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={theme.colors.text.muted}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -117,10 +121,10 @@ export default function ManageTab() {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={theme.colors.text.inverse} />
           ) : (
             <>
-              <Ionicons name="mail" size={24} color="#fff" />
+              <Ionicons name="mail" size={24} color={theme.colors.text.inverse} />
               <Text style={styles.sendButtonText}>Send Management Link</Text>
             </>
           )}
@@ -129,12 +133,12 @@ export default function ManageTab() {
         {/* Features List */}
         <View style={styles.featuresSection}>
           <Text style={styles.sectionTitle}>
-            <Ionicons name="star" size={20} color={Theme.colors.accent.amber} /> What You Can Manage
+            <Ionicons name="star" size={20} color={theme.colors.accent.amber} /> What You Can Manage
           </Text>
           
           <View style={styles.featureItem}>
             <View style={styles.featureIcon}>
-              <Ionicons name="card" size={24} color={Theme.colors.brand.navy[700]} />
+              <Ionicons name="card" size={24} color={theme.colors.brand.navy[700]} />
             </View>
             <View style={styles.featureContent}>
               <Text style={styles.featureTitle}>Payment Method</Text>
@@ -146,7 +150,7 @@ export default function ManageTab() {
 
           <View style={styles.featureItem}>
             <View style={styles.featureIcon}>
-              <Ionicons name="document-text" size={24} color={Theme.colors.brand.navy[700]} />
+              <Ionicons name="document-text" size={24} color={theme.colors.brand.navy[700]} />
             </View>
             <View style={styles.featureContent}>
               <Text style={styles.featureTitle}>Invoices & Receipts</Text>
@@ -158,7 +162,7 @@ export default function ManageTab() {
 
           <View style={styles.featureItem}>
             <View style={styles.featureIcon}>
-              <Ionicons name="pause-circle" size={24} color={Theme.colors.brand.navy[700]} />
+              <Ionicons name="pause-circle" size={24} color={theme.colors.brand.navy[700]} />
             </View>
             <View style={styles.featureContent}>
               <Text style={styles.featureTitle}>Pause or Cancel</Text>
@@ -170,7 +174,7 @@ export default function ManageTab() {
 
           <View style={styles.featureItem}>
             <View style={styles.featureIcon}>
-              <Ionicons name="calendar" size={24} color={Theme.colors.brand.navy[700]} />
+              <Ionicons name="calendar" size={24} color={theme.colors.brand.navy[700]} />
             </View>
             <View style={styles.featureContent}>
               <Text style={styles.featureTitle}>Payment History</Text>
@@ -183,7 +187,7 @@ export default function ManageTab() {
 
         {/* Security Note */}
         <View style={styles.securityNote}>
-          <Ionicons name="shield-checkmark" size={20} color={Theme.colors.accent.green} />
+          <Ionicons name="shield-checkmark" size={20} color={theme.colors.accent.green} />
           <Text style={styles.securityText}>
             Secure management powered by Stripe
           </Text>
@@ -193,141 +197,141 @@ export default function ManageTab() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.surface.muted,
+    backgroundColor: theme.colors.surface.muted,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: Theme.spacing.xl,
+    padding: theme.spacing.xl,
     paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
-    marginBottom: Theme.spacing.xxl,
+    marginBottom: theme.spacing.xxl,
   },
   headerIcon: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Theme.colors.accent.blueSoft,
+    backgroundColor: theme.colors.accent.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: Theme.colors.text.strong,
-    marginBottom: Theme.spacing.sm,
+    color: theme.colors.text.strong,
+    marginBottom: theme.spacing.sm,
     textAlign: 'center',
   },
   headerSubtitle: {
-    fontSize: Theme.spacing.lg,
-    color: Theme.colors.text.muted,
+    fontSize: theme.spacing.lg,
+    color: theme.colors.text.muted,
     textAlign: 'center',
-    paddingHorizontal: Theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
   },
   howItWorksCard: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.lg,
-    padding: Theme.spacing.xl,
-    marginBottom: Theme.spacing.xxl,
-    ...Theme.shadow.soft,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.xl,
+    marginBottom: theme.spacing.xxl,
+    ...theme.shadow.soft,
   },
   sectionTitle: {
-    fontSize: Theme.typography.h3,
+    fontSize: theme.typography.h3,
     fontWeight: 'bold',
-    color: Theme.colors.text.strong,
-    marginBottom: Theme.spacing.lg,
+    color: theme.colors.text.strong,
+    marginBottom: theme.spacing.lg,
   },
   stepsList: {
-    gap: Theme.spacing.lg,
+    gap: theme.spacing.lg,
   },
   step: {
     flexDirection: 'row',
-    gap: Theme.spacing.md,
+    gap: theme.spacing.md,
     alignItems: 'flex-start',
   },
   stepNumber: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Theme.colors.brand.navy[700],
+    backgroundColor: theme.colors.brand.navy[700],
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepNumberText: {
-    color: Theme.colors.text.inverse,
-    fontSize: Theme.spacing.lg,
+    color: theme.colors.text.inverse,
+    fontSize: theme.spacing.lg,
     fontWeight: 'bold',
   },
   stepText: {
     flex: 1,
-    fontSize: Theme.typography.body,
-    color: Theme.colors.text.base,
+    fontSize: theme.typography.body,
+    color: theme.colors.text.base,
     lineHeight: 22,
     paddingTop: 4,
   },
   section: {
-    marginBottom: Theme.spacing.xxl,
+    marginBottom: theme.spacing.xxl,
   },
   label: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: '600',
-    color: Theme.colors.text.strong,
-    marginBottom: Theme.spacing.sm,
+    color: theme.colors.text.strong,
+    marginBottom: theme.spacing.sm,
   },
   input: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
-    fontSize: Theme.spacing.lg,
-    color: Theme.colors.text.strong,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
+    fontSize: theme.spacing.lg,
+    color: theme.colors.text.strong,
     borderWidth: 2,
-    borderColor: Theme.colors.border.base,
+    borderColor: theme.colors.border.base,
   },
   sendButton: {
-    backgroundColor: Theme.colors.brand.navy[700],
-    borderRadius: Theme.radius.md,
-    padding: Theme.typography.h3,
+    backgroundColor: theme.colors.brand.navy[700],
+    borderRadius: theme.radius.md,
+    padding: theme.typography.h3,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Theme.spacing.md,
+    gap: theme.spacing.md,
     marginBottom: 32,
   },
   sendButtonDisabled: {
-    backgroundColor: Theme.colors.text.muted,
+    backgroundColor: theme.colors.text.muted,
   },
   sendButtonText: {
-    color: Theme.colors.text.inverse,
-    fontSize: Theme.typography.h3,
+    color: theme.colors.text.inverse,
+    fontSize: theme.typography.h3,
     fontWeight: 'bold',
   },
   featuresSection: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.lg,
-    padding: Theme.spacing.xl,
-    marginBottom: Theme.spacing.xl,
-    ...Theme.shadow.soft,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.xl,
+    marginBottom: theme.spacing.xl,
+    ...theme.shadow.soft,
   },
   featureItem: {
     flexDirection: 'row',
-    gap: Theme.spacing.md,
-    marginBottom: Theme.spacing.lg,
-    paddingBottom: Theme.spacing.lg,
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.border.soft,
+    borderBottomColor: theme.colors.border.soft,
   },
   featureIcon: {
     width: 48,
     height: 48,
-    borderRadius: Theme.radius.sm,
-    backgroundColor: Theme.colors.accent.blueSoft,
+    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.accent.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -335,24 +339,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   featureTitle: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: '600',
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     marginBottom: 4,
   },
   featureDescription: {
-    fontSize: Theme.typography.body,
-    color: Theme.colors.text.muted,
+    fontSize: theme.typography.body,
+    color: theme.colors.text.muted,
     lineHeight: 20,
   },
   securityNote: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Theme.spacing.sm,
+    gap: theme.spacing.sm,
   },
   securityText: {
-    fontSize: Theme.typography.body,
-    color: Theme.colors.text.muted,
+    fontSize: theme.typography.body,
+    color: theme.colors.text.muted,
   },
 });

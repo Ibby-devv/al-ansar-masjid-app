@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
     Modal,
     ScrollView,
@@ -8,7 +8,8 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import type { AppTheme } from '../hooks/useAppTheme';
 
 export interface DonationError {
   type: 'network' | 'validation' | 'payment' | 'server' | 'unknown';
@@ -68,7 +69,10 @@ export default function DonationErrorModal({
   onClose,
   onRetry,
   error,
-}: DonationErrorModalProps) {
+}: DonationErrorModalProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   if (!error) {
     return (
       <Modal visible={false} transparent>
@@ -96,7 +100,7 @@ export default function DonationErrorModal({
             {/* Error Icon */}
             <View style={styles.iconContainer}>
               <View style={styles.errorCircle}>
-                <Ionicons name={details.icon} size={60} color="#fff" />
+                <Ionicons name={details.icon} size={60} color={theme.colors.text.inverse} />
               </View>
             </View>
 
@@ -111,19 +115,19 @@ export default function DonationErrorModal({
               <View style={styles.solutionsCard}>
                 <Text style={styles.solutionsTitle}>Common Solutions:</Text>
                 <View style={styles.solutionItem}>
-                  <Ionicons name="checkmark-circle" size={20} color={Theme.colors.accent.green} />
+                  <Ionicons name="checkmark-circle" size={20} color={theme.colors.accent.green} />
                   <Text style={styles.solutionText}>
                     Check that your card details are correct
                   </Text>
                 </View>
                 <View style={styles.solutionItem}>
-                  <Ionicons name="checkmark-circle" size={20} color={Theme.colors.accent.green} />
+                  <Ionicons name="checkmark-circle" size={20} color={theme.colors.accent.green} />
                   <Text style={styles.solutionText}>
                     Ensure you have sufficient funds
                   </Text>
                 </View>
                 <View style={styles.solutionItem}>
-                  <Ionicons name="checkmark-circle" size={20} color={Theme.colors.accent.green} />
+                  <Ionicons name="checkmark-circle" size={20} color={theme.colors.accent.green} />
                   <Text style={styles.solutionText}>
                     Contact your bank if the issue persists
                   </Text>
@@ -135,7 +139,7 @@ export default function DonationErrorModal({
             <View style={styles.actions}>
               {details.showRetry && onRetry && (
                 <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
-                  <Ionicons name="refresh" size={20} color="#fff" />
+                  <Ionicons name="refresh" size={20} color={theme.colors.text.inverse} />
                   <Text style={styles.retryButtonText}>Try Again</Text>
                 </TouchableOpacity>
               )}
@@ -160,7 +164,7 @@ export default function DonationErrorModal({
 
             {/* Support Info */}
             <View style={styles.supportBox}>
-              <Ionicons name="information-circle" size={20} color={Theme.colors.brand.navy[700]} />
+              <Ionicons name="information-circle" size={20} color={theme.colors.brand.navy[700]} />
               <Text style={styles.supportText}>
                 Need help? Contact us at support@alansar.org.au
               </Text>
@@ -172,129 +176,129 @@ export default function DonationErrorModal({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Theme.spacing.xl,
+    padding: theme.spacing.xl,
   },
   container: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.xl,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.xl,
     width: '100%',
     maxWidth: 500,
     maxHeight: '90%',
     overflow: 'hidden',
-    ...Theme.shadow.header,
+    ...theme.shadow.header,
   },
   scrollView: {
     flexGrow: 1,
   },
   content: {
-    padding: Theme.spacing.xxl,
+    padding: theme.spacing.xxl,
   },
   iconContainer: {
     alignItems: 'center',
-    marginBottom: Theme.spacing.xl,
+    marginBottom: theme.spacing.xl,
   },
   errorCircle: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#ef4444', // Red for errors
+    backgroundColor: theme.colors.error[500],
     alignItems: 'center',
     justifyContent: 'center',
-    ...Theme.shadow.soft,
+    ...theme.shadow.soft,
   },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     textAlign: 'center',
-    marginBottom: Theme.spacing.md,
+    marginBottom: theme.spacing.md,
   },
   description: {
-    fontSize: Theme.spacing.lg,
-    color: Theme.colors.text.muted,
+    fontSize: theme.spacing.lg,
+    color: theme.colors.text.muted,
     textAlign: 'center',
-    marginBottom: Theme.spacing.xl,
+    marginBottom: theme.spacing.xl,
     lineHeight: 24,
   },
   solutionsCard: {
-    backgroundColor: Theme.colors.surface.soft,
-    borderRadius: Theme.radius.lg,
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xl,
+    backgroundColor: theme.colors.surface.soft,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
   },
   solutionsTitle: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: '600',
-    color: Theme.colors.text.strong,
-    marginBottom: Theme.spacing.md,
+    color: theme.colors.text.strong,
+    marginBottom: theme.spacing.md,
   },
   solutionItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: Theme.spacing.sm,
-    marginBottom: Theme.spacing.sm,
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
   },
   solutionText: {
     flex: 1,
-    fontSize: Theme.typography.body,
-    color: Theme.colors.text.base,
+    fontSize: theme.typography.body,
+    color: theme.colors.text.base,
     lineHeight: 20,
   },
   actions: {
-    gap: Theme.spacing.md,
-    marginBottom: Theme.spacing.lg,
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   retryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Theme.spacing.sm,
-    backgroundColor: Theme.colors.brand.navy[700],
-    padding: Theme.spacing.lg,
-    borderRadius: Theme.radius.md,
+    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.brand.navy[700],
+    padding: theme.spacing.lg,
+    borderRadius: theme.radius.md,
   },
   retryButtonText: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: 'bold',
-    color: Theme.colors.text.inverse,
+    color: theme.colors.text.inverse,
   },
   closeButton: {
-    backgroundColor: Theme.colors.brand.navy[700],
-    padding: Theme.spacing.lg,
-    borderRadius: Theme.radius.md,
+    backgroundColor: theme.colors.brand.navy[700],
+    padding: theme.spacing.lg,
+    borderRadius: theme.radius.md,
     alignItems: 'center',
   },
   closeButtonSecondary: {
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
     borderWidth: 2,
-    borderColor: Theme.colors.border.base,
+    borderColor: theme.colors.border.base,
   },
   closeButtonText: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: '600',
-    color: Theme.colors.text.inverse,
+    color: theme.colors.text.inverse,
   },
   closeButtonTextSecondary: {
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
   },
   supportBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: Theme.spacing.sm,
-    backgroundColor: Theme.colors.accent.blueSoft,
-    padding: Theme.spacing.md,
-    borderRadius: Theme.radius.sm,
+    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.accent.blueSoft,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.sm,
   },
   supportText: {
     flex: 1,
     fontSize: 13,
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
     lineHeight: 18,
   },
 });

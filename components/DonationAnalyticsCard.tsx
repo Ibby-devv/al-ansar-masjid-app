@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import type { AppTheme } from '../hooks/useAppTheme';
 import { Donation } from '../types/donation';
 
 interface DonationAnalyticsCardProps {
@@ -12,7 +13,10 @@ interface DonationAnalyticsCardProps {
 export default function DonationAnalyticsCard({
   donations,
   subscriptions,
-}: DonationAnalyticsCardProps) {
+}: DonationAnalyticsCardProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   // Calculate analytics
   const totalOneTime = donations.reduce((sum, d) => sum + d.amount, 0) / 100; // Convert from cents
   const totalRecurring = subscriptions.reduce((sum, s) => sum + s.amount, 0) / 100;
@@ -32,11 +36,20 @@ export default function DonationAnalyticsCard({
     .sort(([, a], [, b]) => b - a)
     .slice(0, 3);
 
+  const getColorForIndex = (index: number): string => {
+    const colors = [
+      theme.colors.brand.navy[700],
+      theme.colors.accent.green,
+      theme.colors.accent.blue,
+    ];
+    return colors[index] || theme.colors.brand.navy[700];
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Ionicons name="stats-chart" size={24} color={Theme.colors.brand.navy[700]} />
+        <Ionicons name="stats-chart" size={24} color={theme.colors.brand.navy[700]} />
         <Text style={styles.headerTitle}>Your Impact</Text>
       </View>
 
@@ -110,82 +123,73 @@ export default function DonationAnalyticsCard({
   );
 }
 
-const getColorForIndex = (index: number): string => {
-  const colors = [
-    Theme.colors.brand.navy[700],
-    Theme.colors.accent.green,
-    Theme.colors.accent.blue,
-  ];
-  return colors[index] || Theme.colors.brand.navy[700];
-};
-
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.lg,
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.lg,
-    ...Theme.shadow.soft,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
+    ...theme.shadow.soft,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Theme.spacing.sm,
-    marginBottom: Theme.spacing.lg,
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.lg,
   },
   headerTitle: {
-    fontSize: Theme.typography.h3,
+    fontSize: theme.typography.h3,
     fontWeight: 'bold',
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
   },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Theme.spacing.md,
-    marginBottom: Theme.spacing.md,
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.md,
   },
   statCard: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: Theme.colors.surface.soft,
-    padding: Theme.spacing.lg,
-    borderRadius: Theme.radius.md,
+    backgroundColor: theme.colors.surface.soft,
+    padding: theme.spacing.lg,
+    borderRadius: theme.radius.md,
     alignItems: 'center',
   },
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
     marginBottom: 4,
   },
   statLabel: {
-    fontSize: Theme.typography.small,
-    color: Theme.colors.text.muted,
+    fontSize: theme.typography.small,
+    color: theme.colors.text.muted,
   },
   divider: {
     height: 1,
-    backgroundColor: Theme.colors.border.base,
-    marginVertical: Theme.spacing.lg,
+    backgroundColor: theme.colors.border.base,
+    marginVertical: theme.spacing.lg,
   },
   breakdownSection: {
-    marginBottom: Theme.spacing.md,
+    marginBottom: theme.spacing.md,
   },
   breakdownTitle: {
-    fontSize: Theme.typography.body,
+    fontSize: theme.typography.body,
     fontWeight: '600',
-    color: Theme.colors.text.strong,
-    marginBottom: Theme.spacing.md,
+    color: theme.colors.text.strong,
+    marginBottom: theme.spacing.md,
   },
   breakdownRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Theme.spacing.sm,
+    marginBottom: theme.spacing.sm,
   },
   breakdownInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Theme.spacing.sm,
+    gap: theme.spacing.sm,
     flex: 1,
   },
   breakdownDot: {
@@ -194,37 +198,37 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   breakdownType: {
-    fontSize: Theme.typography.body,
-    color: Theme.colors.text.base,
+    fontSize: theme.typography.body,
+    color: theme.colors.text.base,
     flex: 1,
   },
   breakdownValues: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Theme.spacing.md,
+    gap: theme.spacing.md,
   },
   breakdownAmount: {
-    fontSize: Theme.typography.body,
+    fontSize: theme.typography.body,
     fontWeight: '600',
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     minWidth: 70,
     textAlign: 'right',
   },
   breakdownPercentage: {
-    fontSize: Theme.typography.small,
-    color: Theme.colors.text.muted,
+    fontSize: theme.typography.small,
+    color: theme.colors.text.muted,
     minWidth: 35,
     textAlign: 'right',
   },
   thankYouBox: {
-    backgroundColor: Theme.colors.accent.blueSoft,
-    padding: Theme.spacing.md,
-    borderRadius: Theme.radius.sm,
-    marginTop: Theme.spacing.sm,
+    backgroundColor: theme.colors.accent.blueSoft,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.sm,
+    marginTop: theme.spacing.sm,
   },
   thankYouText: {
-    fontSize: Theme.typography.body,
-    color: Theme.colors.brand.navy[700],
+    fontSize: theme.typography.body,
+    color: theme.colors.brand.navy[700],
     textAlign: 'center',
   },
 });

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
     Animated,
     Linking,
@@ -12,7 +12,8 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import type { AppTheme } from '../hooks/useAppTheme';
 
 interface DonationSuccessModalProps {
   visible: boolean;
@@ -36,7 +37,10 @@ export default function DonationSuccessModal({
   campaignName,
   receiptNumber,
   stripeReceiptUrl,
-}: DonationSuccessModalProps) {
+}: DonationSuccessModalProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -117,7 +121,7 @@ Thank you for your generous support!
             {/* Success Icon */}
             <View style={styles.iconContainer}>
               <View style={styles.successCircle}>
-                <Ionicons name="checkmark" size={60} color="#fff" />
+                <Ionicons name="checkmark" size={60} color={theme.colors.text.inverse} />
               </View>
             </View>
 
@@ -146,14 +150,14 @@ Thank you for your generous support!
               <View style={styles.divider} />
 
               <View style={styles.detailRow}>
-                <Ionicons name="heart" size={20} color={Theme.colors.text.muted} />
+                <Ionicons name="heart" size={20} color={theme.colors.text.muted} />
                 <Text style={styles.detailLabel}>Donation Type</Text>
                 <Text style={styles.detailValue}>{donationType}</Text>
               </View>
 
               {campaignName && (
                 <View style={styles.detailRow}>
-                  <Ionicons name="flag" size={20} color={Theme.colors.text.muted} />
+                  <Ionicons name="flag" size={20} color={theme.colors.text.muted} />
                   <Text style={styles.detailLabel}>Campaign</Text>
                   <Text style={styles.detailValue}>{campaignName}</Text>
                 </View>
@@ -161,7 +165,7 @@ Thank you for your generous support!
 
               {receiptNumber && (
                 <View style={styles.detailRow}>
-                  <Ionicons name="document-text" size={20} color={Theme.colors.text.muted} />
+                  <Ionicons name="document-text" size={20} color={theme.colors.text.muted} />
                   <Text style={styles.detailLabel}>Receipt Number</Text>
                   <Text style={styles.detailValue}>{receiptNumber}</Text>
                 </View>
@@ -169,7 +173,7 @@ Thank you for your generous support!
 
               {isRecurring && (
                 <View style={styles.infoBox}>
-                  <Ionicons name="information-circle" size={20} color={Theme.colors.brand.navy[700]} />
+                  <Ionicons name="information-circle" size={20} color={theme.colors.brand.navy[700]} />
                   <Text style={styles.infoText}>
                     You&apos;ll receive an email receipt after each payment. You can manage your
                     subscription anytime from the Manage tab.
@@ -182,13 +186,13 @@ Thank you for your generous support!
             <View style={styles.actions}>
               {stripeReceiptUrl && (
                 <TouchableOpacity style={styles.secondaryButton} onPress={handleViewReceipt}>
-                  <Ionicons name="receipt-outline" size={20} color={Theme.colors.brand.navy[700]} />
+                  <Ionicons name="receipt-outline" size={20} color={theme.colors.brand.navy[700]} />
                   <Text style={styles.secondaryButtonText}>View Receipt</Text>
                 </TouchableOpacity>
               )}
 
               <TouchableOpacity style={styles.secondaryButton} onPress={handleShareReceipt}>
-                <Ionicons name="share-outline" size={20} color={Theme.colors.brand.navy[700]} />
+                <Ionicons name="share-outline" size={20} color={theme.colors.brand.navy[700]} />
                 <Text style={styles.secondaryButtonText}>Share</Text>
               </TouchableOpacity>
             </View>
@@ -204,144 +208,144 @@ Thank you for your generous support!
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Theme.spacing.xl,
+    padding: theme.spacing.xl,
   },
   container: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.xl,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.xl,
     width: '100%',
     maxWidth: 500,
     maxHeight: '90%',
     overflow: 'hidden',
-    ...Theme.shadow.header,
+    ...theme.shadow.header,
   },
   scrollView: {
     flexGrow: 1,
   },
   content: {
-    padding: Theme.spacing.xxl,
+    padding: theme.spacing.xxl,
   },
   iconContainer: {
     alignItems: 'center',
-    marginBottom: Theme.spacing.xl,
+    marginBottom: theme.spacing.xl,
   },
   successCircle: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: Theme.colors.accent.green,
+    backgroundColor: theme.colors.accent.green,
     alignItems: 'center',
     justifyContent: 'center',
-    ...Theme.shadow.soft,
+    ...theme.shadow.soft,
   },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     textAlign: 'center',
-    marginBottom: Theme.spacing.md,
+    marginBottom: theme.spacing.md,
   },
   subtitle: {
-    fontSize: Theme.spacing.lg,
-    color: Theme.colors.text.muted,
+    fontSize: theme.spacing.lg,
+    color: theme.colors.text.muted,
     textAlign: 'center',
-    marginBottom: Theme.spacing.xxl,
+    marginBottom: theme.spacing.xxl,
   },
   detailsCard: {
-    backgroundColor: Theme.colors.surface.soft,
-    borderRadius: Theme.radius.lg,
-    padding: Theme.spacing.xl,
-    marginBottom: Theme.spacing.xl,
+    backgroundColor: theme.colors.surface.soft,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.xl,
+    marginBottom: theme.spacing.xl,
   },
   amountContainer: {
     alignItems: 'center',
-    paddingBottom: Theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
   },
   amountLabel: {
-    fontSize: Theme.typography.body,
-    color: Theme.colors.text.muted,
-    marginBottom: Theme.spacing.sm,
+    fontSize: theme.typography.body,
+    color: theme.colors.text.muted,
+    marginBottom: theme.spacing.sm,
   },
   amount: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
   },
   frequency: {
-    fontSize: Theme.spacing.lg,
-    color: Theme.colors.text.muted,
+    fontSize: theme.spacing.lg,
+    color: theme.colors.text.muted,
     marginTop: 4,
   },
   divider: {
     height: 1,
-    backgroundColor: Theme.colors.border.base,
-    marginVertical: Theme.spacing.lg,
+    backgroundColor: theme.colors.border.base,
+    marginVertical: theme.spacing.lg,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Theme.spacing.md,
-    marginBottom: Theme.spacing.md,
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.md,
   },
   detailLabel: {
     flex: 1,
-    fontSize: Theme.typography.body,
-    color: Theme.colors.text.muted,
+    fontSize: theme.typography.body,
+    color: theme.colors.text.muted,
   },
   detailValue: {
-    fontSize: Theme.typography.body,
+    fontSize: theme.typography.body,
     fontWeight: '600',
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
   },
   infoBox: {
     flexDirection: 'row',
-    gap: Theme.spacing.sm,
-    backgroundColor: Theme.colors.accent.blueSoft,
-    padding: Theme.spacing.md,
-    borderRadius: Theme.radius.sm,
-    marginTop: Theme.spacing.md,
+    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.accent.blueSoft,
+    padding: theme.spacing.md,
+    borderRadius: theme.radius.sm,
+    marginTop: theme.spacing.md,
   },
   infoText: {
     flex: 1,
     fontSize: 13,
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
     lineHeight: 18,
   },
   actions: {
     flexDirection: 'row',
-    gap: Theme.spacing.md,
-    marginBottom: Theme.spacing.lg,
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   secondaryButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Theme.spacing.sm,
-    backgroundColor: Theme.colors.accent.blueSoft,
-    padding: Theme.spacing.lg,
-    borderRadius: Theme.radius.md,
+    gap: theme.spacing.sm,
+    backgroundColor: theme.colors.accent.blueSoft,
+    padding: theme.spacing.lg,
+    borderRadius: theme.radius.md,
   },
   secondaryButtonText: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: '600',
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
   },
   closeButton: {
-    backgroundColor: Theme.colors.brand.navy[700],
-    padding: Theme.spacing.lg,
-    borderRadius: Theme.radius.md,
+    backgroundColor: theme.colors.brand.navy[700],
+    padding: theme.spacing.lg,
+    borderRadius: theme.radius.md,
     alignItems: 'center',
   },
   closeButtonText: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: 'bold',
-    color: Theme.colors.text.inverse,
+    color: theme.colors.text.inverse,
   },
 });

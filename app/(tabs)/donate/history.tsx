@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,7 +13,8 @@ import {
 } from "react-native";
 import DonationAnalyticsCard from "../../../components/DonationAnalyticsCard";
 import PillToggle from "../../../components/ui/PillToggle";
-import { Theme } from "../../../constants/theme";
+import { useTheme } from "../../../contexts/ThemeContext";
+import type { AppTheme } from "../../../hooks/useAppTheme";
 import { regionalFunctions } from "../../../firebase";
 import { useFirebaseData } from "../../../hooks/useFirebaseData";
 import { Donation } from "../../../types/donation";
@@ -21,7 +22,10 @@ import { Donation } from "../../../types/donation";
 type DonationType = "one-time" | "recurring";
 
 
-export default function HistoryTab() {
+export default function HistoryTab(): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [donations, setDonations] = useState<Donation[]>([]);
@@ -117,7 +121,7 @@ export default function HistoryTab() {
     <View key={donation.id} style={styles.donationCard}>
       <View style={styles.donationHeader}>
         <View style={styles.donationIcon}>
-          <Ionicons name="heart" size={24} color="#1e3a8a" />
+          <Ionicons name="heart" size={24} color={theme.colors.brand.navy[700]} />
         </View>
         <View style={styles.donationInfo}>
           <Text style={styles.donationType}>
@@ -134,7 +138,7 @@ export default function HistoryTab() {
 
       {donation.receipt_number && (
         <View style={styles.receiptRow}>
-          <Ionicons name="document-text-outline" size={16} color="#6b7280" />
+          <Ionicons name="document-text-outline" size={16} color={theme.colors.text.muted} />
           <Text style={styles.receiptText}>
             Receipt: {donation.receipt_number}
           </Text>
@@ -146,9 +150,9 @@ export default function HistoryTab() {
           style={styles.viewReceiptButton}
           onPress={() => Linking.openURL(donation.stripe_receipt_url!)}
         >
-          <Ionicons name="receipt-outline" size={18} color={Theme.colors.brand.navy[700]} />
+          <Ionicons name="receipt-outline" size={18} color={theme.colors.brand.navy[700]} />
           <Text style={styles.viewReceiptText}>View Receipt</Text>
-          <Ionicons name="open-outline" size={14} color={Theme.colors.text.muted} />
+          <Ionicons name="open-outline" size={14} color={theme.colors.text.muted} />
         </TouchableOpacity>
       )}
     </View>
@@ -158,7 +162,7 @@ export default function HistoryTab() {
     <View key={subscription.id} style={styles.donationCard}>
       <View style={styles.donationHeader}>
         <View style={[styles.donationIcon, styles.recurringIcon]}>
-          <Ionicons name="refresh" size={24} color="#059669" />
+          <Ionicons name="refresh" size={24} color={theme.colors.accent.green} />
         </View>
         <View style={styles.donationInfo}>
           <Text style={styles.donationType}>
@@ -191,7 +195,7 @@ export default function HistoryTab() {
         {!hasLoaded && (
           <View style={styles.inputSection}>
             <View style={styles.infoCard}>
-              <Ionicons name="information-circle" size={24} color="#1e3a8a" />
+              <Ionicons name="information-circle" size={24} color={theme.colors.brand.navy[700]} />
               <Text style={styles.infoText}>
                 Enter your email address to view your donation history
               </Text>
@@ -201,7 +205,7 @@ export default function HistoryTab() {
             <TextInput
               style={styles.input}
               placeholder="email@example.com"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={theme.colors.text.muted}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -215,10 +219,10 @@ export default function HistoryTab() {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={theme.colors.text.inverse} />
               ) : (
                 <>
-                  <Ionicons name="search" size={20} color="#fff" />
+                  <Ionicons name="search" size={20} color={theme.colors.text.inverse} />
                   <Text style={styles.loadButtonText}>Load Donations</Text>
                 </>
               )}
@@ -232,7 +236,7 @@ export default function HistoryTab() {
             {/* Email Display & Change Button */}
             <View style={styles.emailDisplay}>
               <View style={styles.emailInfo}>
-                <Ionicons name="mail" size={20} color="#6b7280" />
+                <Ionicons name="mail" size={20} color={theme.colors.text.muted} />
                 <Text style={styles.emailText}>{email}</Text>
               </View>
               <TouchableOpacity
@@ -263,7 +267,7 @@ export default function HistoryTab() {
               ]}
               value={activeTab}
               onChange={(key) => setActiveTab(key as DonationType)}
-              style={{ marginBottom: Theme.spacing.lg }}
+              style={{ marginBottom: theme.spacing.lg }}
             />
 
             {/* Donations List */}
@@ -273,7 +277,7 @@ export default function HistoryTab() {
                   donations.map(renderDonation)
                 ) : (
                   <View style={styles.emptyState}>
-                    <Ionicons name="heart-outline" size={48} color="#d1d5db" />
+                    <Ionicons name="heart-outline" size={48} color={theme.colors.border.base} />
                     <Text style={styles.emptyText}>
                       No one-time donations found
                     </Text>
@@ -288,7 +292,7 @@ export default function HistoryTab() {
                     <Ionicons
                       name="refresh-outline"
                       size={48}
-                      color="#d1d5db"
+                      color={theme.colors.border.base}
                     />
                     <Text style={styles.emptyText}>
                       No recurring donations found
@@ -303,204 +307,204 @@ export default function HistoryTab() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.surface.muted,
+    backgroundColor: theme.colors.surface.muted,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: Theme.spacing.xl,
+    padding: theme.spacing.xl,
     paddingBottom: 40,
   },
   inputSection: {
-    marginBottom: Theme.spacing.xl,
+    marginBottom: theme.spacing.xl,
   },
   infoCard: {
     flexDirection: "row",
-    backgroundColor: Theme.colors.accent.blueSoft,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.xxl,
-    gap: Theme.spacing.md,
+    backgroundColor: theme.colors.accent.blueSoft,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.xxl,
+    gap: theme.spacing.md,
   },
   infoText: {
     flex: 1,
-    fontSize: Theme.typography.body,
-    color: Theme.colors.brand.navy[700],
+    fontSize: theme.typography.body,
+    color: theme.colors.brand.navy[700],
     lineHeight: 20,
   },
   label: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: "600",
-    color: Theme.colors.text.strong,
-    marginBottom: Theme.spacing.sm,
+    color: theme.colors.text.strong,
+    marginBottom: theme.spacing.sm,
   },
   input: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
-    fontSize: Theme.spacing.lg,
-    color: Theme.colors.text.strong,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
+    fontSize: theme.spacing.lg,
+    color: theme.colors.text.strong,
     borderWidth: 2,
-    borderColor: Theme.colors.border.base,
-    marginBottom: Theme.spacing.lg,
+    borderColor: theme.colors.border.base,
+    marginBottom: theme.spacing.lg,
   },
   loadButton: {
-    backgroundColor: Theme.colors.brand.navy[700],
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
+    backgroundColor: theme.colors.brand.navy[700],
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: Theme.spacing.sm,
+    gap: theme.spacing.sm,
   },
   loadButtonDisabled: {
-    backgroundColor: Theme.colors.text.muted,
+    backgroundColor: theme.colors.text.muted,
   },
   loadButtonText: {
-    color: Theme.colors.text.inverse,
-    fontSize: Theme.spacing.lg,
+    color: theme.colors.text.inverse,
+    fontSize: theme.spacing.lg,
     fontWeight: "600",
   },
   emailDisplay: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
-    marginBottom: Theme.spacing.lg,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
   },
   emailInfo: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Theme.spacing.sm,
+    gap: theme.spacing.sm,
     flex: 1,
   },
   emailText: {
-    fontSize: Theme.typography.body,
-    color: Theme.colors.text.strong,
+    fontSize: theme.typography.body,
+    color: theme.colors.text.strong,
     fontWeight: "500",
   },
   changeButton: {
-    paddingHorizontal: Theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
     paddingVertical: 6,
-    backgroundColor: Theme.colors.accent.blueSoft,
+    backgroundColor: theme.colors.accent.blueSoft,
     borderRadius: 6,
   },
   changeButtonText: {
-    color: Theme.colors.brand.navy[700],
-    fontSize: Theme.typography.body,
+    color: theme.colors.brand.navy[700],
+    fontSize: theme.typography.body,
     fontWeight: "600",
   },
   tabSwitcher: {
     flexDirection: "row",
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
     padding: 4,
-    marginBottom: Theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
   },
   tabButton: {
     flex: 1,
-    paddingVertical: Theme.spacing.md,
+    paddingVertical: theme.spacing.md,
     alignItems: "center",
-    borderRadius: Theme.radius.sm,
+    borderRadius: theme.radius.sm,
   },
   tabButtonActive: {
-    backgroundColor: Theme.colors.brand.navy[700],
+    backgroundColor: theme.colors.brand.navy[700],
   },
   tabButtonText: {
-    fontSize: Theme.typography.body,
+    fontSize: theme.typography.body,
     fontWeight: "600",
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
   },
   tabButtonTextActive: {
-    color: Theme.colors.text.inverse,
+    color: theme.colors.text.inverse,
   },
   donationsList: {
-    gap: Theme.spacing.md,
+    gap: theme.spacing.md,
   },
   donationCard: {
-    backgroundColor: Theme.colors.surface.base,
-    borderRadius: Theme.radius.md,
-    padding: Theme.spacing.lg,
-    ...Theme.shadow.soft,
+    backgroundColor: theme.colors.surface.base,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.lg,
+    ...theme.shadow.soft,
   },
   donationHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: Theme.spacing.md,
+    marginBottom: theme.spacing.md,
   },
   donationIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Theme.colors.accent.blueSoft,
+    backgroundColor: theme.colors.accent.blueSoft,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: Theme.spacing.md,
+    marginRight: theme.spacing.md,
   },
   recurringIcon: {
-    backgroundColor: "#d1fae5",
+    backgroundColor: theme.colors.accent.amberSoft,
   },
   donationInfo: {
     flex: 1,
   },
   donationType: {
-    fontSize: Theme.spacing.lg,
+    fontSize: theme.spacing.lg,
     fontWeight: "600",
-    color: Theme.colors.text.strong,
+    color: theme.colors.text.strong,
     marginBottom: 4,
   },
   donationDate: {
-    fontSize: Theme.typography.body,
-    color: Theme.colors.text.muted,
+    fontSize: theme.typography.body,
+    color: theme.colors.text.muted,
   },
   donationAmount: {
-    fontSize: Theme.typography.h2,
+    fontSize: theme.typography.h2,
     fontWeight: "bold",
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
   },
   receiptRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    paddingTop: Theme.spacing.md,
+    paddingTop: theme.spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Theme.colors.surface.soft,
+    borderTopColor: theme.colors.surface.soft,
   },
   receiptText: {
     fontSize: 13,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
   },
   viewReceiptButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Theme.spacing.sm,
-    marginTop: Theme.spacing.md,
-    paddingVertical: Theme.spacing.sm,
-    paddingHorizontal: Theme.spacing.md,
-    backgroundColor: Theme.colors.accent.blueSoft,
-    borderRadius: Theme.radius.sm,
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    backgroundColor: theme.colors.accent.blueSoft,
+    borderRadius: theme.radius.sm,
   },
   viewReceiptText: {
-    fontSize: Theme.typography.body,
+    fontSize: theme.typography.body,
     fontWeight: '600',
-    color: Theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[700],
   },
   subscriptionBadge: {
-    marginTop: Theme.spacing.md,
-    paddingTop: Theme.spacing.md,
+    marginTop: theme.spacing.md,
+    paddingTop: theme.spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Theme.colors.surface.soft,
+    borderTopColor: theme.colors.surface.soft,
   },
   subscriptionBadgeText: {
     fontSize: 13,
-    color: Theme.colors.accent.green,
+    color: theme.colors.accent.green,
     fontWeight: "600",
   },
   emptyState: {
@@ -508,8 +512,8 @@ const styles = StyleSheet.create({
     paddingVertical: 48,
   },
   emptyText: {
-    fontSize: Theme.spacing.lg,
-    color: Theme.colors.text.muted,
-    marginTop: Theme.spacing.md,
+    fontSize: theme.spacing.lg,
+    color: theme.colors.text.muted,
+    marginTop: theme.spacing.md,
   },
 });
