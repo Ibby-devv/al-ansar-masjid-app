@@ -16,4 +16,4 @@ import './services/NotificationBackgroundHandler';
 import 'expo-router/entry';
 
 //Remove warnings
-//console.warn = () => { };
+console.warn = () => { };

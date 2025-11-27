@@ -17,30 +17,33 @@ export const NOTIFICATION_COLORS = {
   urgent: '#ea580c',  // Orange
 } as const;
 
+// Unified icon for brand consistency - Android guidelines recommend monochromatic app icon
+const UNIFIED_SMALL_ICON = 'ic_launcher'; // App launcher icon
+
 export const NOTIFICATION_STYLES: Record<NotificationChannelId, NotificationStyleConfig> = {
   prayer: {
     color: NOTIFICATION_COLORS.prayer,
-    smallIcon: 'ic_notification_prayer', // Bell icon for prayer reminders
+    smallIcon: UNIFIED_SMALL_ICON,
     useBigTextStyle: true,
   },
   events: {
     color: NOTIFICATION_COLORS.event,
-    smallIcon: 'ic_notification_event', // Calendar icon
+    smallIcon: UNIFIED_SMALL_ICON,
     useBigTextStyle: true,
   },
   campaigns: {
     color: NOTIFICATION_COLORS.campaign,
-    smallIcon: 'ic_notification_campaign', // Megaphone icon
+    smallIcon: UNIFIED_SMALL_ICON,
     useBigTextStyle: true,
   },
   general: {
     color: NOTIFICATION_COLORS.general,
-    smallIcon: 'ic_notification_general', // Info icon
+    smallIcon: UNIFIED_SMALL_ICON,
     useBigTextStyle: true,
   },
   urgent: {
     color: NOTIFICATION_COLORS.urgent,
-    smallIcon: 'ic_notification_urgent', // Alert triangle icon
+    smallIcon: UNIFIED_SMALL_ICON,
     useBigTextStyle: true,
   },
 };

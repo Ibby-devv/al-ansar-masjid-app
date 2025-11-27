@@ -232,8 +232,15 @@ class FCMService {
    * This displays notifications when app is open
    */
   private setupForegroundHandler() {
-    messaging().onMessage(async (remoteMessage) => {
-      console.log('📬 Foreground notification received:', remoteMessage);
+    console.log('🎯 Setting up foreground message handler...');
+    
+    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+      console.log('📬 ========================================');
+      console.log('📬 Foreground notification received!');
+      console.log('📬 Full message:', JSON.stringify(remoteMessage, null, 2));
+      console.log('📬 Has notification payload:', !!remoteMessage.notification);
+      console.log('📬 Has data payload:', !!remoteMessage.data);
+      console.log('📬 ========================================');
 
       const data = remoteMessage.data;
 
@@ -244,6 +251,8 @@ class FCMService {
       const body = (typeof data?.body === 'string' ? data.body : null)
         || remoteMessage.notification?.body
         || '';
+
+      console.log('📬 Extracted - Title:', title, 'Body:', body);
 
       // Determine channel based on notification type from data
       const notificationType = data?.type as string | undefined;
@@ -278,12 +287,17 @@ class FCMService {
             new Date().toISOString()
           );
         } catch {}
+        
+        console.log('✅ Foreground notification displayed successfully');
       } catch (error) {
         console.error('❌ Error displaying foreground notification:', error);
       }
     });
 
-    console.log('✅ Foreground notification handler setup');
+    console.log('✅ Foreground notification handler setup complete');
+    
+    // Store unsubscribe for cleanup if needed
+    return unsubscribe;
   }
 
   /**
