@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View, ViewStyle } from "react-native";
-import { Theme } from "../../constants/theme";
+import { useTheme } from "../../contexts/ThemeContext";
+import type { AppTheme } from "../../hooks/useAppTheme";
 import Badge from "./Badge";
 
 type SectionHeaderProps = {
@@ -13,7 +14,10 @@ export default function SectionHeader({
   title,
   containerStyle,
   rightBadge,
-}: SectionHeaderProps) {
+}: SectionHeaderProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   return (
     <View style={[styles.container, containerStyle]}>
       <Text style={styles.title}>{title}</Text>
@@ -29,22 +33,22 @@ export default function SectionHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 6,
-    backgroundColor: Theme.colors.surface.muted,
+    backgroundColor: theme.colors.surface.muted,
     borderBottomWidth: 1,
-    borderBottomColor: Theme.colors.border.base,
+    borderBottomColor: theme.colors.border.base,
     zIndex: 2,
     elevation: 2,
   },
   title: {
     fontSize: 16,
     fontWeight: "800",
-    color: Theme.colors.text.base,
+    color: theme.colors.text.base,
   },
 });

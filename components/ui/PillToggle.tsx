@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
-import { Theme } from "../../constants/theme";
+import { useTheme } from "../../contexts/ThemeContext";
+import type { AppTheme } from "../../hooks/useAppTheme";
 
 type Option = { key: string; label: string };
 
@@ -11,7 +12,10 @@ type PillToggleProps = {
   style?: ViewStyle | ViewStyle[];
 };
 
-export default function PillToggle({ options, value, onChange, style }: PillToggleProps) {
+export default function PillToggle({ options, value, onChange, style }: PillToggleProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   return (
     <View style={[styles.container, style]}>
       {options.map((opt) => {
@@ -31,35 +35,35 @@ export default function PillToggle({ options, value, onChange, style }: PillTogg
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flexDirection: "row",
-    backgroundColor: Theme.colors.surface.card,
-    marginHorizontal: Theme.spacing.lg,
-    borderRadius: Theme.radius.pill,
+    backgroundColor: theme.colors.surface.card,
+    marginHorizontal: theme.spacing.lg,
+    borderRadius: theme.radius.pill,
     padding: 3,
-    ...Theme.shadow.soft,
+    ...theme.shadow.soft,
   },
   item: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: Theme.radius.pill,
+    borderRadius: theme.radius.pill,
     alignItems: "center",
   },
   itemSelected: {
-    backgroundColor: Theme.colors.brand.navy[700],
-    shadowColor: Theme.colors.brand.navy[700],
+    backgroundColor: theme.colors.brand.navy[700],
+    shadowColor: theme.colors.brand.navy[700],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 2,
   },
   text: {
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
     fontSize: 14,
     fontWeight: "600",
   },
   textSelected: {
-    color: Theme.colors.text.inverse,
+    color: theme.colors.text.inverse,
   },
 });

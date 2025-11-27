@@ -1,13 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { ThemedText } from '../themed-text';
-import { Theme } from '../../constants/theme';
+import { useTheme } from '../../contexts/ThemeContext';
+import type { AppTheme } from '../../hooks/useAppTheme';
 
 interface UpdatingBannerProps {
   text?: string;
 }
 
 export default function UpdatingBanner({ text = 'Updating…' }: UpdatingBannerProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const opacity = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
@@ -29,30 +32,30 @@ export default function UpdatingBanner({ text = 'Updating…' }: UpdatingBannerP
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'center',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: Theme.colors.border.soft,
+    borderColor: theme.colors.border.soft,
     marginBottom: 10,
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Theme.colors.brand.navy[600],
+    backgroundColor: theme.colors.brand.navy[600],
     marginRight: 8,
   },
   text: {
     fontSize: 12,
     lineHeight: 18,
-    color: Theme.colors.text.muted,
+    color: theme.colors.text.muted,
     fontWeight: '600',
     letterSpacing: 0.3,
   },

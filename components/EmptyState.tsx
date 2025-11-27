@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Theme } from '../constants/theme';
+import { useTheme } from '../contexts/ThemeContext';
+import type { AppTheme } from '../hooks/useAppTheme';
 
 interface EmptyStateProps {
   icon?: keyof typeof Ionicons.glyphMap;
@@ -16,6 +17,9 @@ export default function EmptyState({
   message,
   variant = 'empty',
 }: EmptyStateProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   const getDefaultIcon = (): keyof typeof Ionicons.glyphMap => {
     switch (variant) {
       case 'offline':
@@ -30,11 +34,11 @@ export default function EmptyState({
   const getIconColor = (): string => {
     switch (variant) {
       case 'offline':
-        return Theme.colors.text.muted;
+        return theme.colors.text.muted;
       case 'error':
-        return Theme.colors.error[500];
+        return theme.colors.error[500];
       default:
-        return Theme.colors.brand.navy[700];
+        return theme.colors.brand.navy[700];
     }
   };
 
@@ -53,36 +57,36 @@ export default function EmptyState({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Theme.spacing.xxl,
+    padding: theme.spacing.xxl,
     minHeight: 200,
   },
   iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.soft,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
   },
   iconContainerError: {
-    backgroundColor: Theme.colors.error[100],
+    backgroundColor: theme.colors.error[100],
   },
   title: {
-    fontSize: Theme.typography.h3,
+    fontSize: theme.typography.h3,
     fontWeight: '700',
-    color: Theme.colors.text.strong,
-    marginBottom: Theme.spacing.sm,
+    color: theme.colors.text.strong,
+    marginBottom: theme.spacing.sm,
     textAlign: 'center',
   },
   message: {
-    fontSize: Theme.typography.body,
-    color: Theme.colors.text.muted,
+    fontSize: theme.typography.body,
+    color: theme.colors.text.muted,
     textAlign: 'center',
     lineHeight: 22,
     maxWidth: 300,

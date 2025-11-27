@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View, ViewStyle } from "react-native";
-import { Theme } from "../../constants/theme";
+import { useTheme } from "../../contexts/ThemeContext";
+import type { AppTheme } from "../../hooks/useAppTheme";
 
 type NextBannerProps = {
   icon?: keyof typeof Ionicons.glyphMap;
@@ -9,30 +10,33 @@ type NextBannerProps = {
   style?: ViewStyle | ViewStyle[];
 };
 
-export default function NextBanner({ icon = "flash", text, style }: NextBannerProps) {
+export default function NextBanner({ icon = "flash", text, style }: NextBannerProps): React.JSX.Element {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  
   return (
     <View style={[styles.container, style]}>
-      <Ionicons name={icon as any} size={24} color={Theme.colors.brand.gold[600]} />
+      <Ionicons name={icon as any} size={24} color={theme.colors.brand.gold[600]} />
       <Text style={styles.text}>{text}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: Theme.colors.accent.amberSoft,
-    borderColor: Theme.colors.brand.gold[400] || Theme.colors.accent.amber,
+    backgroundColor: theme.colors.accent.amberSoft,
+    borderColor: theme.colors.brand.gold[400] || theme.colors.accent.amber,
     borderWidth: 1,
-    borderRadius: Theme.radius.md,
+    borderRadius: theme.radius.md,
     marginBottom: 12,
   },
   text: {
-    color: "#92400e",
+    color: theme.colors.brand.gold[600],
     fontSize: 16,
     fontWeight: "800",
   },
