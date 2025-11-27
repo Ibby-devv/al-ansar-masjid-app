@@ -12,8 +12,8 @@ const THEME_STORAGE_KEY = '@theme_preference';
 
 export type ThemePreference = 'auto' | 'light' | 'dark';
 type ColorScheme = 'light' | 'dark';
-type ThemeColors = typeof Theme.colors.light;
-type ThemeGradients = typeof Theme.gradients.light;
+type ThemeColors = typeof Theme.colors.light | typeof Theme.colors.dark;
+type ThemeGradients = typeof Theme.gradients.light | typeof Theme.gradients.dark;
 
 export interface AppTheme {
   colors: ThemeColors;
