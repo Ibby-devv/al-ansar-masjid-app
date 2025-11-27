@@ -3,14 +3,13 @@ import * as Haptics from 'expo-haptics';
 import { Stack } from 'expo-router';
 import React, { useMemo } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, Vibration, View } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme, ThemePreference } from '../contexts/ThemeContext';
 import type { AppTheme } from '../hooks/useAppTheme';
-import { useThemePreference, ThemePreference } from '../hooks/useThemePreference';
 import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 
 export default function SettingsScreen(): React.JSX.Element {
   const theme = useTheme();
-  const { preference, updatePreference } = useThemePreference();
+  const { preference, updatePreference } = theme;
   
   // Memoize styles based on theme
   const styles = useMemo(() => createStyles(theme), [theme]);

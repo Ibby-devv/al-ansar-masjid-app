@@ -1,11 +1,11 @@
 /**
  * useAppTheme Hook
  * Returns memoized theme values based on current color scheme
+ * NOTE: This hook is kept for backward compatibility. 
+ * The main theme logic is now in ThemeContext.tsx
  */
 
-import { useMemo } from 'react';
 import { Theme } from '../constants/theme';
-import { useThemePreference } from './useThemePreference';
 
 type ColorScheme = 'light' | 'dark';
 type ThemeColors = typeof Theme.colors.light;
@@ -21,18 +21,5 @@ export interface AppTheme {
   colorScheme: ColorScheme;
 }
 
-export function useAppTheme(): AppTheme {
-  const { effectiveScheme } = useThemePreference();
-  
-  const colorScheme: ColorScheme = effectiveScheme;
-
-  return useMemo(() => ({
-    colors: Theme.colors[colorScheme],
-    gradients: Theme.gradients[colorScheme],
-    spacing: Theme.spacing,
-    radius: Theme.radius,
-    typography: Theme.typography,
-    shadow: Theme.shadow,
-    colorScheme,
-  }), [colorScheme]);
-}
+// Re-export for backward compatibility with components that import from here
+export type { ThemeColors, ThemeGradients, ColorScheme };
