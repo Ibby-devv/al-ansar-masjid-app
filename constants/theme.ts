@@ -82,7 +82,7 @@ export const Theme = {
       surface: { base: '#111827', soft: '#1f2937', muted: '#374151', card: '#1f2937' },
       text: { base: '#f9fafb', muted: '#9ca3af', subtle: '#6b7280', inverse: '#0f172a', strong: '#ffffff' },
       border: { base: '#374151', soft: '#4b5563' },
-      accent: { blueSoft: '#1e3a8a', blue: '#60a5fa', amberSoft: '#422006', green: '#34d399', amber: '#fbbf24' },
+      accent: { blueSoft: '#1e3a5f', blue: '#60a5fa', amberSoft: '#422006', green: '#34d399', amber: '#fbbf24' },
       error: { 500: '#ef4444', 100: '#7f1d1d' },
       tabBar: { background: '#1a1a1a', border: '#374151', activeTint: '#60a5fa', inactiveTint: '#6b7280' },
       iconBackground: { map: '#dc2626', phone: '#16a34a', email: '#d97706', website: '#0284c7', imam: '#f59e0b', version: '#a78bfa', developer: '#818cf8', facebook: '#1877F2' },
