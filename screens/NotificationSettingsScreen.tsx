@@ -1,12 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Clipboard, Platform, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme, type AppTheme } from '../contexts/ThemeContext';
 import FCMService from '../services/FCMService';
 import NotificationService from '../services/NotificationService';
 
 const STORAGE_KEY = '@notification_settings_enabled';
 
 export default function NotificationSettingsScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme.colorScheme]);
   const [enabled, setEnabled] = useState(true);
   // No server-loading spinner; local is source of truth and UI updates instantly
   const [showDiagnostics, setShowDiagnostics] = useState(false);
@@ -186,8 +189,8 @@ export default function NotificationSettingsScreen() {
             <Switch
               value={enabled}
               onValueChange={toggleNotifications}
-              trackColor={{ false: '#767577', true: '#81b0ff' }}
-              thumbColor={enabled ? '#007AFF' : '#f4f3f4'}
+              trackColor={{ false: theme.colors.border.base, true: theme.colors.accent.blue }}
+              thumbColor={enabled ? theme.colors.brand.navy[700] : theme.colors.surface.soft}
             />
           </View>
         </View>
@@ -212,8 +215,8 @@ export default function NotificationSettingsScreen() {
           <Switch
             value={showDiagnostics}
             onValueChange={setShowDiagnostics}
-            trackColor={{ false: '#767577', true: '#81b0ff' }}
-            thumbColor={showDiagnostics ? '#007AFF' : '#f4f3f4'}
+            trackColor={{ false: theme.colors.border.base, true: theme.colors.accent.blue }}
+            thumbColor={showDiagnostics ? theme.colors.brand.navy[700] : theme.colors.surface.soft}
           />
         </View>
       </View>
@@ -230,14 +233,14 @@ export default function NotificationSettingsScreen() {
           {/* Actions */}
           <View style={styles.actionsRow}>
             <TouchableOpacity 
-              style={[styles.actionButton, { backgroundColor: '#6c757d' }]} 
+              style={[styles.actionButton, { backgroundColor: theme.colors.text.muted }]} 
               onPress={() => NotificationService.openSettings()}
             >
               <Text style={styles.actionButtonText}>Open App Settings</Text>
             </TouchableOpacity>
             {Platform.OS === 'android' && (
               <TouchableOpacity 
-                style={[styles.actionButton, { backgroundColor: '#7950f2' }]} 
+                style={[styles.actionButton, { backgroundColor: theme.colors.iconBackground.version }]} 
                 onPress={() => NotificationService.openBatteryOptimizationSettings()}
               >
                 <Text style={styles.actionButtonText}>Battery Optimization</Text>
@@ -247,7 +250,7 @@ export default function NotificationSettingsScreen() {
 
           <View style={styles.actionsRow}>
             <TouchableOpacity 
-              style={[styles.actionButton, { backgroundColor: '#20c997' }]} 
+              style={[styles.actionButton, { backgroundColor: theme.colors.accent.green }]} 
               onPress={async () => {
                 try {
                   const token = (await AsyncStorage.getItem('@diag_fcm_token')) || '';
@@ -265,7 +268,7 @@ export default function NotificationSettingsScreen() {
               <Text style={styles.actionButtonText}>Copy FCM Token</Text>
             </TouchableOpacity>
             <TouchableOpacity 
-              style={[styles.actionButton, { backgroundColor: '#0ca678' }]} 
+              style={[styles.actionButton, { backgroundColor: theme.colors.progress.complete }]} 
               onPress={testLocalNotification}
             >
               <Text style={styles.actionButtonText}>🧪 Test Local</Text>
@@ -283,7 +286,7 @@ export default function NotificationSettingsScreen() {
                   <View key={ch.id} style={styles.channelRow}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.diagnosticText}>{ch.name} ({ch.id})</Text>
-                      <Text style={[styles.diagnosticText, { color: '#868e96' }]}>importance: {String(ch.importance)}</Text>
+                      <Text style={[styles.diagnosticText, { color: theme.colors.text.subtle }]}>importance: {String(ch.importance)}</Text>
                     </View>
                     <TouchableOpacity 
                       style={[styles.smallBtn]}
@@ -306,10 +309,10 @@ export default function NotificationSettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.surface.soft,
   },
   contentContainer: {
     padding: 20,
@@ -319,10 +322,10 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#000',
+    color: theme.colors.text.base,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.surface.card,
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -348,17 +351,17 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: theme.colors.text.base,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: theme.colors.text.muted,
     lineHeight: 20,
   },
   note: {
     fontSize: 12,
-    color: '#999',
+    color: theme.colors.text.subtle,
     marginTop: 16,
     textAlign: 'center',
     lineHeight: 18,
@@ -367,26 +370,26 @@ const styles = StyleSheet.create({
     marginTop: 32,
     paddingTop: 24,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: theme.colors.border.base,
   },
   diagnosticTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333',
+    color: theme.colors.text.base,
   },
   diagnosticCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: theme.colors.surface.muted,
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderColor: theme.colors.border.soft,
   },
   diagnosticText: {
     fontSize: 12,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    color: '#495057',
+    color: theme.colors.text.base,
     lineHeight: 18,
   },
   actionsRow: {
@@ -411,10 +414,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: theme.colors.border.soft,
   },
   smallBtn: {
-    backgroundColor: '#228be6',
+    backgroundColor: theme.colors.accent.blue,
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 6,
@@ -426,7 +429,7 @@ const styles = StyleSheet.create({
   },
   diagnosticHint: {
     fontSize: 11,
-    color: '#6c757d',
+    color: theme.colors.text.subtle,
     textAlign: 'center',
     lineHeight: 16,
     fontStyle: 'italic',
