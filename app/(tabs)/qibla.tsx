@@ -386,7 +386,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     color: theme.colors.compass.accent,
   },
   instructionEmph: {
-    color: theme.colors.text.header,
+    color: theme.colors.compass.accent,
     fontFamily: FontFamily.bold,
     fontSize: 32,
     lineHeight: 40,
