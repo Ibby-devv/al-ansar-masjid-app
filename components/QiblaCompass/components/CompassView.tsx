@@ -33,6 +33,10 @@ interface CompassTheme {
   cardinalColor?: string;
   outerRingColor?: string;
   showTicks?: boolean;
+  kaabahColor?: string;
+  kaabahStripeColor?: string;
+  directionTextColor?: string;
+  degreeTextColor?: string;
 }
 
 interface CompassViewProps {
@@ -99,6 +103,10 @@ export const CompassView: React.FC<CompassViewProps> = ({
     cardinalColor = 'rgba(0,0,0,0.2)',
     outerRingColor = '#eae0dd',
     showTicks = false,
+    kaabahColor = '#2f2a2a',
+    kaabahStripeColor = '#f0b561',
+    directionTextColor = '#1e3a8a',
+    degreeTextColor = '#64748b',
   } = theme;
 
   // Compute pointer dimensions - larger bulbous pointer that doesn't start at center
@@ -120,8 +128,8 @@ export const CompassView: React.FC<CompassViewProps> = ({
     <View style={styles.container}>
       {/* Direction indicator */}
       <View style={styles.directionContainer}>
-  <ThemedText style={styles.directionText}>{cardinalDirection}</ThemedText>
-  <ThemedText style={styles.degreeText}>{formatAngle(displayHeading)}</ThemedText>
+  <ThemedText style={[styles.directionText, { color: directionTextColor }]}>{cardinalDirection}</ThemedText>
+  <ThemedText style={[styles.degreeText, { color: degreeTextColor }]}>{formatAngle(displayHeading)}</ThemedText>
       </View>
 
       {/* Compass */}
@@ -151,8 +159,8 @@ export const CompassView: React.FC<CompassViewProps> = ({
         <Animated.View style={[styles.compassRose, animatedStyle]}>
           {/* Qibla indicator (Ka'bah symbol or arrow) */}
           <View style={styles.qiblaIndicator}>
-            <View style={styles.kaabah}>
-              <View style={styles.kaabahStripe} />
+            <View style={[styles.kaabah, { backgroundColor: kaabahColor }]}>
+              <View style={[styles.kaabahStripe, { backgroundColor: kaabahStripeColor }]} />
             </View>
             <ThemedText style={styles.qiblaText}>QIBLA</ThemedText>
           </View>
@@ -290,7 +298,6 @@ const styles = StyleSheet.create({
   kaabah: {
     width: 24,
     height: 24,
-    backgroundColor: '#2f2a2a',
     borderRadius: 4,
     marginBottom: 4,
   },
@@ -301,7 +308,6 @@ const styles = StyleSheet.create({
     right: 2,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#f0b561',
   },
   qiblaText: {
     fontSize: 12,

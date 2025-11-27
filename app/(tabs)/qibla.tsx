@@ -259,6 +259,10 @@ export default function QiblaScreen(): React.JSX.Element {
               pointerColor: theme.colors.compass.accent,
               pointerAlignedColor: theme.colors.accent.green,
               cardinalColor: 'rgba(0,0,0,0.2)',
+              kaabahColor: theme.colorScheme === 'dark' ? '#f5f5f5' : '#2f2a2a',
+              kaabahStripeColor: theme.colors.brand.gold[400],
+              directionTextColor: theme.colors.text.header,
+              degreeTextColor: theme.colors.compass.muted,
             }}
           />
         </View>

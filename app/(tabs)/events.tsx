@@ -246,7 +246,7 @@ export default function EventsScreen(): React.JSX.Element {
                       <View style={styles.timeRow}>
                         <View style={{ flex: 1 }} />
                         <View style={styles.timeBadge}>
-                          <Ionicons name="time-outline" size={16} color={theme.colors.brand.navy[700]} />
+                          <Ionicons name="time-outline" size={16} color={theme.colors.accent.blue} />
                           <Text style={styles.timeBadgeText}>{event.time}</Text>
                         </View>
                       </View>
@@ -497,7 +497,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     marginLeft: 6,
     fontSize: 17,
     fontWeight: '800',
-    color: theme.colors.brand.navy[700],
+    color: theme.colors.accent.blue,
   },
   metaItem: {
     flexDirection: 'row',
