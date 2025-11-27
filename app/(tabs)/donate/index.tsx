@@ -95,12 +95,12 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   headerTitle: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
     marginBottom: 6,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: theme.colors.text.subtle,
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   content: {
     flex: 1,

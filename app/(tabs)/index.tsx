@@ -336,7 +336,7 @@ export default function HomeScreen(): React.JSX.Element {
                 style={styles.settingsButton}
                 onPress={() => router.push("/settings")}
               >
-                <Ionicons name="settings-outline" size={24} color={theme.colors.text.inverse} />
+                <Ionicons name="settings-outline" size={24} color={theme.colors.text.header} />
               </TouchableOpacity>
             </View>
             
@@ -566,19 +566,19 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   mosqueName: {
     fontSize: theme.typography.h1,
     fontWeight: "bold",
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
     marginBottom: 4,
     textAlign: "center",
   },
   currentDate: {
     fontSize: 13,
-    color: theme.colors.text.subtle,
+    color: 'rgba(255, 255, 255, 0.7)',
     marginBottom: 1,
     textAlign: "center",
   },
   islamicDate: {
     fontSize: theme.typography.small,
-    color: theme.colors.text.subtle,
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: "center",
   },
   prayerCardsContainer: {

@@ -422,7 +422,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     color: theme.colors.text.muted,
   },
   tabButtonTextActive: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
   },
   donationsList: {
     gap: theme.spacing.md,

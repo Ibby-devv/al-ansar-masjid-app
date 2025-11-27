@@ -265,7 +265,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     justifyContent: 'center',
   },
   stepNumberText: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
     fontSize: theme.spacing.lg,
     fontWeight: 'bold',
   },
@@ -308,7 +308,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     backgroundColor: theme.colors.text.muted,
   },
   sendButtonText: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
     fontSize: theme.typography.h3,
     fontWeight: 'bold',
   },

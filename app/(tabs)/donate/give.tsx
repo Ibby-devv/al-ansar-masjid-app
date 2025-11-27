@@ -926,7 +926,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     color: theme.colors.text.strong,
   },
   amountButtonTextSelected: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
   },
   input: {
     backgroundColor: theme.colors.surface.base,
@@ -1055,7 +1055,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     elevation: 0,
   },
   donateButtonText: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
     fontSize: theme.typography.h3,
     fontWeight: "bold",
   },

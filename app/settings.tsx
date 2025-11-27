@@ -39,7 +39,7 @@ export default function SettingsScreen(): React.JSX.Element {
           headerStyle: {
             backgroundColor: theme.colors.brand.navy[700],
           },
-          headerTintColor: theme.colors.text.inverse,
+          headerTintColor: theme.colors.text.header,
           headerTitleStyle: {
             fontWeight: 'bold',
           },

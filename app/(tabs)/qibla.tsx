@@ -329,7 +329,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     justifyContent: 'center',
   },
   infoText: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
     fontSize: 18,
     fontFamily: FontFamily.bold,
   },
@@ -386,7 +386,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     color: theme.colors.compass.accent,
   },
   instructionEmph: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
     fontFamily: FontFamily.bold,
     fontSize: 32,
     lineHeight: 40,

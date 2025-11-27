@@ -330,13 +330,13 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   headerTitle: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
     marginBottom: 6,
     textAlign: 'center',
   },
   headerSubtitle: {
     fontSize: 16,
-    color: theme.colors.text.subtle,
+    color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
   },
   headerSubtitleRow: {
@@ -365,7 +365,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     color: theme.colors.text.muted,
   },
   categoryButtonTextActive: {
-    color: theme.colors.text.inverse,
+    color: theme.colors.text.header,
   },
   eventsContainer: {
     flex: 1,
