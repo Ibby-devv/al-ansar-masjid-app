@@ -161,7 +161,7 @@ export default function EventsScreen(): React.JSX.Element {
               {mosqueSettings?.name || 'Al Ansar Masjid Yagoona'}
             </Text>
             <View style={styles.headerSubtitleRow}>
-              <Ionicons name="calendar" size={16} color={theme.colors.text.subtle} style={{ marginRight: 6 }} />
+              <Ionicons name="calendar" size={16} color={theme.colors.text.header} style={{ marginRight: 6 }} />
               <Text style={styles.headerSubtitle}>Upcoming Events</Text>
             </View>
           </View>
@@ -246,7 +246,7 @@ export default function EventsScreen(): React.JSX.Element {
                       <View style={styles.timeRow}>
                         <View style={{ flex: 1 }} />
                         <View style={styles.timeBadge}>
-                          <Ionicons name="time-outline" size={16} color="#1e3a8a" />
+                          <Ionicons name="time-outline" size={16} color={theme.colors.brand.navy[700]} />
                           <Text style={styles.timeBadgeText}>{event.time}</Text>
                         </View>
                       </View>
@@ -287,7 +287,7 @@ export default function EventsScreen(): React.JSX.Element {
             }}
             ListEmptyComponent={
               <View style={styles.emptyState}>
-                <Ionicons name="calendar-outline" size={64} color="#9ca3af" />
+                <Ionicons name="calendar-outline" size={64} color={theme.colors.text.muted} />
                 <Text style={styles.emptyStateTitle}>No Upcoming Events</Text>
                 <Text style={styles.emptyStateText}>
                   {selectedCategory === 'all'

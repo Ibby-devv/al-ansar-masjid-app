@@ -199,7 +199,7 @@ export default function MoreScreen(): React.JSX.Element {
                   <Text style={styles.infoValue}>{mosqueSettings.address}</Text>
                   <Text style={styles.infoHint}>Opens Google Maps</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
               </TouchableOpacity>
             )}
 
@@ -216,7 +216,7 @@ export default function MoreScreen(): React.JSX.Element {
                   <Text style={styles.infoValue}>{mosqueSettings.phone}</Text>
                   <Text style={styles.infoHint}>Opens dialer</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
               </TouchableOpacity>
             )}
 
@@ -233,7 +233,7 @@ export default function MoreScreen(): React.JSX.Element {
                   <Text style={styles.infoValue}>{mosqueSettings.email}</Text>
                   <Text style={styles.infoHint}>Compose email</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
               </TouchableOpacity>
             )}
 
@@ -250,7 +250,7 @@ export default function MoreScreen(): React.JSX.Element {
                   <Text style={styles.infoValue}>{toDisplayDomain(mosqueSettings.website)}</Text>
                   <Text style={styles.infoHint}>Opens in browser</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
               </TouchableOpacity>
             )}
 
@@ -285,7 +285,7 @@ export default function MoreScreen(): React.JSX.Element {
                     <Text style={styles.infoValue}>Follow us on Facebook</Text>
                     <Text style={styles.infoHint}>{toDisplayDomain((mosqueSettings as any)?.facebook as string)}</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                  <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
                 </TouchableOpacity>
               )}
 
@@ -301,7 +301,7 @@ export default function MoreScreen(): React.JSX.Element {
                       @{extractHandle((mosqueSettings as any)?.instagram as string)}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                  <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
                 </TouchableOpacity>
               )}
             </View>
