@@ -189,8 +189,8 @@ export default function NotificationSettingsScreen() {
             <Switch
               value={enabled}
               onValueChange={toggleNotifications}
-              trackColor={{ false: theme.colors.border.base, true: theme.colors.accent.blue }}
-              thumbColor={enabled ? theme.colors.brand.navy[700] : theme.colors.surface.soft}
+              trackColor={{ false: theme.colors.surface.muted, true: theme.colors.accent.blue }}
+              thumbColor={enabled ? '#ffffff' : theme.colors.text.subtle}
             />
           </View>
         </View>
@@ -215,8 +215,8 @@ export default function NotificationSettingsScreen() {
           <Switch
             value={showDiagnostics}
             onValueChange={setShowDiagnostics}
-            trackColor={{ false: theme.colors.border.base, true: theme.colors.accent.blue }}
-            thumbColor={showDiagnostics ? theme.colors.brand.navy[700] : theme.colors.surface.soft}
+            trackColor={{ false: theme.colors.surface.muted, true: theme.colors.accent.blue }}
+            thumbColor={showDiagnostics ? '#ffffff' : theme.colors.text.subtle}
           />
         </View>
       </View>

@@ -36,9 +36,9 @@ export default function EmptyState({
       case 'offline':
         return theme.colors.text.muted;
       case 'error':
-        return theme.colors.error[500];
+        return theme.colors.accent.amber;
       default:
-        return theme.colors.brand.navy[700];
+        return theme.colors.accent.blue;
     }
   };
 
@@ -69,13 +69,16 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: theme.colors.surface.soft,
+    backgroundColor: theme.colors.surface.muted,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border.base,
   },
   iconContainerError: {
-    backgroundColor: theme.colors.error[100],
+    backgroundColor: theme.colors.accent.amberSoft,
+    borderColor: theme.colors.accent.amber,
   },
   title: {
     fontSize: theme.typography.h3,

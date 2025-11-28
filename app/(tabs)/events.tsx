@@ -287,7 +287,7 @@ export default function EventsScreen(): React.JSX.Element {
             }}
             ListEmptyComponent={
               <View style={styles.emptyState}>
-                <Ionicons name="calendar-outline" size={64} color={theme.colors.text.muted} />
+                <Ionicons name="calendar-outline" size={64} color={theme.colors.accent.blue} />
                 <Text style={styles.emptyStateTitle}>No Upcoming Events</Text>
                 <Text style={styles.emptyStateText}>
                   {selectedCategory === 'all'
