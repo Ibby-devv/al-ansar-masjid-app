@@ -639,7 +639,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     fontWeight: "800",
   },
   rowIqama: {
-    color: theme.colors.brand.navy[700],
+    color: theme.colors.brand.navy[600],
   },
   prayerCard: {
     backgroundColor: theme.colors.surface.base,

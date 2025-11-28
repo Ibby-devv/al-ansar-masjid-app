@@ -27,11 +27,12 @@ import DonationSuccessModal from "../../../components/DonationSuccessModal";
 import EmptyState from "../../../components/EmptyState";
 import GeneralDonationCard from "../../../components/GeneralDonationCard";
 import { useTheme } from "../../../contexts/ThemeContext";
-import type { AppTheme } from "../../../hooks/useAppTheme";
 import { Campaign, useCampaigns } from "../../../hooks/useCampaigns";
 import { useDonation } from "../../../hooks/useDonation";
 import { useFirebaseData } from "../../../hooks/useFirebaseData";
 import { DonationFormData } from "../../../types/donation";
+type ThemeFromHook = ReturnType<typeof useTheme>;
+
 
 export default function GiveTab(): React.JSX.Element | null {
   const theme = useTheme();
@@ -407,7 +408,7 @@ export default function GiveTab(): React.JSX.Element | null {
                       onPress={handleBackToCampaigns}
                     >
                       <View style={styles.backButtonContent}>
-                        <Ionicons name="arrow-back-circle" size={28} color={theme.colors.brand.navy[700]} />
+                        <Ionicons name="arrow-back-circle" size={28} color={theme.colors.brand.navy[600]} />
                         <View>
                           <Text style={styles.backButtonText}>Back to Campaigns</Text>
                           <Text style={styles.backButtonSubtext}>Choose a different cause</Text>
@@ -445,7 +446,7 @@ export default function GiveTab(): React.JSX.Element | null {
                         selectedValue={selectedType}
                         onValueChange={(value, index) => {
                           setSelectedType(value);
-                          const type = settings.donation_types.find(
+                          const type = settings!.donation_types.find(
                             (t) => t.id === value
                           );
                           if (type) setSelectedTypeLabel(type.label);
@@ -504,7 +505,7 @@ export default function GiveTab(): React.JSX.Element | null {
                       style={styles.customAmountButton}
                       onPress={handleCustomAmountButtonPress}
                     >
-                      <Ionicons name="create-outline" size={20} color={theme.colors.brand.navy[700]} />
+                      <Ionicons name="create-outline" size={20} color={theme.colors.brand.navy[600]} />
                       <Text style={styles.customAmountButtonText}>
                         Enter custom amount
                       </Text>
@@ -784,7 +785,7 @@ export default function GiveTab(): React.JSX.Element | null {
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface.muted,

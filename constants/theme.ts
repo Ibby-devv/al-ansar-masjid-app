@@ -76,7 +76,7 @@ export const Theme = {
     },
     dark: {
       brand: {
-        navy: { 900: '#1e3a8a', 800: '#1e40af', 700: '#2563eb', 600: '#3b82f6' },
+        navy: { 900: '#1e3a8a', 800: '#1e40af', 700: '#2563eb', 600: '#91adf9ff' },
         gold: { 600: '#f59e0b', 400: '#fbbf24' },
       },
       surface: { base: '#111827', soft: '#1f2937', muted: '#374151', card: '#1f2937' },
