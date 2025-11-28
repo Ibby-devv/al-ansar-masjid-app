@@ -451,8 +451,11 @@ export default function GiveTab(): React.JSX.Element | null {
                           if (type) setSelectedTypeLabel(type.label);
                         }}
                         style={styles.picker}
+                        itemStyle={styles.pickerItem}
+                        mode={Platform.OS === 'android' ? 'dropdown' : undefined}
+                        dropdownIconColor={theme.colors.text.muted}
                       >
-                        {settings.donation_types
+                        {settings!.donation_types
                           .filter((type) => type.enabled)
                           .map((type) => (
                             <Picker.Item
@@ -473,7 +476,7 @@ export default function GiveTab(): React.JSX.Element | null {
                     <Text style={styles.label}>Amount (AUD) *</Text>
                   </View>
                   <View style={styles.amountGrid}>
-                    {settings.preset_amounts.map((presetAmount) => (
+                    {settings!.preset_amounts.map((presetAmount) => (
                       <TouchableOpacity
                         key={presetAmount}
                         style={[
@@ -544,7 +547,7 @@ export default function GiveTab(): React.JSX.Element | null {
                     <View style={styles.frequencyButtonsContainer}>
                       <Text style={styles.frequencyLabel}>Choose frequency:</Text>
                       <View style={styles.frequencyButtonsGrid}>
-                        {settings.recurring_frequencies
+                        {settings!.recurring_frequencies
                           .filter((freq) => freq.enabled)
                           .map((freq) => (
                             <TouchableOpacity
@@ -896,9 +899,19 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.colors.border.base,
     overflow: "hidden",
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: Platform.OS === 'android' ? 2 : 0,
   },
   picker: {
-    height: 50,
+    height: Platform.OS === 'android' ? 56 : 44,
+    color: theme.colors.text.strong,
+    backgroundColor: 'transparent',
+    paddingVertical: Platform.OS === 'android' ? 8 : 0,
+  },
+  pickerItem: {
+    fontSize: 16,
+    color: theme.colors.text.strong,
+    height: 44,
   },
   amountGrid: {
     flexDirection: "row",
