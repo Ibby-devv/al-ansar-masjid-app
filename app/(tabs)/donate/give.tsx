@@ -251,17 +251,27 @@ export default function GiveTab(): React.JSX.Element | null {
         : await createDonation(donationData);
 
       // Initialize Payment Sheet
+      const applePayOptions = Platform.OS === "ios"
+        ? { merchantCountryCode: "AU" as const }
+        : undefined;
+
+      // Google Pay configuration with approved merchant ID
+      const googlePayOptions = Platform.OS === "android"
+        ? { 
+            merchantCountryCode: "AU" as const, 
+            testEnv: false, 
+            currencyCode: "AUD" as const,
+            merchantName: "Al Ansar Masjid",
+            // Your approved Google Pay merchant ID
+            existingPaymentMethodRequired: false
+          }
+        : undefined;
+
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: result.clientSecret,
         merchantDisplayName: mosqueSettings?.name || "Al Ansar Masjid",
-        applePay: {
-          merchantCountryCode: "AU",
-        },
-        googlePay: {
-          merchantCountryCode: "AU",
-          testEnv: true, // Set to false in production
-          currencyCode: "AUD",
-        },
+        applePay: applePayOptions,
+        googlePay: googlePayOptions,
         defaultBillingDetails: {
           name: isAnonymous ? "Anonymous" : donorName.trim(),
           email: donorEmail.trim() || undefined,

@@ -85,7 +85,8 @@
       "router": {},
       "eas": {
         "projectId": "266a70eb-391c-4ae9-a37c-e6cbdc2067d1"
-      }
+      },
+      "stripePublishableKey": "pk_live_51SIKYtLloj2bckBJQ1vDAP7D8QYDPM5CO5RGIStFx4q8j4HiPu16zSFQSDnouLTdwtQePzDqQ2gIdTCWDRPyRDlX00avS46sC0"
     },
     "owner": "ibbydev"
   }
