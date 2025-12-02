@@ -197,15 +197,21 @@ export default function GiveTab(): React.JSX.Element | null {
 
   const validateForm = (): boolean => {
     const displayAmount = getDisplayAmount();
-    const minAmount = settings?.minimum_amount || 5;
+    // Use configured minimum amount, default to 1 if not set
+    const minAmount = settings?.minimum_amount ?? 1;
 
     if (!selectedType) {
       Alert.alert("Error", "Please select a donation type");
       return false;
     }
 
+    if (displayAmount <= 0) {
+      Alert.alert("Error", "Please enter a valid donation amount");
+      return false;
+    }
+
     if (displayAmount < minAmount) {
-      Alert.alert("Error", `Minimum donation is $${minAmount}`);
+      Alert.alert("Error", `Minimum donation is $${minAmount.toFixed(2)}`);
       return false;
     }
 

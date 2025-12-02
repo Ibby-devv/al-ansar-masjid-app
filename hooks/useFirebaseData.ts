@@ -41,7 +41,7 @@ export const useFirebaseData = (): UseFirebaseDataReturn => {
       if (!cacheOnlyTimer) {
         cacheOnlyTimer = setTimeout(() => {
           setUpdating(false);
-        }, 5000);
+        }, 10000);
       }
     };
 
@@ -83,7 +83,7 @@ export const useFirebaseData = (): UseFirebaseDataReturn => {
       setLoading(false);
       
       if (didSetFromCache && !hasServerSnapshot) {
-        setTimeout(() => setUpdating(false), 5000);
+        setTimeout(() => setUpdating(false), 10000);
       } else {
         setUpdating(false);
       }
