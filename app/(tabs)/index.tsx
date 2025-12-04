@@ -11,6 +11,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PatternOverlay from "../../components/PatternOverlay";
@@ -24,10 +25,10 @@ import LoadingScreen from "../../components/LoadingScreen";
 
 // Import theme context
 import { useTheme } from "../../contexts/ThemeContext";
-import type { AppTheme } from "../../hooks/useAppTheme";
 
 // Import custom hooks
 import { useFirebaseData } from "../../hooks/useFirebaseData";
+import { useResponsive } from "../../hooks/useResponsive";
 
 // Import types and utility
 import { Prayer, calculateIqamaTime } from "../../types";
@@ -45,14 +46,27 @@ const getOrdinalSuffix = (num: number): string => {
 
 export default function HomeScreen(): React.JSX.Element {
   const theme = useTheme();
+  const { ms, width, height } = useResponsive(); // Get responsive scaling function
+  const { fontScale } = useWindowDimensions(); // Get accessibility font scaling
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
   const [activeView, setActiveView] = useState<ViewType>("prayer");
 
   // Load data from Firebase using custom hooks
   const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating, error } = useFirebaseData();
   
-  // Memoize styles based on theme
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  // Debug: Log screen dimensions and scaling
+  useEffect(() => {
+    console.log('📱 Screen Debug:', {
+      width,
+      height,
+      fontScale,
+      'Sample 18px scaled': ms(18, 0.2) * fontScale,
+      'Sample 24px scaled': ms(24, 0.2) * fontScale,
+    });
+  }, [width, height, ms, fontScale]);
+  
+  // Memoize styles based on theme and responsive scale
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
 
 
   // Format timestamp with both date and time for better context
@@ -348,7 +362,11 @@ export default function HomeScreen(): React.JSX.Element {
                   resizeMode="contain"
                 />
               </View>
-              <Text style={styles.mosqueName}>
+              <Text 
+                style={styles.mosqueName}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {mosqueSettings?.name || "Al Ansar Masjid"}
               </Text>
               <Text style={styles.currentDate}>{formatDate(currentTime)}</Text>
@@ -361,7 +379,7 @@ export default function HomeScreen(): React.JSX.Element {
         <PillToggle
           options={[
             { key: "prayer", label: "Prayer Times" },
-            { key: "jumuah", label: "Jumu’ah Times" },
+            { key: "jumuah", label: "Jumu'ah Times" },
           ]}
           value={activeView}
           onChange={(key) => setActiveView(key as ViewType)}
@@ -422,7 +440,11 @@ export default function HomeScreen(): React.JSX.Element {
                           color={isNextPrayer ? theme.colors.brand.gold[600] : theme.colors.accent.blue}
                         />
                       </View>
-                      <Text style={[styles.rowName, isNextPrayer && styles.nextPrayerText]}>
+                      <Text 
+                        style={[styles.rowName, isNextPrayer && styles.nextPrayerText]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
                         {prayer.name}
                       </Text>
                     </View>
@@ -509,7 +531,7 @@ export default function HomeScreen(): React.JSX.Element {
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: ReturnType<typeof useTheme>, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface.muted,
@@ -537,25 +559,25 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     paddingTop: theme.spacing.sm,
   },
   settingsButton: {
-    padding: 6,
+    padding: ms(6, 0.1),
     borderRadius: theme.spacing.lg,
     backgroundColor: "rgba(255, 255, 255, 0.15)",
   },
   heroSection: {
     alignItems: "center",
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: 6,
-    paddingBottom: 4,
+    paddingTop: ms(6, 0.1),
+    paddingBottom: ms(4, 0.1),
   },
   logoLarge: {
-    width: 90,
-    height: 90,
-    marginBottom: 10,
+    width: ms(90),
+    height: ms(90),
+    marginBottom: ms(10, 0.1),
   },
   logoHalo: {
-    width: 128,
-    height: 128,
-    borderRadius: 64,
+    width: ms(128),
+    height: ms(128),
+    borderRadius: ms(64),
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.06)",
@@ -564,20 +586,20 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   mosqueName: {
-    fontSize: theme.typography.h1,
+    fontSize: ms(24, 0.5) * fontScale,
     fontWeight: "bold",
     color: theme.colors.text.header,
-    marginBottom: 4,
+    marginBottom: ms(4, 0.1),
     textAlign: "center",
   },
   currentDate: {
-    fontSize: 13,
+    fontSize: ms(13, 0.3) * fontScale,
     color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: 1,
+    marginBottom: ms(1, 0.1),
     textAlign: "center",
   },
   islamicDate: {
-    fontSize: theme.typography.small,
+    fontSize: ms(12, 0.3) * fontScale,
     color: 'rgba(255, 255, 255, 0.7)',
     textAlign: "center",
   },
@@ -595,7 +617,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: theme.spacing.lg,
-    paddingVertical: 14,
+    paddingVertical: ms(14, 0.1),
   },
   tableHeaderRow: {
     backgroundColor: theme.colors.surface.soft,
@@ -613,28 +635,30 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     alignItems: "center",
   },
   iconCircleSmall: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: ms(32),
+    height: ms(32),
+    borderRadius: ms(16),
     backgroundColor: theme.colors.accent.blueSoft,
     alignItems: "center",
     justifyContent: "center",
     marginRight: theme.spacing.sm,
   },
   rowName: {
-    fontSize: theme.typography.h3,
+    fontSize: ms(18, 0.5) * fontScale,
     color: theme.colors.text.strong,
     fontWeight: "700",
+    flex: 1,
+    flexShrink: 1,
   },
   rowTime: {
     flex: 1,
     textAlign: "center",
-    fontSize: theme.typography.h3,
+    fontSize: ms(18, 0.5) * fontScale,
     color: theme.colors.text.base,
     fontWeight: "700",
   },
   rowHeaderLabel: {
-    fontSize: theme.typography.small,
+    fontSize: ms(12, 0.3) * fontScale,
     color: theme.colors.text.muted,
     fontWeight: "800",
   },
@@ -643,7 +667,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   prayerCard: {
     backgroundColor: theme.colors.surface.base,
-    borderRadius: 14,
+    borderRadius: ms(14, 0.1),
     padding: theme.spacing.md,
     marginBottom: theme.spacing.sm,
     ...theme.shadow.soft,
@@ -653,36 +677,37 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.colors.brand.gold[400],
     shadowColor: theme.colors.brand.gold[600],
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: ms(2, 0.1) },
     shadowOpacity: 0.12,
-    shadowRadius: 8,
+    shadowRadius: ms(8, 0.1),
     elevation: 3,
   },
   prayerCardHeader: {
-    marginBottom: 10,
+    marginBottom: ms(10, 0.1),
   },
   prayerNameRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: ms(6, 0.1),
   },
   iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: ms(36),
+    height: ms(36),
+    borderRadius: ms(18),
     backgroundColor: theme.colors.accent.blueSoft,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
+    marginRight: ms(10, 0.1),
   },
   iconCircleActive: {
     backgroundColor: theme.colors.accent.amberSoft,
   },
   prayerCardName: {
-    fontSize: theme.typography.h3,
+    fontSize: ms(18, 0.5) * fontScale,
     fontWeight: "700",
     color: theme.colors.text.strong,
     flex: 1,
+    flexShrink: 1,
   },
   nextPrayerText: {
     color: theme.colors.brand.gold[600],
@@ -690,27 +715,27 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   nextBadge: {
     backgroundColor: theme.colors.brand.gold[600],
     paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 3,
-    borderRadius: 10,
+    paddingVertical: ms(3, 0.1),
+    borderRadius: ms(10, 0.1),
   },
   nextBadgeText: {
     color: theme.colors.text.inverse,
-    fontSize: 10,
+    fontSize: ms(10, 0.3) * fontScale,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
   countdownText: {
-    fontSize: 13,
+    fontSize: ms(13, 0.3) * fontScale,
     fontWeight: "600",
     color: theme.colors.brand.gold[600],
-    marginLeft: 46,
+    marginLeft: ms(46),
   },
   prayerCardTimes: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: theme.colors.surface.soft,
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: ms(10, 0.1),
+    padding: ms(10, 0.1),
   },
   timeBlock: {
     flex: 1,
@@ -718,18 +743,18 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   timeDivider: {
     width: 1,
-    height: 35,
+    height: ms(35),
     backgroundColor: theme.colors.border.soft,
-    marginHorizontal: 6,
+    marginHorizontal: ms(6, 0.1),
   },
   timeLabel: {
-    fontSize: 11,
+    fontSize: ms(11, 0.3) * fontScale,
     color: theme.colors.text.muted,
-    marginTop: 3,
-    marginBottom: 1,
+    marginTop: ms(3, 0.1),
+    marginBottom: ms(1, 0.1),
   },
   timeValue: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(18, 0.5) * fontScale,
     fontWeight: "700",
     color: theme.colors.text.strong,
   },
@@ -742,7 +767,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   jumuahCard: {
     backgroundColor: theme.colors.surface.base,
-    borderRadius: 14,
+    borderRadius: ms(14, 0.1),
     padding: theme.spacing.lg,
     marginBottom: theme.spacing.sm,
     ...theme.shadow.soft,
@@ -754,72 +779,73 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   jumuahCardTitle: {
-    fontSize: theme.typography.h3,
+    fontSize: ms(18, 0.5) * fontScale,
     fontWeight: "700",
     color: theme.colors.text.strong,
-    marginLeft: 10,
+    marginLeft: ms(10, 0.1),
     flex: 1,
+    flexShrink: 1,
   },
   jumuahTimeRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: theme.colors.surface.soft,
-    borderRadius: 10,
+    borderRadius: ms(10, 0.1),
     padding: theme.spacing.md,
   },
   jumuahLabel: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.4) * fontScale,
     color: theme.colors.text.muted,
     fontWeight: "500",
   },
   jumuahTime: {
-    fontSize: theme.typography.h2,
+    fontSize: ms(20, 0.5) * fontScale,
     fontWeight: "700",
     color: theme.colors.brand.navy[700],
   },
   staleBanner: {
     backgroundColor: theme.colors.accent.amberSoft,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginTop: 12,
+    borderRadius: ms(8, 0.1),
+    paddingHorizontal: ms(12, 0.1),
+    paddingVertical: ms(8, 0.1),
+    marginTop: ms(12, 0.1),
     borderWidth: 1,
     borderColor: theme.colors.brand.gold[400],
   },
   staleBannerText: {
-    fontSize: 12,
+    fontSize: ms(12, 0.3) * fontScale,
     color: theme.colors.text.strong,
     fontWeight: '600',
   },
   skelName: {
-    width: 60,
-    height: 16,
-    borderRadius: 4,
+    width: ms(60),
+    height: ms(16),
+    borderRadius: ms(4, 0.1),
     backgroundColor: theme.colors.surface.soft,
   },
   skelTime: {
     flex: 1,
-    height: 18,
-    borderRadius: 4,
+    height: ms(18),
+    borderRadius: ms(4, 0.1),
     backgroundColor: theme.colors.surface.soft,
-    marginHorizontal: 4,
+    marginHorizontal: ms(4, 0.1),
   },
   jumuahSkelTitle: {
     flex: 1,
-    height: 20,
-    borderRadius: 6,
+    height: ms(20),
+    borderRadius: ms(6, 0.1),
     backgroundColor: theme.colors.surface.soft,
-    marginLeft: 10,
+    marginLeft: ms(10, 0.1),
   },
   jumuahSkelLine: {
-    width: 90,
-    height: 22,
-    borderRadius: 6,
+    width: ms(90),
+    height: ms(22),
+    borderRadius: ms(6, 0.1),
     backgroundColor: theme.colors.surface.soft,
   },
   updatingContainer: {
-    marginTop: 12,
+    marginTop: ms(12, 0.1),
     alignItems: 'center',
   },
 });

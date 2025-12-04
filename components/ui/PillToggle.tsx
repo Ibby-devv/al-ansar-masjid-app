@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, ViewStyle, useWindowDimensions } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import type { AppTheme } from "../../hooks/useAppTheme";
 
@@ -14,7 +14,8 @@ type PillToggleProps = {
 
 export default function PillToggle({ options, value, onChange, style }: PillToggleProps): React.JSX.Element {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { fontScale } = useWindowDimensions();
+  const styles = useMemo(() => createStyles(theme, fontScale), [theme, fontScale]);
   
   return (
     <View style={[styles.container, style]}>
@@ -27,7 +28,13 @@ export default function PillToggle({ options, value, onChange, style }: PillTogg
             activeOpacity={0.9}
             style={[styles.item, selected && styles.itemSelected]}
           >
-            <Text style={[styles.text, selected && styles.textSelected]}>{opt.label}</Text>
+            <Text 
+              style={[styles.text, selected && styles.textSelected]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {opt.label}
+            </Text>
           </TouchableOpacity>
         );
       })}
@@ -35,7 +42,7 @@ export default function PillToggle({ options, value, onChange, style }: PillTogg
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, fontScale: number) => StyleSheet.create({
   container: {
     flexDirection: "row",
     backgroundColor: theme.colors.surface.card,
@@ -46,9 +53,11 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   item: {
     flex: 1,
-    paddingVertical: 10,
+    minHeight: 48,
+    paddingVertical: Math.max(10, 8 * fontScale),
     borderRadius: theme.radius.pill,
     alignItems: "center",
+    justifyContent: "center",
   },
   itemSelected: {
     backgroundColor: theme.colors.brand.navy[700],
@@ -60,7 +69,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   text: {
     color: theme.colors.text.muted,
-    fontSize: 14,
+    fontSize: 14 * fontScale,
     fontWeight: "600",
   },
   textSelected: {

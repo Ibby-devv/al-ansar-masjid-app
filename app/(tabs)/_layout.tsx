@@ -1,11 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../contexts/ThemeContext';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { fontScale } = useWindowDimensions();
+  
+  // Calculate dynamic tab bar height based on font scale
+  // Base: 60dp + insets + extra padding for larger fonts
+  const tabBarHeight = Math.max(70 + insets.bottom, 60 * fontScale + insets.bottom);
   
   return (
     <Tabs
@@ -18,13 +24,15 @@ export default function TabLayout() {
           borderTopWidth: 1,
           borderTopColor: theme.colors.tabBar.border,
           // Ensure the tab bar clears the device's home indicator / notch area
-          paddingBottom: Math.max(insets.bottom, 5),
-          paddingTop: 5,
-          height: 60 + insets.bottom,
+          paddingBottom: Math.max(insets.bottom, 8),
+          paddingTop: Math.max(8, 4 * fontScale),
+          height: tabBarHeight,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: Math.max(10, 12 * Math.min(fontScale, 1.2)),
           fontWeight: '600',
+          marginTop: 4,
+          marginBottom: 4,
         },
       }}>
       {/* Learn tab removed */}
