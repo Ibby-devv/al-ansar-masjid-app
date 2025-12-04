@@ -281,6 +281,9 @@ export default function GiveTab(): React.JSX.Element | null {
         defaultBillingDetails: {
           name: isAnonymous ? "Anonymous" : donorName.trim(),
           email: donorEmail.trim() || undefined,
+          address: {
+            country: "AU",
+          }
         },
         returnURL: "alansar://payment-complete",
       });
