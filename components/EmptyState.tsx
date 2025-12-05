@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import type { AppTheme } from '../hooks/useAppTheme';
+import { useResponsive } from '../hooks/useResponsive';
 
 interface EmptyStateProps {
   icon?: keyof typeof Ionicons.glyphMap;
@@ -17,8 +18,10 @@ export default function EmptyState({
   message,
   variant = 'empty',
 }: EmptyStateProps): React.JSX.Element {
-  const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { theme } = useTheme();
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   const getDefaultIcon = (): keyof typeof Ionicons.glyphMap => {
     switch (variant) {
@@ -47,7 +50,7 @@ export default function EmptyState({
       <View style={[styles.iconContainer, variant === 'error' && styles.iconContainerError]}>
         <Ionicons 
           name={icon || getDefaultIcon()} 
-          size={48} 
+          size={ms(48, 0.2)} 
           color={getIconColor()} 
         />
       </View>
@@ -57,23 +60,23 @@ export default function EmptyState({
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: theme.spacing.xxl,
-    minHeight: 200,
+    minHeight: ms(200, 0.2),
   },
   iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: ms(80, 0.2),
+    height: ms(80, 0.2),
+    borderRadius: ms(40, 0.2),
     backgroundColor: theme.colors.surface.muted,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: theme.spacing.lg,
-    borderWidth: 1,
+    borderWidth: ms(1, 0.05),
     borderColor: theme.colors.border.base,
   },
   iconContainerError: {
@@ -81,17 +84,17 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     borderColor: theme.colors.accent.amber,
   },
   title: {
-    fontSize: theme.typography.h3,
+    fontSize: theme.typography.h3 * fontScale,
     fontWeight: '700',
     color: theme.colors.text.strong,
     marginBottom: theme.spacing.sm,
     textAlign: 'center',
   },
   message: {
-    fontSize: theme.typography.body,
+    fontSize: theme.typography.body * fontScale,
     color: theme.colors.text.muted,
     textAlign: 'center',
-    lineHeight: 22,
-    maxWidth: 300,
+    lineHeight: ms(22, 0.2) * fontScale,
+    maxWidth: ms(300, 0.2),
   },
 });

@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text, View, ViewStyle } from "react-native";
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import type { AppTheme } from "../../hooks/useAppTheme";
+import { useResponsive } from "../../hooks/useResponsive";
 import Badge from "./Badge";
 
 type SectionHeaderProps = {
@@ -16,7 +17,9 @@ export default function SectionHeader({
   rightBadge,
 }: SectionHeaderProps): React.JSX.Element {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   return (
     <View style={[styles.container, containerStyle]}>
@@ -33,21 +36,21 @@ export default function SectionHeader({
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingHorizontal: ms(16, 0.1),
+    paddingVertical: ms(6, 0.05),
     backgroundColor: theme.colors.surface.muted,
-    borderBottomWidth: 1,
+    borderBottomWidth: ms(1, 0.05),
     borderBottomColor: theme.colors.border.base,
     zIndex: 2,
     elevation: 2,
   },
   title: {
-    fontSize: 16,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: "800",
     color: theme.colors.text.base,
   },

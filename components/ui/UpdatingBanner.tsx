@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { AppTheme, useTheme } from '../../contexts/ThemeContext';
+import { useResponsive } from '../../hooks/useResponsive';
 import { ThemedText } from '../themed-text';
-import { useTheme } from '../../contexts/ThemeContext';
-import type { AppTheme } from '../../hooks/useAppTheme';
 
 interface UpdatingBannerProps {
   text?: string;
@@ -10,7 +10,9 @@ interface UpdatingBannerProps {
 
 export default function UpdatingBanner({ text = 'Updating…' }: UpdatingBannerProps): React.JSX.Element {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   const opacity = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
@@ -32,31 +34,31 @@ export default function UpdatingBanner({ text = 'Updating…' }: UpdatingBannerP
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: ms(10, 0.1),
+    paddingVertical: ms(6, 0.05),
     backgroundColor: theme.colors.surface.soft,
-    borderRadius: 999,
-    borderWidth: 1,
+    borderRadius: ms(999, 0.2),
+    borderWidth: ms(1, 0.05),
     borderColor: theme.colors.border.soft,
-    marginBottom: 10,
+    marginBottom: ms(10, 0.1),
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: ms(8, 0.1),
+    height: ms(8, 0.1),
+    borderRadius: ms(4, 0.1),
     backgroundColor: theme.colors.brand.navy[600],
-    marginRight: 8,
+    marginRight: ms(8, 0.05),
   },
   text: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: ms(12, 0.2) * fontScale,
+    lineHeight: ms(18, 0.2) * fontScale,
     color: theme.colors.text.muted,
     fontWeight: '600',
-    letterSpacing: 0.3,
+    letterSpacing: ms(0.3, 0.05),
   },
 });

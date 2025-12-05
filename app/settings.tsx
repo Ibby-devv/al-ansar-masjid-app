@@ -2,17 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Stack } from 'expo-router';
 import React, { useMemo } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, Vibration, View } from 'react-native';
-import { useTheme, ThemePreference } from '../contexts/ThemeContext';
-import type { AppTheme } from '../hooks/useAppTheme';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, Vibration, View, useWindowDimensions } from 'react-native';
+import { AppTheme, ThemePreference, useTheme } from '../contexts/ThemeContext';
+import { useResponsive } from '../hooks/useResponsive';
 import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 
 export default function SettingsScreen(): React.JSX.Element {
   const theme = useTheme();
   const { preference, updatePreference } = theme;
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
   
   // Memoize styles based on theme
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   const triggerHaptic = async (): Promise<void> => {
     try {
@@ -79,14 +81,14 @@ export default function SettingsScreen(): React.JSX.Element {
                 }}
               >
                 <View style={styles.themeIconContainer}>
-                  <Ionicons name={icons[option] as any} size={22} color={theme.colors.brand.navy[700]} />
+                  <Ionicons name={icons[option] as any} size={ms(22, 0.2)} color={theme.colors.brand.navy[700]} />
                 </View>
                 <View style={styles.themeTextContainer}>
                   <Text style={styles.themeLabel}>{labels[option]}</Text>
                   <Text style={styles.themeDescription}>{descriptions[option]}</Text>
                 </View>
                 {isSelected && (
-                  <Ionicons name="checkmark-circle" size={24} color={theme.colors.accent.green} />
+                  <Ionicons name="checkmark-circle" size={ms(24, 0.2)} color={theme.colors.accent.green} />
                 )}
               </TouchableOpacity>
             );
@@ -100,57 +102,57 @@ export default function SettingsScreen(): React.JSX.Element {
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface.muted,
   },
   contentContainer: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: ms(20, 0.1),
+    paddingBottom: ms(40, 0.1),
   },
   sectionTitle: {
-    fontSize: 28,
+    fontSize: ms(28, 0.3) * fontScale,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: ms(16, 0.1),
     color: theme.colors.text.strong,
   },
   card: {
     backgroundColor: theme.colors.surface.base,
     borderRadius: theme.radius.md,
     overflow: 'hidden',
-    marginBottom: 24,
+    marginBottom: ms(24, 0.1),
     ...theme.shadow.soft,
   },
   themeOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    padding: ms(16, 0.1),
   },
   themeOptionBorder: {
-    borderBottomWidth: 1,
+    borderBottomWidth: ms(1, 0.05),
     borderBottomColor: theme.colors.border.base,
   },
   themeIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: ms(40, 0.2),
+    height: ms(40, 0.2),
+    borderRadius: ms(20, 0.2),
     backgroundColor: theme.colors.accent.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: ms(12, 0.1),
   },
   themeTextContainer: {
     flex: 1,
   },
   themeLabel: {
-    fontSize: 16,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: '600',
     color: theme.colors.text.strong,
-    marginBottom: 2,
+    marginBottom: ms(2, 0.05),
   },
   themeDescription: {
-    fontSize: 13,
+    fontSize: ms(13, 0.2) * fontScale,
     color: theme.colors.text.muted,
   },
 });

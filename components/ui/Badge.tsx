@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text, TextStyle, View, ViewStyle } from "react-native";
+import { StyleSheet, Text, TextStyle, View, ViewStyle, useWindowDimensions } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
 import type { AppTheme } from "../../hooks/useAppTheme";
+import { useResponsive } from "../../hooks/useResponsive";
 
 type BadgeProps = {
   label: string;
@@ -23,7 +24,9 @@ export default function Badge({
   uppercase = true,
 }: BadgeProps): React.JSX.Element {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   const backgroundColor = bgColor ?? theme.colors.border.base;
   const color = textColor ?? theme.colors.text.base;
@@ -51,7 +54,7 @@ export default function Badge({
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   badge: {
     paddingVertical: theme.spacing.xs,
     paddingHorizontal: theme.spacing.md,
@@ -60,9 +63,9 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     borderRadius: theme.radius.pill,
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: ms(10, 0.2) * fontScale,
     fontWeight: "800",
-    letterSpacing: 0.5,
+    letterSpacing: ms(0.5, 0.05),
   },
   upper: {
     textTransform: "uppercase",

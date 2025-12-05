@@ -4,11 +4,11 @@
 // Displays general donation option when campaigns are present
 // ============================================================================
 
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../contexts/ThemeContext';
-import type { AppTheme } from '../hooks/useAppTheme';
+import React, { useMemo } from 'react';
+import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { AppTheme, useTheme } from '../contexts/ThemeContext';
+import { useResponsive } from '../hooks/useResponsive';
 
 interface GeneralDonationCardProps {
   onPress: () => void;
@@ -16,7 +16,9 @@ interface GeneralDonationCardProps {
 
 export default function GeneralDonationCard({ onPress }: GeneralDonationCardProps): React.JSX.Element {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
@@ -36,43 +38,45 @@ export default function GeneralDonationCard({ onPress }: GeneralDonationCardProp
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, scale?: number) => number, fontScale: number) => StyleSheet.create({
   card: {
     backgroundColor: theme.colors.surface.base,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: ms(16, 0.1),
+    padding: ms(16, 0.1),
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: ms(16, 0.1),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
-    borderLeftWidth: 4,
+    borderLeftWidth: ms(4, 0.05),
     borderLeftColor: theme.colors.accent.green,
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: ms(56, 0.2),
+    height: ms(56, 0.2),
+    borderRadius: ms(28, 0.1),
     backgroundColor: theme.colors.accent.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: ms(16, 0.1),
+    flexShrink: 0,
   },
   content: {
     flex: 1,
+    minWidth: 0,
   },
   title: {
-    fontSize: 18,
+    fontSize: ms(18, 0.2) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.strong,
-    marginBottom: 4,
+    marginBottom: ms(4, 0.1),
   },
   description: {
-    fontSize: 14,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
-    lineHeight: 18,
+    lineHeight: ms(18, 0.2),
   },
 });

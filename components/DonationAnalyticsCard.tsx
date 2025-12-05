@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import type { AppTheme } from '../hooks/useAppTheme';
+import { useResponsive } from '../hooks/useResponsive';
 import { Donation } from '../types/donation';
 
 interface DonationAnalyticsCardProps {
@@ -15,7 +16,9 @@ export default function DonationAnalyticsCard({
   subscriptions,
 }: DonationAnalyticsCardProps): React.JSX.Element {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   // Calculate analytics
   const totalOneTime = donations.reduce((sum, d) => sum + d.amount, 0) / 100; // Convert from cents
@@ -123,7 +126,7 @@ export default function DonationAnalyticsCard({
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     backgroundColor: theme.colors.surface.base,
     borderRadius: theme.radius.lg,
@@ -138,7 +141,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     marginBottom: theme.spacing.lg,
   },
   headerTitle: {
-    fontSize: theme.typography.h3,
+    fontSize: ms(18, 0.2) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.strong,
   },
@@ -157,17 +160,17 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     alignItems: 'center',
   },
   statValue: {
-    fontSize: 24,
+    fontSize: ms(24, 0.3) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.brand.navy[700],
-    marginBottom: 4,
+    marginBottom: ms(4, 0.1),
   },
   statLabel: {
-    fontSize: theme.typography.small,
+    fontSize: ms(12, 0.2) * fontScale,
     color: theme.colors.text.muted,
   },
   divider: {
-    height: 1,
+    height: ms(1, 0.05),
     backgroundColor: theme.colors.border.base,
     marginVertical: theme.spacing.lg,
   },
@@ -175,7 +178,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   breakdownTitle: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     fontWeight: '600',
     color: theme.colors.text.strong,
     marginBottom: theme.spacing.md,
@@ -193,12 +196,12 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     flex: 1,
   },
   breakdownDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: ms(12, 0.1),
+    height: ms(12, 0.1),
+    borderRadius: ms(6, 0.05),
   },
   breakdownType: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.base,
     flex: 1,
   },
@@ -208,16 +211,16 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     gap: theme.spacing.md,
   },
   breakdownAmount: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     fontWeight: '600',
     color: theme.colors.text.strong,
-    minWidth: 70,
+    minWidth: ms(70, 0.2),
     textAlign: 'right',
   },
   breakdownPercentage: {
-    fontSize: theme.typography.small,
+    fontSize: ms(12, 0.2) * fontScale,
     color: theme.colors.text.muted,
-    minWidth: 35,
+    minWidth: ms(35, 0.1),
     textAlign: 'right',
   },
   thankYouBox: {
@@ -227,7 +230,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     marginTop: theme.spacing.sm,
   },
   thankYouText: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.brand.navy[700],
     textAlign: 'center',
   },

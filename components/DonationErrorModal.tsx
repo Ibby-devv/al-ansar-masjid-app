@@ -7,9 +7,11 @@ import {
     Text,
     TouchableOpacity,
     View,
+    useWindowDimensions,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import type { AppTheme } from '../hooks/useAppTheme';
+import { useResponsive } from '../hooks/useResponsive';
 
 export interface DonationError {
   type: 'network' | 'validation' | 'payment' | 'server' | 'unknown';
@@ -71,7 +73,9 @@ export default function DonationErrorModal({
   error,
 }: DonationErrorModalProps): React.JSX.Element {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   if (!error) {
     return (
@@ -176,7 +180,7 @@ export default function DonationErrorModal({
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -188,7 +192,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     backgroundColor: theme.colors.surface.base,
     borderRadius: theme.radius.xl,
     width: '100%',
-    maxWidth: 500,
+    maxWidth: ms(500, 0.3),
     maxHeight: '90%',
     overflow: 'hidden',
     ...theme.shadow.header,
@@ -204,27 +208,27 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   errorCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: ms(120, 0.2),
+    height: ms(120, 0.2),
+    borderRadius: ms(60, 0.1),
     backgroundColor: theme.colors.error[500],
     alignItems: 'center',
     justifyContent: 'center',
     ...theme.shadow.soft,
   },
   title: {
-    fontSize: 26,
+    fontSize: ms(26, 0.3) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.strong,
     textAlign: 'center',
     marginBottom: theme.spacing.md,
   },
   description: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     color: theme.colors.text.muted,
     textAlign: 'center',
     marginBottom: theme.spacing.xl,
-    lineHeight: 24,
+    lineHeight: ms(24, 0.2),
   },
   solutionsCard: {
     backgroundColor: theme.colors.surface.soft,
@@ -233,7 +237,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   solutionsTitle: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: '600',
     color: theme.colors.text.strong,
     marginBottom: theme.spacing.md,
@@ -246,9 +250,9 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   solutionText: {
     flex: 1,
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.base,
-    lineHeight: 20,
+    lineHeight: ms(20, 0.2),
   },
   actions: {
     gap: theme.spacing.md,
@@ -264,7 +268,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     borderRadius: theme.radius.md,
   },
   retryButtonText: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.header,
   },
@@ -276,11 +280,11 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   closeButtonSecondary: {
     backgroundColor: theme.colors.surface.soft,
-    borderWidth: 2,
+    borderWidth: ms(2, 0.05),
     borderColor: theme.colors.border.base,
   },
   closeButtonText: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: '600',
     color: theme.colors.text.header,
   },
@@ -297,8 +301,8 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   supportText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: ms(13, 0.2) * fontScale,
     color: theme.colors.brand.navy[700],
-    lineHeight: 18,
+    lineHeight: ms(18, 0.2),
   },
 });

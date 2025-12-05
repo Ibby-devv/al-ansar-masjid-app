@@ -11,9 +11,11 @@ import {
     Text,
     TouchableOpacity,
     View,
+    useWindowDimensions,
 } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import type { AppTheme } from '../hooks/useAppTheme';
+import { useResponsive } from '../hooks/useResponsive';
 
 interface DonationSuccessModalProps {
   visible: boolean;
@@ -39,7 +41,9 @@ export default function DonationSuccessModal({
   stripeReceiptUrl,
 }: DonationSuccessModalProps): React.JSX.Element {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -208,7 +212,7 @@ Thank you for your generous support!
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -220,7 +224,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     backgroundColor: theme.colors.surface.base,
     borderRadius: theme.radius.xl,
     width: '100%',
-    maxWidth: 500,
+    maxWidth: ms(500, 0.3),
     maxHeight: '90%',
     overflow: 'hidden',
     ...theme.shadow.header,
@@ -236,23 +240,23 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   successCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: ms(120, 0.2),
+    height: ms(120, 0.2),
+    borderRadius: ms(60, 0.1),
     backgroundColor: theme.colors.accent.green,
     alignItems: 'center',
     justifyContent: 'center',
     ...theme.shadow.soft,
   },
   title: {
-    fontSize: 26,
+    fontSize: ms(26, 0.3) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.strong,
     textAlign: 'center',
     marginBottom: theme.spacing.md,
   },
   subtitle: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     color: theme.colors.text.muted,
     textAlign: 'center',
     marginBottom: theme.spacing.xxl,
@@ -268,22 +272,22 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     paddingBottom: theme.spacing.lg,
   },
   amountLabel: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
     marginBottom: theme.spacing.sm,
   },
   amount: {
-    fontSize: 48,
+    fontSize: ms(48, 0.3) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.brand.navy[700],
   },
   frequency: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     color: theme.colors.text.muted,
-    marginTop: 4,
+    marginTop: ms(4, 0.1),
   },
   divider: {
-    height: 1,
+    height: ms(1, 0.05),
     backgroundColor: theme.colors.border.base,
     marginVertical: theme.spacing.lg,
   },
@@ -295,11 +299,11 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   detailLabel: {
     flex: 1,
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
   },
   detailValue: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     fontWeight: '600',
     color: theme.colors.text.strong,
   },
@@ -313,9 +317,9 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   infoText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: ms(13, 0.2) * fontScale,
     color: theme.colors.brand.navy[700],
-    lineHeight: 18,
+    lineHeight: ms(18, 0.2),
   },
   actions: {
     flexDirection: 'row',
@@ -333,7 +337,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     borderRadius: theme.radius.md,
   },
   secondaryButtonText: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: '600',
     color: theme.colors.brand.navy[700],
   },
@@ -344,7 +348,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     alignItems: 'center',
   },
   closeButtonText: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.header,
   },

@@ -6,10 +6,11 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import type { AppTheme } from '../hooks/useAppTheme';
 import { Campaign } from '../hooks/useCampaigns';
+import { useResponsive } from '../hooks/useResponsive';
 
 interface CampaignCardProps {
   campaign: Campaign;
@@ -18,7 +19,9 @@ interface CampaignCardProps {
 
 export default function CampaignCard({ campaign, onPress }: CampaignCardProps): React.JSX.Element {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   // Calculate progress percentage
   const progress = campaign.goal_amount > 0 
@@ -117,12 +120,12 @@ export default function CampaignCard({ campaign, onPress }: CampaignCardProps): 
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   card: {
     backgroundColor: theme.colors.surface.base,
-    borderRadius: 16,
+    borderRadius: ms(16, 0.1),
     overflow: 'hidden',
-    marginBottom: 16,
+    marginBottom: ms(16, 0.1),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -131,50 +134,50 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 180,
+    height: ms(180, 0.2),
     backgroundColor: theme.colors.border.base,
   },
   content: {
-    padding: 16,
+    padding: ms(16, 0.1),
   },
   title: {
-    fontSize: 20,
+    fontSize: ms(20, 0.3) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.strong,
-    marginBottom: 8,
+    marginBottom: ms(8, 0.1),
   },
   description: {
-    fontSize: 14,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
-    lineHeight: 20,
-    marginBottom: 16,
+    lineHeight: ms(20, 0.2),
+    marginBottom: ms(16, 0.1),
   },
   progressSection: {
-    marginBottom: 16,
+    marginBottom: ms(16, 0.1),
   },
   progressBar: {
-    height: 12,
+    height: ms(12, 0.1),
     backgroundColor: theme.colors.progress.background,
-    borderRadius: 6,
+    borderRadius: ms(6, 0.05),
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: ms(8, 0.1),
   },
   progressFill: {
     height: '100%',
-    borderRadius: 6,
+    borderRadius: ms(6, 0.05),
   },
   progressTextRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: ms(4, 0.1),
   },
   progressAmount: {
-    fontSize: 14,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
     fontWeight: '600',
   },
   progressPercentage: {
-    fontSize: 14,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
     fontWeight: '600',
   },
@@ -184,27 +187,27 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     alignItems: 'center',
   },
   goalText: {
-    fontSize: 15,
+    fontSize: ms(15, 0.2) * fontScale,
     color: theme.colors.text.strong,
     fontWeight: '700',
   },
   goalReached: {
-    fontSize: 13,
+    fontSize: ms(13, 0.2) * fontScale,
     color: theme.colors.progress.complete,
     fontWeight: '700',
   },
   donateButton: {
     backgroundColor: theme.colors.brand.navy[700],
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: ms(12, 0.1),
+    paddingVertical: ms(14, 0.1),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: ms(8, 0.1),
   },
   donateButtonText: {
     color: theme.colors.text.header,
-    fontSize: 16,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: 'bold',
   },
 });

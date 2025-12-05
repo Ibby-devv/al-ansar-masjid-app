@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Clipboard, Platform, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Clipboard, Platform, StyleSheet, Switch, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { useTheme, type AppTheme } from '../contexts/ThemeContext';
+import { useResponsive } from '../hooks/useResponsive';
 import FCMService from '../services/FCMService';
 import NotificationService from '../services/NotificationService';
 
@@ -9,7 +10,9 @@ const STORAGE_KEY = '@notification_settings_enabled';
 
 export default function NotificationSettingsScreen() {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme.colorScheme]);
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   const [enabled, setEnabled] = useState(true);
   // No server-loading spinner; local is source of truth and UI updates instantly
   const [showDiagnostics, setShowDiagnostics] = useState(false);
@@ -309,29 +312,29 @@ export default function NotificationSettingsScreen() {
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface.soft,
   },
   contentContainer: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: ms(20, 0.1),
+    paddingBottom: ms(40, 0.1),
   },
   title: {
-    fontSize: 28,
+    fontSize: ms(28, 0.3) * fontScale,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: ms(20, 0.1),
     color: theme.colors.text.base,
   },
   card: {
     backgroundColor: theme.colors.surface.card,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: ms(12, 0.1),
+    padding: ms(16, 0.1),
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: ms(2, 0.05) },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: ms(4, 0.1),
     elevation: 3,
   },
   row: {
@@ -341,97 +344,97 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   textContainer: {
     flex: 1,
-    marginRight: 16,
+    marginRight: ms(16, 0.1),
   },
   toggleContainer: {
-    width: 51,
+    width: ms(51, 0.1),
     alignItems: 'center',
     justifyContent: 'center',
   },
   label: {
-    fontSize: 18,
+    fontSize: ms(18, 0.2) * fontScale,
     fontWeight: '600',
     color: theme.colors.text.base,
-    marginBottom: 4,
+    marginBottom: ms(4, 0.05),
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
-    lineHeight: 20,
+    lineHeight: ms(20, 0.2) * fontScale,
   },
   note: {
-    fontSize: 12,
+    fontSize: ms(12, 0.2) * fontScale,
     color: theme.colors.text.subtle,
-    marginTop: 16,
+    marginTop: ms(16, 0.1),
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: ms(18, 0.2) * fontScale,
   },
   diagnosticSection: {
-    marginTop: 32,
-    paddingTop: 24,
-    borderTopWidth: 1,
+    marginTop: ms(32, 0.1),
+    paddingTop: ms(24, 0.1),
+    borderTopWidth: ms(1, 0.05),
     borderTopColor: theme.colors.border.base,
   },
   diagnosticTitle: {
-    fontSize: 20,
+    fontSize: ms(20, 0.3) * fontScale,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: ms(12, 0.1),
     color: theme.colors.text.base,
   },
   diagnosticCard: {
     backgroundColor: theme.colors.surface.muted,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 1,
+    borderRadius: ms(8, 0.1),
+    padding: ms(12, 0.1),
+    marginBottom: ms(16, 0.1),
+    borderWidth: ms(1, 0.05),
     borderColor: theme.colors.border.soft,
   },
   diagnosticText: {
-    fontSize: 12,
+    fontSize: ms(12, 0.2) * fontScale,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     color: theme.colors.text.base,
-    lineHeight: 18,
+    lineHeight: ms(18, 0.2) * fontScale,
   },
   actionsRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 10,
+    gap: ms(10, 0.05),
+    marginBottom: ms(10, 0.05),
   },
   actionButton: {
     flex: 1,
-    borderRadius: 8,
-    padding: 12,
+    borderRadius: ms(8, 0.1),
+    padding: ms(12, 0.1),
     alignItems: 'center',
   },
   actionButtonText: {
     color: '#fff',
-    fontSize: 13,
+    fontSize: ms(13, 0.2) * fontScale,
     fontWeight: '600',
   },
   channelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
+    paddingVertical: ms(6, 0.05),
+    borderBottomWidth: ms(1, 0.05),
     borderBottomColor: theme.colors.border.soft,
   },
   smallBtn: {
     backgroundColor: theme.colors.accent.blue,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
+    paddingVertical: ms(6, 0.05),
+    paddingHorizontal: ms(10, 0.1),
+    borderRadius: ms(6, 0.1),
   },
   smallBtnText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: ms(12, 0.2) * fontScale,
     fontWeight: '600',
   },
   diagnosticHint: {
-    fontSize: 11,
+    fontSize: ms(11, 0.2) * fontScale,
     color: theme.colors.text.subtle,
     textAlign: 'center',
-    lineHeight: 16,
+    lineHeight: ms(16, 0.2) * fontScale,
     fontStyle: 'italic',
   },
 });
