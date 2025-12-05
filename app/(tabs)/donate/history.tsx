@@ -1,22 +1,24 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Linking,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    useWindowDimensions,
 } from "react-native";
 import DonationAnalyticsCard from "../../../components/DonationAnalyticsCard";
 import PillToggle from "../../../components/ui/PillToggle";
 import { useTheme } from "../../../contexts/ThemeContext";
-import type { AppTheme } from "../../../hooks/useAppTheme";
 import { regionalFunctions } from "../../../firebase";
+import type { AppTheme } from "../../../hooks/useAppTheme";
 import { useFirebaseData } from "../../../hooks/useFirebaseData";
+import { useResponsive } from "../../../hooks/useResponsive";
 import { Donation } from "../../../types/donation";
 
 type DonationType = "one-time" | "recurring";
@@ -24,7 +26,9 @@ type DonationType = "one-time" | "recurring";
 
 export default function HistoryTab(): React.JSX.Element {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { ms } = useResponsive(); // Get responsive scaling function
+  const { fontScale } = useWindowDimensions(); // Get accessibility font scaling
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -211,6 +215,7 @@ export default function HistoryTab(): React.JSX.Element {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              numberOfLines={1}
             />
 
             <TouchableOpacity
@@ -307,7 +312,7 @@ export default function HistoryTab(): React.JSX.Element {
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface.muted,
@@ -317,7 +322,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.xl,
-    paddingBottom: 40,
+    paddingBottom: ms(40, 0.1),
   },
   inputSection: {
     marginBottom: theme.spacing.xl,
@@ -332,12 +337,12 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   infoText: {
     flex: 1,
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.brand.navy[700],
-    lineHeight: 20,
+    lineHeight: ms(20, 0.1),
   },
   label: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: "600",
     color: theme.colors.text.strong,
     marginBottom: theme.spacing.sm,
@@ -346,9 +351,9 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     backgroundColor: theme.colors.surface.base,
     borderRadius: theme.radius.md,
     padding: theme.spacing.lg,
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     color: theme.colors.text.strong,
-    borderWidth: 2,
+    borderWidth: ms(2, 0.05),
     borderColor: theme.colors.border.base,
     marginBottom: theme.spacing.lg,
   },
@@ -366,7 +371,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   loadButtonText: {
     color: theme.colors.text.header,
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: "600",
   },
   emailDisplay: {
@@ -385,26 +390,26 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     flex: 1,
   },
   emailText: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.strong,
     fontWeight: "500",
   },
   changeButton: {
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: 6,
+    paddingVertical: ms(6, 0.1),
     backgroundColor: theme.colors.accent.blueSoft,
-    borderRadius: 6,
+    borderRadius: ms(6, 0.1),
   },
   changeButtonText: {
     color: theme.colors.brand.navy[700],
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     fontWeight: "600",
   },
   tabSwitcher: {
     flexDirection: "row",
     backgroundColor: theme.colors.surface.base,
     borderRadius: theme.radius.md,
-    padding: 4,
+    padding: ms(4, 0.1),
     marginBottom: theme.spacing.lg,
   },
   tabButton: {
@@ -417,7 +422,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     backgroundColor: theme.colors.brand.navy[700],
   },
   tabButtonText: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     fontWeight: "600",
     color: theme.colors.text.muted,
   },
@@ -439,9 +444,9 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   donationIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: ms(48),
+    height: ms(48),
+    borderRadius: ms(24),
     backgroundColor: theme.colors.accent.blueSoft,
     alignItems: "center",
     justifyContent: "center",
@@ -454,17 +459,17 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     flex: 1,
   },
   donationType: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: "600",
     color: theme.colors.text.strong,
     marginBottom: 4,
   },
   donationDate: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
   },
   donationAmount: {
-    fontSize: theme.typography.h2,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: "bold",
     color: theme.colors.brand.navy[700],
   },
@@ -473,11 +478,11 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     alignItems: "center",
     gap: 6,
     paddingTop: theme.spacing.md,
-    borderTopWidth: 1,
+    borderTopWidth: ms(1, 0.05),
     borderTopColor: theme.colors.surface.soft,
   },
   receiptText: {
-    fontSize: 13,
+    fontSize: ms(13, 0.1) * fontScale,
     color: theme.colors.text.muted,
   },
   viewReceiptButton: {
@@ -492,27 +497,27 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     borderRadius: theme.radius.sm,
   },
   viewReceiptText: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     fontWeight: '600',
     color: theme.colors.brand.navy[700],
   },
   subscriptionBadge: {
     marginTop: theme.spacing.md,
     paddingTop: theme.spacing.md,
-    borderTopWidth: 1,
+    borderTopWidth: ms(1, 0.05),
     borderTopColor: theme.colors.surface.soft,
   },
   subscriptionBadgeText: {
-    fontSize: 13,
+    fontSize: ms(13, 0.1) * fontScale,
     color: theme.colors.accent.green,
     fontWeight: "600",
   },
   emptyState: {
     alignItems: "center",
-    paddingVertical: 48,
+    paddingVertical: ms(48, 0.1),
   },
   emptyText: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     color: theme.colors.text.muted,
     marginTop: theme.spacing.md,
   },

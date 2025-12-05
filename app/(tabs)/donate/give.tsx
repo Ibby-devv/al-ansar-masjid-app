@@ -7,18 +7,19 @@ import { Picker } from "@react-native-picker/picker";
 import { useStripe } from "@stripe/stripe-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  BackHandler,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    BackHandler,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CampaignCard from "../../../components/CampaignCard";
@@ -30,20 +31,23 @@ import { useTheme } from "../../../contexts/ThemeContext";
 import { Campaign, useCampaigns } from "../../../hooks/useCampaigns";
 import { useDonation } from "../../../hooks/useDonation";
 import { useFirebaseData } from "../../../hooks/useFirebaseData";
+import { useResponsive } from "../../../hooks/useResponsive";
 import { DonationFormData } from "../../../types/donation";
 type ThemeFromHook = ReturnType<typeof useTheme>;
 
 
 export default function GiveTab(): React.JSX.Element | null {
   const theme = useTheme();
+  const { ms } = useResponsive(); // Get responsive scaling function
+  const { fontScale } = useWindowDimensions(); // Get accessibility font scaling
   const { mosqueSettings } = useFirebaseData();
   const { campaigns } = useCampaigns();
   const { settings, loading, error, createDonation, createSubscription } =
     useDonation();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   
-  // Memoize styles based on theme
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  // Memoize styles based on theme and responsive scale
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
 
   // Form state
   const [selectedType, setSelectedType] = useState<string>("");
@@ -638,6 +642,7 @@ export default function GiveTab(): React.JSX.Element | null {
                       value={donorName}
                       onChangeText={setDonorName}
                       autoCapitalize="words"
+                      numberOfLines={1}
                     />
 
                     <TextInput
@@ -648,6 +653,7 @@ export default function GiveTab(): React.JSX.Element | null {
                       onChangeText={setDonorEmail}
                       keyboardType="email-address"
                       autoCapitalize="none"
+                      numberOfLines={1}
                     />
 
                     {isRecurring && (
@@ -723,9 +729,9 @@ export default function GiveTab(): React.JSX.Element | null {
 
                 {/* TEST ERROR BUTTONS - Remove in production */}
                 {__DEV__ && (
-                  <View style={{ marginTop: 20, gap: 10 }}>
+                  <View style={{ marginTop: ms(20), gap: ms(10, 0.1) }}>
                     <TouchableOpacity
-                      style={{ backgroundColor: '#ef4444', padding: 12, borderRadius: 8 }}
+                      style={{ backgroundColor: '#ef4444', padding: ms(12, 0.1), borderRadius: ms(8, 0.1) }}
                       onPress={() => {
                         setErrorData({
                           type: 'payment',
@@ -734,10 +740,10 @@ export default function GiveTab(): React.JSX.Element | null {
                         setShowErrorModal(true);
                       }}
                     >
-                      <Text style={{ color: 'white', textAlign: 'center' }}>Test Payment Error</Text>
+                      <Text style={{ color: 'white', textAlign: 'center', fontSize: ms(14, 0.2) * fontScale }}>Test Payment Error</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={{ backgroundColor: '#f59e0b', padding: 12, borderRadius: 8 }}
+                      style={{ backgroundColor: '#f59e0b', padding: ms(12, 0.1), borderRadius: ms(8, 0.1) }}
                       onPress={() => {
                         setErrorData({
                           type: 'network',
@@ -746,10 +752,10 @@ export default function GiveTab(): React.JSX.Element | null {
                         setShowErrorModal(true);
                       }}
                     >
-                      <Text style={{ color: 'white', textAlign: 'center' }}>Test Network Error</Text>
+                      <Text style={{ color: 'white', textAlign: 'center', fontSize: ms(14, 0.2) * fontScale }}>Test Network Error</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={{ backgroundColor: '#8b5cf6', padding: 12, borderRadius: 8 }}
+                      style={{ backgroundColor: '#8b5cf6', padding: ms(12, 0.1), borderRadius: ms(8, 0.1) }}
                       onPress={() => {
                         setErrorData({
                           type: 'validation',
@@ -758,7 +764,7 @@ export default function GiveTab(): React.JSX.Element | null {
                         setShowErrorModal(true);
                       }}
                     >
-                      <Text style={{ color: 'white', textAlign: 'center' }}>Test Validation Error</Text>
+                      <Text style={{ color: 'white', textAlign: 'center', fontSize: ms(14, 0.2) * fontScale }}>Test Validation Error</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -801,7 +807,7 @@ export default function GiveTab(): React.JSX.Element | null {
   );
 }
 
-const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
+const createStyles = (theme: ThemeFromHook, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface.muted,
@@ -814,7 +820,7 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
   },
   loadingText: {
     marginTop: theme.spacing.lg,
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     color: theme.colors.text.muted,
   },
   scrollView: {
@@ -834,7 +840,7 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
     marginTop: -theme.spacing.xl,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: ms(22, 0.3) * fontScale,
     fontWeight: "bold",
     color: theme.colors.text.strong,
     marginBottom: theme.spacing.xl,
@@ -871,14 +877,14 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
     padding: theme.spacing.lg,
     borderRadius: theme.radius.md,
     marginBottom: theme.spacing.xxl,
-    borderLeftWidth: 4,
+    borderLeftWidth: ms(4, 0.1),
     borderLeftColor: theme.colors.brand.gold[600],
     ...theme.shadow.soft,
   },
   campaignBannerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: ms(40),
+    height: ms(40),
+    borderRadius: ms(20),
     backgroundColor: theme.colors.surface.base,
     alignItems: "center",
     justifyContent: "center",
@@ -913,7 +919,7 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
   pickerContainer: {
     backgroundColor: theme.colors.surface.base,
     borderRadius: theme.radius.md,
-    borderWidth: 2,
+    borderWidth: ms(2, 0.05),
     borderColor: theme.colors.border.base,
     overflow: "hidden",
     paddingHorizontal: theme.spacing.md,
@@ -926,9 +932,9 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
     paddingVertical: Platform.OS === 'android' ? 8 : 0,
   },
   pickerItem: {
-    fontSize: 16,
+    fontSize: ms(16, 0.2) * fontScale,
     color: theme.colors.text.strong,
-    height: 44,
+    height: ms(44),
   },
   amountGrid: {
     flexDirection: "row",
@@ -943,7 +949,7 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
     borderRadius: theme.radius.md,
     padding: theme.spacing.lg,
     alignItems: "center",
-    borderWidth: 2,
+    borderWidth: ms(2, 0.05),
     borderColor: theme.colors.border.base,
   },
   amountButtonSelected: {
@@ -951,7 +957,7 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
     backgroundColor: theme.colors.brand.navy[700],
   },
   amountButtonText: {
-    fontSize: theme.typography.h3,
+    fontSize: ms(18, 0.3) * fontScale,
     fontWeight: "bold",
     color: theme.colors.text.strong,
   },
@@ -962,10 +968,10 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
     backgroundColor: theme.colors.surface.base,
     borderRadius: theme.radius.md,
     padding: theme.spacing.lg,
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     color: theme.colors.text.strong,
     marginBottom: theme.spacing.md,
-    borderWidth: 2,
+    borderWidth: ms(2, 0.05),
     borderColor: theme.colors.border.base,
   },
   checkboxRow: {
@@ -995,18 +1001,18 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
     ...theme.shadow.soft,
   },
   checkboxLabel: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: "600",
     color: theme.colors.text.strong,
   },
   frequencyButtonsContainer: {
     marginTop: theme.spacing.lg,
     paddingTop: theme.spacing.lg,
-    borderTopWidth: 1,
+    borderTopWidth: ms(1, 0.05),
     borderTopColor: theme.colors.border.base,
   },
   frequencyLabel: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     fontWeight: "600",
     color: theme.colors.text.muted,
     marginBottom: theme.spacing.md,
@@ -1023,7 +1029,7 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
     borderRadius: theme.radius.md,
     padding: theme.spacing.lg,
     alignItems: "center",
-    borderWidth: 2,
+    borderWidth: ms(2, 0.05),
     borderColor: theme.colors.border.base,
   },
   frequencyButtonSelected: {
@@ -1031,7 +1037,7 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
     borderColor: theme.colors.brand.navy[700],
   },
   frequencyButtonText: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: "600",
     color: theme.colors.text.strong,
   },
@@ -1046,7 +1052,7 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   paymentMethodsTitle: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     fontWeight: "600",
     color: theme.colors.text.muted,
     marginBottom: theme.spacing.md,
@@ -1065,7 +1071,7 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
     borderRadius: theme.radius.sm,
   },
   paymentMethodText: {
-    fontSize: 13,
+    fontSize: ms(13, 0.1) * fontScale,
     fontWeight: "600",
     color: theme.colors.text.strong,
   },
@@ -1117,15 +1123,15 @@ const createStyles = (theme: ThemeFromHook) => StyleSheet.create({
   },
   infoText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: ms(13, 0.1) * fontScale,
     color: theme.colors.brand.navy[700],
-    lineHeight: 18,
+    lineHeight: ms(18, 0.1),
   },
   customAmountButton: {
     backgroundColor: theme.colors.surface.base,
     borderRadius: theme.radius.md,
     padding: theme.spacing.lg,
-    borderWidth: 2,
+    borderWidth: ms(2, 0.05),
     borderColor: theme.colors.border.base,
     flexDirection: "row",
     alignItems: "center",

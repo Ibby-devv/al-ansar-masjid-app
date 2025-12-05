@@ -1,22 +1,26 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    useWindowDimensions,
 } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
-import type { AppTheme } from '../../../hooks/useAppTheme';
 import { regionalFunctions } from '../../../firebase';
+import type { AppTheme } from '../../../hooks/useAppTheme';
+import { useResponsive } from '../../../hooks/useResponsive';
 
 export default function ManageTab(): React.JSX.Element {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { ms } = useResponsive(); // Get responsive scaling function
+  const { fontScale } = useWindowDimensions(); // Get accessibility font scaling
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -111,6 +115,7 @@ export default function ManageTab(): React.JSX.Element {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            numberOfLines={1}
           />
         </View>
 
@@ -197,7 +202,7 @@ export default function ManageTab(): React.JSX.Element {
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface.muted,
@@ -214,23 +219,23 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     marginBottom: theme.spacing.xxl,
   },
   headerIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: ms(80),
+    height: ms(80),
+    borderRadius: ms(40),
     backgroundColor: theme.colors.accent.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: theme.spacing.lg,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: ms(28, 0.3) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.strong,
     marginBottom: theme.spacing.sm,
     textAlign: 'center',
   },
   headerSubtitle: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     color: theme.colors.text.muted,
     textAlign: 'center',
     paddingHorizontal: theme.spacing.lg,
@@ -243,7 +248,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     ...theme.shadow.soft,
   },
   sectionTitle: {
-    fontSize: theme.typography.h3,
+    fontSize: ms(18, 0.3) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.strong,
     marginBottom: theme.spacing.lg,
@@ -257,30 +262,30 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     alignItems: 'flex-start',
   },
   stepNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: ms(32),
+    height: ms(32),
+    borderRadius: ms(16),
     backgroundColor: theme.colors.brand.navy[700],
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepNumberText: {
     color: theme.colors.text.header,
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: 'bold',
   },
   stepText: {
     flex: 1,
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.base,
-    lineHeight: 22,
+    lineHeight: ms(22, 0.1),
     paddingTop: 4,
   },
   section: {
     marginBottom: theme.spacing.xxl,
   },
   label: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: '600',
     color: theme.colors.text.strong,
     marginBottom: theme.spacing.sm,
@@ -289,9 +294,9 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     backgroundColor: theme.colors.surface.base,
     borderRadius: theme.radius.md,
     padding: theme.spacing.lg,
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     color: theme.colors.text.strong,
-    borderWidth: 2,
+    borderWidth: ms(2, 0.05),
     borderColor: theme.colors.border.base,
   },
   sendButton: {
@@ -324,12 +329,12 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     gap: theme.spacing.md,
     marginBottom: theme.spacing.lg,
     paddingBottom: theme.spacing.lg,
-    borderBottomWidth: 1,
+    borderBottomWidth: ms(1, 0.05),
     borderBottomColor: theme.colors.border.soft,
   },
   featureIcon: {
-    width: 48,
-    height: 48,
+    width: ms(48),
+    height: ms(48),
     borderRadius: theme.radius.sm,
     backgroundColor: theme.colors.accent.blueSoft,
     alignItems: 'center',
@@ -339,15 +344,15 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     flex: 1,
   },
   featureTitle: {
-    fontSize: theme.spacing.lg,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: '600',
     color: theme.colors.text.strong,
     marginBottom: 4,
   },
   featureDescription: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
-    lineHeight: 20,
+    lineHeight: ms(20, 0.1),
   },
   securityNote: {
     flexDirection: 'row',
@@ -356,7 +361,7 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     gap: theme.spacing.sm,
   },
   securityText: {
-    fontSize: theme.typography.body,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
   },
 });

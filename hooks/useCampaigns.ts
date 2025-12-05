@@ -37,14 +37,27 @@ const serializeCampaign = (campaign: Campaign): any => {
   };
 };
 
+// Helper to safely create Timestamp from cached data with validation
+const safeTimestamp = (data: any, fallback?: FirebaseFirestoreTypes.Timestamp): FirebaseFirestoreTypes.Timestamp => {
+  if (
+    data &&
+    typeof data.seconds === 'number' &&
+    typeof data.nanoseconds === 'number'
+  ) {
+    return new firestore.Timestamp(data.seconds, data.nanoseconds);
+  }
+  // Fallback to current time or provided fallback if data is invalid
+  return fallback ?? firestore.Timestamp.now();
+};
+
 // Helper to deserialize cached data back to Timestamp objects
 const deserializeCampaign = (data: any): Campaign => {
   return {
     ...data,
-    start_date: new firestore.Timestamp(data.start_date.seconds, data.start_date.nanoseconds),
-    end_date: new firestore.Timestamp(data.end_date.seconds, data.end_date.nanoseconds),
-    created_at: new firestore.Timestamp(data.created_at.seconds, data.created_at.nanoseconds),
-    updated_at: new firestore.Timestamp(data.updated_at.seconds, data.updated_at.nanoseconds),
+    start_date: safeTimestamp(data.start_date),
+    end_date: safeTimestamp(data.end_date),
+    created_at: safeTimestamp(data.created_at),
+    updated_at: safeTimestamp(data.updated_at),
   };
 };
 
