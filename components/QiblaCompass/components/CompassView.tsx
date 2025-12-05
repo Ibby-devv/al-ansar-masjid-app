@@ -20,7 +20,8 @@ import { calculateTargetRotation, formatAngle, getCardinalDirection } from '../u
 import { PointerSvg } from './PointerSvg';
 
 const { width } = Dimensions.get('window');
-const COMPASS_SIZE = Math.min(width - 80, 300);
+// Responsive compass size: scales down on small screens, max 280px
+const COMPASS_SIZE = Math.min(width - 80, Math.max(200, width * 0.6));
 
 interface CompassTheme {
   faceColor?: string;
@@ -111,18 +112,21 @@ export const CompassView: React.FC<CompassViewProps> = ({
 
   // Compute pointer dimensions - larger bulbous pointer that doesn't start at center
   // Pointer should reach up toward Kaaba but not cover it, with semicircular bottom
-  const QIBLA_INDICATOR_TOP = 30;
-  const QIBLA_ICON_SIZE = 24;
-  const QIBLA_TEXT_HEIGHT = 16;
-  const POINTER_GAP = 12;
+  const QIBLA_INDICATOR_TOP = Math.round((30 / 300) * COMPASS_SIZE); // 10% of compass size
+  const QIBLA_ICON_SIZE = Math.round((24 / 300) * COMPASS_SIZE); // 8% of compass size
+  const QIBLA_TEXT_HEIGHT = Math.round((16 / 300) * COMPASS_SIZE); // ~5% of compass size
+  const POINTER_GAP = Math.round((12 / 300) * COMPASS_SIZE); // 4% of compass size
   const pointerHeight = Math.max(
-    240, // 3x the original 80
+    Math.round((240 / 300) * COMPASS_SIZE), // 80% of compass size (responsive)
     COMPASS_SIZE / 2 - (QIBLA_INDICATOR_TOP + QIBLA_ICON_SIZE + QIBLA_TEXT_HEIGHT + POINTER_GAP)
   );
-  const pointerWidth = Math.max(120, Math.round(pointerHeight * 0.6)); // 3x the original 40
+  const pointerWidth = Math.max(
+    Math.round((120 / 300) * COMPASS_SIZE), // 40% of compass size (responsive)
+    Math.round(pointerHeight * 0.6)
+  );
 
   // Position pointer so bottom bulb is offset from center (not at dead center)
-  const POINTER_BOTTOM_OFFSET = 100; // Moved down from 90
+  const POINTER_BOTTOM_OFFSET = Math.round((100 / 300) * COMPASS_SIZE); // ~33% of compass size (responsive)
 
   return (
     <View style={styles.container}>

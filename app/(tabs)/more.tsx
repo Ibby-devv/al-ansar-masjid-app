@@ -2,24 +2,27 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useMemo } from 'react';
-import { Linking, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, Vibration, View } from 'react-native';
+import { Linking, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, Vibration, View, useWindowDimensions } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import EmptyState from '../../components/EmptyState';
 import PatternOverlay from '../../components/PatternOverlay';
 import InstagramIcon from '../../components/ui/InstagramIcon';
-import EmptyState from '../../components/EmptyState';
 import { useTheme } from '../../contexts/ThemeContext';
 import type { AppTheme } from '../../hooks/useAppTheme';
+import { useResponsive } from '../../hooks/useResponsive';
 
 // Import custom hooks
 import { useFirebaseData } from '../../hooks/useFirebaseData';
 
 export default function MoreScreen(): React.JSX.Element {
   const theme = useTheme();
+  const { ms } = useResponsive(); // Get responsive scaling function
+  const { fontScale } = useWindowDimensions(); // Get accessibility font scaling
   const { mosqueSettings, loading, error } = useFirebaseData();
   
-  // Memoize styles based on theme
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  // Memoize styles based on theme and responsive scale
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   // App version info (marketing version + build number)
   const appVersion = DeviceInfo.getVersion();
@@ -277,15 +280,19 @@ export default function MoreScreen(): React.JSX.Element {
 
               {(mosqueSettings as any)?.facebook && (
                 <TouchableOpacity style={styles.infoItem} onPress={() => handlePress('facebook')}>
-                  <View style={[styles.infoIconContainer, styles.facebookIconBg]}>
-                    <Ionicons name="logo-facebook" size={24} color="#fff" />
+                  <View style={styles.infoIconContainer}>
+                    <Ionicons name="logo-facebook" size={24} color="#1877F2" />
                   </View>
                   <View style={styles.infoTextContainer}>
                     <Text style={styles.infoLabel}>Facebook</Text>
                     <Text style={styles.infoValue}>Follow us on Facebook</Text>
-                    <Text style={styles.infoHint}>{toDisplayDomain((mosqueSettings as any)?.facebook as string)}</Text>
+                    <Text style={styles.infoHint}>
+                      {toDisplayDomain((mosqueSettings as any)?.facebook as string)}
+                    </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
+                  <View style={styles.chevronContainer}>
+                    <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
+                  </View>
                 </TouchableOpacity>
               )}
 
@@ -301,7 +308,9 @@ export default function MoreScreen(): React.JSX.Element {
                       @{extractHandle((mosqueSettings as any)?.instagram as string)}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
+                  <View style={styles.chevronContainer}>
+                    <Ionicons name="chevron-forward" size={20} color={theme.colors.text.muted} />
+                  </View>
                 </TouchableOpacity>
               )}
             </View>
@@ -355,7 +364,7 @@ export default function MoreScreen(): React.JSX.Element {
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface.muted,
@@ -381,16 +390,19 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     paddingTop: theme.spacing.md,
     paddingBottom: theme.spacing.sm,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 26,
+    fontSize: ms(26, 0.3) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.header,
-    marginBottom: 6,
+    marginBottom: ms(6, 0.1),
+    textAlign: 'center',
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: ms(16, 0.2) * fontScale,
     color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
   },
   contentContainer: {
     flex: 1,
@@ -402,16 +414,16 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   sectionHeader: {
     marginBottom: theme.spacing.md,
-    paddingLeft: 4,
+    paddingLeft: ms(4, 0.1),
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: ms(18, 0.2) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.strong,
-    marginBottom: 4,
+    marginBottom: ms(4, 0.1),
   },
   sectionSubtitle: {
-    fontSize: 13,
+    fontSize: ms(13, 0.1) * fontScale,
     color: theme.colors.text.muted,
     fontWeight: '500',
   },
@@ -421,20 +433,27 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     padding: theme.spacing.md,
     marginBottom: theme.spacing.sm,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     ...theme.shadow.soft,
   },
   infoIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: ms(40),
+    height: ms(40),
+    borderRadius: ms(20),
     backgroundColor: theme.colors.surface.soft,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: ms(12, 0.1),
+    flexShrink: 0,
   },
   facebookIconBg: {
+    width: ms(40),
+    height: ms(40),
+    borderRadius: ms(20),
     backgroundColor: theme.colors.iconBackground.facebook,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: ms(12, 0.1),
   },
   iconMapBg: {
     backgroundColor: theme.colors.iconBackground.map,
@@ -462,21 +481,28 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   infoTextContainer: {
     flex: 1,
+    minWidth: 0, // Critical for text wrapping in flex containers
+  },
+  chevronContainer: {
+    flexShrink: 0,
+    marginLeft: ms(8, 0.1),
   },
   infoLabel: {
-    fontSize: 12,
+    fontSize: ms(12, 0.1) * fontScale,
     color: theme.colors.text.muted,
-    marginBottom: 2,
+    marginBottom: ms(2, 0.05),
   },
   infoValue: {
-    fontSize: 15,
+    fontSize: ms(15, 0.2) * fontScale,
     color: theme.colors.text.strong,
     fontWeight: '500',
+    flexWrap: 'wrap',
   },
   infoHint: {
-    fontSize: 12,
+    fontSize: ms(12, 0.1) * fontScale,
     color: theme.colors.text.muted,
-    marginTop: 2,
+    marginTop: ms(2, 0.05),
+    flexWrap: 'wrap',
   },
   actionItem: {
     backgroundColor: theme.colors.surface.base,
@@ -488,41 +514,44 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     ...theme.shadow.soft,
   },
   actionIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: ms(40),
+    height: ms(40),
+    borderRadius: ms(20),
     backgroundColor: theme.colors.surface.soft,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: ms(12, 0.1),
   },
   actionTextContainer: {
     flex: 1,
   },
   actionLabel: {
-    fontSize: 15,
+    fontSize: ms(15, 0.2) * fontScale,
     color: theme.colors.text.strong,
     fontWeight: '600',
-    marginBottom: 2,
+    marginBottom: ms(2, 0.05),
   },
   actionSubtext: {
-    fontSize: 12,
+    fontSize: ms(12, 0.1) * fontScale,
     color: theme.colors.text.muted,
   },
   footer: {
     marginTop: theme.spacing.xl,
     paddingTop: theme.spacing.xl,
-    borderTopWidth: 1,
+    borderTopWidth: ms(1, 0.05),
     borderTopColor: theme.colors.border.base,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   footerText: {
-    fontSize: 14,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
-    marginBottom: 4,
+    marginBottom: ms(4, 0.1),
+    textAlign: 'center',
   },
   footerSubtext: {
-    fontSize: 12,
+    fontSize: ms(12, 0.1) * fontScale,
     color: theme.colors.text.muted,
+    textAlign: 'center',
   },
 });

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useMemo, useState } from 'react';
-import { Image, ScrollView, SectionList, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { Image, ScrollView, SectionList, StatusBar, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PatternOverlay from '../../components/PatternOverlay';
 import Badge from '../../components/ui/Badge';
@@ -11,6 +11,7 @@ import PillButton from '../../components/ui/PillButton';
 import SectionHeader from '../../components/ui/SectionHeader';
 import { useTheme } from '../../contexts/ThemeContext';
 import type { AppTheme } from '../../hooks/useAppTheme';
+import { useResponsive } from '../../hooks/useResponsive';
 
 // Import custom hooks
 import { useEventCategories } from '../../hooks/useEventCategories';
@@ -19,10 +20,12 @@ import { useFirebaseData } from '../../hooks/useFirebaseData';
 
 export default function EventsScreen(): React.JSX.Element {
   const theme = useTheme();
+  const { ms } = useResponsive(); // Get responsive scaling function
+  const { fontScale } = useWindowDimensions(); // Get accessibility font scaling
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
-  // Memoize styles based on theme
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  // Memoize styles based on theme and responsive scale
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
   
   // Load events and categories from Firebase
   const { upcomingEvents, loading: eventsLoading } = useEvents();
@@ -303,7 +306,7 @@ export default function EventsScreen(): React.JSX.Element {
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.surface.muted,
@@ -328,14 +331,14 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     paddingBottom: theme.spacing.sm,
   },
   headerTitle: {
-    fontSize: 26,
+    fontSize: ms(26, 0.3) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.header,
-    marginBottom: 6,
+    marginBottom: ms(6, 0.1),
     textAlign: 'center',
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: ms(16, 0.2) * fontScale,
     color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
   },
@@ -348,19 +351,19 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     backgroundColor: theme.colors.surface.card,
     marginHorizontal: theme.spacing.lg,
     borderRadius: theme.radius.pill,
-    padding: 3,
-    marginTop: -12,
-    marginBottom: 12,
+    padding: ms(3, 0.1),
+    marginTop: ms(-12, 0.1),
+    marginBottom: ms(12, 0.1),
     ...theme.shadow.soft,
   },
   categoryFilterContent: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: ms(8, 0.1),
+    paddingVertical: ms(2, 0.05),
     alignItems: 'center',
-    gap: 6,
+    gap: ms(6, 0.1),
   },
   categoryButtonText: {
-    fontSize: 13,
+    fontSize: ms(13, 0.1) * fontScale,
     fontWeight: '600',
     color: theme.colors.text.muted,
   },
@@ -375,38 +378,38 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     flex: 1,
   },
   eventsScrollContent: {
-    padding: 15,
-    paddingBottom: 30,
+    padding: ms(15, 0.1),
+    paddingBottom: ms(30, 0.1),
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 20,
+    paddingVertical: ms(60, 0.1),
+    paddingHorizontal: ms(20, 0.1),
   },
   emptyStateTitle: {
-    fontSize: 18,
+    fontSize: ms(18, 0.2) * fontScale,
     fontWeight: 'bold',
     color: theme.colors.text.strong,
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: ms(16, 0.1),
+    marginBottom: ms(8, 0.1),
   },
   emptyStateText: {
-    fontSize: 14,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
     textAlign: 'center',
   },
   sectionHeader: {
-    marginTop: 8,
-    marginBottom: 6,
+    marginTop: ms(8, 0.1),
+    marginBottom: ms(6, 0.1),
   },
   eventCard: {
-    marginBottom: 12,
+    marginBottom: ms(12, 0.1),
     overflow: 'hidden',
   },
   eventImage: {
     width: '100%',
-    height: 180,
+    height: ms(180, 0.2),
     backgroundColor: theme.colors.border.base,
     marginBottom: theme.spacing.md,
   },
@@ -414,34 +417,34 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     flexDirection: 'row',
   },
   dateBadge: {
-    width: 72,
-    paddingVertical: 8,
-    borderRadius: 12,
+    width: ms(72, 0.1),
+    paddingVertical: ms(8, 0.1),
+    borderRadius: ms(12, 0.1),
     backgroundColor: theme.colors.surface.soft,
-    borderWidth: 1,
+    borderWidth: ms(1, 0.05),
     borderColor: theme.colors.border.base,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: ms(12, 0.1),
   },
   dateBadgeHighlight: {
     borderColor: theme.colors.accent.amber,
     backgroundColor: theme.colors.accent.amberSoft,
   },
   dateWeekday: {
-    fontSize: 11,
+    fontSize: ms(11, 0.1) * fontScale,
     color: theme.colors.text.muted,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   dateDay: {
-    fontSize: 28,
+    fontSize: ms(28, 0.3) * fontScale,
     color: theme.colors.text.base,
     fontWeight: '800',
-    lineHeight: 32,
+    lineHeight: ms(32, 0.1),
   },
   dateMonth: {
-    fontSize: 12,
+    fontSize: ms(12, 0.1) * fontScale,
     color: theme.colors.text.muted,
     fontWeight: '700',
   },
@@ -452,76 +455,76 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: ms(6, 0.1),
   },
   eventCategory: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    marginLeft: 8,
+    paddingVertical: ms(4, 0.1),
+    paddingHorizontal: ms(10, 0.1),
+    borderRadius: ms(12, 0.1),
+    marginLeft: ms(8, 0.1),
   },
   eventCategoryText: {
-    fontSize: 10,
+    fontSize: ms(10, 0.1) * fontScale,
     fontWeight: '800',
   },
   eventTitle: {
     flex: 1,
-    fontSize: 17,
+    fontSize: ms(17, 0.2) * fontScale,
     fontWeight: '800',
     color: theme.colors.text.strong,
-    marginRight: 8,
+    marginRight: ms(8, 0.1),
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: ms(6, 0.1),
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    marginBottom: 6,
+    marginBottom: ms(6, 0.1),
   },
   timeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.accent.blueSoft,
-    borderWidth: 1,
+    borderWidth: ms(1, 0.05),
     borderColor: theme.colors.accent.blue,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: ms(10, 0.1),
+    paddingVertical: ms(6, 0.1),
+    borderRadius: ms(12, 0.1),
   },
   timeBadgeText: {
-    marginLeft: 6,
-    fontSize: 17,
+    marginLeft: ms(6, 0.1),
+    fontSize: ms(17, 0.2) * fontScale,
     fontWeight: '800',
     color: theme.colors.accent.blue,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: ms(6, 0.1),
   },
   metaText: {
-    fontSize: 13,
+    fontSize: ms(13, 0.1) * fontScale,
     color: theme.colors.text.muted,
-    marginLeft: 6,
+    marginLeft: ms(6, 0.1),
   },
   relativeBadge: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingVertical: ms(4, 0.1),
+    paddingHorizontal: ms(10, 0.1),
     borderRadius: 999,
   },
   relativeBadgeText: {
-    fontSize: 12,
+    fontSize: ms(12, 0.1) * fontScale,
     fontWeight: '800',
   },
   eventDescription: {
-    fontSize: 14,
+    fontSize: ms(14, 0.2) * fontScale,
     color: theme.colors.text.muted,
-    marginTop: 4,
-    lineHeight: 20,
+    marginTop: ms(4, 0.1),
+    lineHeight: ms(20, 0.1),
   },
 });

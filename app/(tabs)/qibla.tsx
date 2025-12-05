@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Linking, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, StatusBar, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CompassView } from '../../components/QiblaCompass/components/CompassView';
 import { DebugOverlay } from '../../components/QiblaCompass/components/DebugOverlay';
@@ -17,11 +17,14 @@ import { useQiblaDirection } from '../../components/QiblaCompass/hooks/useQiblaD
 import { getShortestAngle, isWithinTolerance } from '../../components/QiblaCompass/utils/angleUtils';
 import { useTheme } from '../../contexts/ThemeContext';
 import type { AppTheme } from '../../hooks/useAppTheme';
+import { useResponsive } from '../../hooks/useResponsive';
 
 const TOLERANCE = 10; // degrees
 
 export default function QiblaScreen(): React.JSX.Element {
   const theme = useTheme();
+  const { ms } = useResponsive(); // Get responsive scaling function
+  const { fontScale } = useWindowDimensions(); // Get accessibility font scaling
   const isFocused = useIsFocused();
   const { coordinates, isLoading, error, hasPermission, retry } = useLocation();
   const { name: place, loading: isLoadingPlace } = usePlacename(coordinates);
@@ -29,8 +32,8 @@ export default function QiblaScreen(): React.JSX.Element {
   const { direction: qiblaDirection, isValid } = useQiblaDirection(coordinates);
   const { data: motion } = useDeviceMotion();
 
-  // Memoize styles based on theme
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  // Memoize styles based on theme and responsive scale
+  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
 
   const [showDebug, setShowDebug] = useState(false);
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -284,65 +287,64 @@ export default function QiblaScreen(): React.JSX.Element {
   );
 }
 
-const createStyles = (theme: AppTheme) => StyleSheet.create({
+const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.compass.background,
   },
   topBar: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingHorizontal: ms(20, 0.1),
+    paddingTop: ms(8, 0.1),
+    paddingBottom: ms(8, 0.1),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   locationLabel: {
     color: theme.colors.compass.muted,
-    fontSize: 14,
+    fontSize: ms(14, 0.2) * fontScale,
     letterSpacing: 1,
-    marginBottom: 6,
+    marginBottom: ms(6, 0.1),
     fontFamily: FontFamily.semibold,
-    paddingLeft: 16,
+    paddingLeft: ms(16, 0.1),
   },
   locationPill: {
     backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    borderRadius: ms(20, 0.1),
+    paddingHorizontal: ms(16, 0.1),
+    paddingVertical: ms(10, 0.1),
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: ms(8, 0.1),
     alignSelf: 'flex-start',
-    // Let the pill size to content; cap growth for long names
     maxWidth: '80%',
   },
   locationText: {
     color: theme.colors.compass.accent,
-    fontSize: 24,
+    fontSize: ms(24, 0.3) * fontScale,
     fontFamily: FontFamily.bold,
-    lineHeight: 32,
+    lineHeight: ms(32, 0.1),
     flexShrink: 1,
   },
   infoButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: ms(44, 0.1),
+    height: ms(44, 0.1),
+    borderRadius: ms(22, 0.1),
     backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   infoText: {
     color: theme.colors.text.header,
-    fontSize: 18,
+    fontSize: ms(18, 0.2) * fontScale,
     fontFamily: FontFamily.bold,
   },
   stateBox: {
-    marginTop: 8,
-    marginHorizontal: 20,
-    padding: 10,
+    marginTop: ms(8, 0.1),
+    marginHorizontal: ms(20, 0.1),
+    padding: ms(10, 0.1),
     backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 10,
+    borderRadius: ms(10, 0.1),
   },
   stateText: {
     color: theme.colors.compass.muted,
@@ -351,40 +353,41 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   },
   actionRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 10,
+    gap: ms(10, 0.1),
+    marginTop: ms(10, 0.1),
   },
   actionButton: {
     flex: 1,
     backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: 10,
-    paddingVertical: 10,
+    borderRadius: ms(10, 0.1),
+    paddingVertical: ms(10, 0.1),
     alignItems: 'center',
   },
   actionButtonText: {
     color: theme.colors.text.header,
     fontFamily: FontFamily.semibold,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: ms(14, 0.2) * fontScale,
+    lineHeight: ms(20, 0.1),
   },
   compassArea: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: ms(20, 0.1),
+    minHeight: ms(240, 0.2), // Responsive minimum height
   },
   instructionRow: {
-    paddingBottom: 40,
-    paddingHorizontal: 20,
+    paddingBottom: ms(40, 0.1),
+    paddingHorizontal: ms(20, 0.1),
     alignItems: 'center',
-    minHeight: 80,
+    minHeight: ms(80, 0.1),
   },
   instructionText: {
-    fontSize: 32,
+    fontSize: ms(32, 0.3) * fontScale,
     color: theme.colors.text.header,
     fontFamily: FontFamily.bold,
     textAlign: 'center',
-    lineHeight: 40,
+    lineHeight: ms(40, 0.1),
   },
   instructionAligned: {
     color: theme.colors.compass.accent,
@@ -392,33 +395,33 @@ const createStyles = (theme: AppTheme) => StyleSheet.create({
   instructionEmph: {
     color: theme.colors.compass.accent,
     fontFamily: FontFamily.bold,
-    fontSize: 32,
-    lineHeight: 40,
+    fontSize: ms(32, 0.3) * fontScale,
+    lineHeight: ms(40, 0.1),
   },
   hintContainer: {
-    marginHorizontal: 24,
-    marginTop: 8,
+    marginHorizontal: ms(24, 0.1),
+    marginTop: ms(8, 0.1),
     backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    borderRadius: ms(12, 0.1),
+    paddingHorizontal: ms(16, 0.1),
+    paddingVertical: ms(8, 0.1),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: ms(12, 0.1),
   },
   hintText: {
     color: theme.colors.text.muted,
-    fontSize: 13,
+    fontSize: ms(13, 0.1) * fontScale,
     fontFamily: FontFamily.medium,
-    lineHeight: 18,
+    lineHeight: ms(18, 0.1),
     flex: 1,
     flexWrap: 'wrap',
   },
   hintDismiss: {
     color: theme.colors.text.subtle,
-    fontSize: 12,
+    fontSize: ms(12, 0.1) * fontScale,
     fontFamily: FontFamily.semibold,
-    paddingHorizontal: 4,
+    paddingHorizontal: ms(4, 0.1),
   },
 });

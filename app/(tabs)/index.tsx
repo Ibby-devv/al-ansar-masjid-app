@@ -4,14 +4,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  Image,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
+    Image,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PatternOverlay from "../../components/PatternOverlay";
@@ -364,8 +364,7 @@ export default function HomeScreen(): React.JSX.Element {
               </View>
               <Text 
                 style={styles.mosqueName}
-                numberOfLines={1}
-                ellipsizeMode="tail"
+                numberOfLines={2}
               >
                 {mosqueSettings?.name || "Al Ansar Masjid"}
               </Text>
