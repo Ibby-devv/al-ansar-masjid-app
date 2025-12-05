@@ -4,6 +4,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
+import * as StripeTypes from "@stripe/stripe-react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -268,6 +269,7 @@ export default function GiveTab(): React.JSX.Element | null {
             testEnv: false, 
             currencyCode: "AUD" as const,
             merchantName: "Al Ansar Masjid",
+            buttonType: StripeTypes.PlatformPay.ButtonType.Donate, 
             // Your approved Google Pay merchant ID
             existingPaymentMethodRequired: false
           }
