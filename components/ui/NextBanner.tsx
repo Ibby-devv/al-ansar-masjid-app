@@ -36,7 +36,7 @@ const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => nu
     alignItems: "center",
     gap: ms(10, 0.1),
     paddingHorizontal: ms(16, 0.1),
-    paddingVertical: ms(12, 0.1),
+    paddingVertical: ms(10, 0.1),
     backgroundColor: theme.colors.accent.amberSoft,
     borderColor: theme.colors.brand.gold[400] || theme.colors.accent.amber,
     borderWidth: ms(1, 0.05),
