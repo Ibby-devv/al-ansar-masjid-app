@@ -13,8 +13,7 @@ import {
     View,
     useWindowDimensions,
 } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
-import type { AppTheme } from '../hooks/useAppTheme';
+import { useTheme, AppTheme } from '../contexts/ThemeContext';
 import { useResponsive } from '../hooks/useResponsive';
 
 interface DonationSuccessModalProps {

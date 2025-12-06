@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { StyleSheet, View, ViewStyle } from "react-native";
-import { useTheme } from "../../contexts/ThemeContext";
-import type { AppTheme } from "../../hooks/useAppTheme";
+import { useTheme, AppTheme } from "../../contexts/ThemeContext";
 
 type CardProps = {
   children: React.ReactNode;

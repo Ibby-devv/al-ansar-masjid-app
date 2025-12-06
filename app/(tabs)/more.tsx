@@ -8,8 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import EmptyState from '../../components/EmptyState';
 import PatternOverlay from '../../components/PatternOverlay';
 import InstagramIcon from '../../components/ui/InstagramIcon';
-import { useTheme } from '../../contexts/ThemeContext';
-import type { AppTheme } from '../../hooks/useAppTheme';
+import { AppTheme, useTheme } from '../../contexts/ThemeContext';
 import { useResponsive } from '../../hooks/useResponsive';
 
 // Import custom hooks

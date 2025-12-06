@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
-import type { AppTheme } from '../hooks/useAppTheme';
+import { useTheme, AppTheme } from '../contexts/ThemeContext';
 import { useResponsive } from '../hooks/useResponsive';
 
 interface EmptyStateProps {
@@ -18,7 +17,7 @@ export default function EmptyState({
   message,
   variant = 'empty',
 }: EmptyStateProps): React.JSX.Element {
-  const { theme } = useTheme();
+  const  theme  = useTheme();
   const { ms } = useResponsive();
   const { fontScale } = useWindowDimensions();
   const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);

@@ -6,8 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // Import tab components
 import PatternOverlay from '../../../components/PatternOverlay';
 import PillToggle from '../../../components/ui/PillToggle';
-import { useTheme } from '../../../contexts/ThemeContext';
-import type { AppTheme } from '../../../hooks/useAppTheme';
+import { useTheme, AppTheme } from '../../../contexts/ThemeContext';
 import GiveTab from './give';
 import HistoryTab from './history';
 import ManageTab from './manage';

@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
-import { useTheme } from "../../contexts/ThemeContext";
-import type { AppTheme } from "../../hooks/useAppTheme";
+import { StyleSheet, Text, View, ViewStyle, useWindowDimensions } from "react-native";
+import { useTheme , AppTheme} from "../../contexts/ThemeContext";
 import { useResponsive } from "../../hooks/useResponsive";
 import Badge from "./Badge";
 
@@ -23,7 +22,7 @@ export default function SectionHeader({
   
   return (
     <View style={[styles.container, containerStyle]}>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">{title}</Text>
       {rightBadge ? (
         <Badge
           label={rightBadge.label}
@@ -53,5 +52,8 @@ const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => nu
     fontSize: ms(16, 0.2) * fontScale,
     fontWeight: "800",
     color: theme.colors.text.base,
+    flex: 1,
+    minWidth: 0,
+    marginRight: ms(8, 0.05),
   },
 });

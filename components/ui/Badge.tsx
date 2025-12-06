@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { StyleSheet, Text, TextStyle, View, ViewStyle, useWindowDimensions } from "react-native";
-import { useTheme } from "../../contexts/ThemeContext";
-import type { AppTheme } from "../../hooks/useAppTheme";
+import { useTheme, AppTheme } from "../../contexts/ThemeContext";
 import { useResponsive } from "../../hooks/useResponsive";
 
 type BadgeProps = {

@@ -7,8 +7,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Image, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
-import type { AppTheme } from '../hooks/useAppTheme';
+import { useTheme, AppTheme } from '../contexts/ThemeContext';
 import { Campaign } from '../hooks/useCampaigns';
 import { useResponsive } from '../hooks/useResponsive';
 

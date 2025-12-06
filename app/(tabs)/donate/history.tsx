@@ -14,9 +14,8 @@ import {
 } from "react-native";
 import DonationAnalyticsCard from "../../../components/DonationAnalyticsCard";
 import PillToggle from "../../../components/ui/PillToggle";
-import { useTheme } from "../../../contexts/ThemeContext";
+import { useTheme, AppTheme } from "../../../contexts/ThemeContext";
 import { regionalFunctions } from "../../../firebase";
-import type { AppTheme } from "../../../hooks/useAppTheme";
 import { useFirebaseData } from "../../../hooks/useFirebaseData";
 import { useResponsive } from "../../../hooks/useResponsive";
 import { Donation } from "../../../types/donation";

@@ -11,9 +11,8 @@ import {
     View,
     useWindowDimensions,
 } from 'react-native';
-import { useTheme } from '../../../contexts/ThemeContext';
+import { useTheme, AppTheme } from '../../../contexts/ThemeContext';
 import { regionalFunctions } from '../../../firebase';
-import type { AppTheme } from '../../../hooks/useAppTheme';
 import { useResponsive } from '../../../hooks/useResponsive';
 
 export default function ManageTab(): React.JSX.Element {

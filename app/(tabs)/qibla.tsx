@@ -15,8 +15,7 @@ import { useLocation } from '../../components/QiblaCompass/hooks/useLocation';
 import { usePlacename } from '../../components/QiblaCompass/hooks/usePlacename';
 import { useQiblaDirection } from '../../components/QiblaCompass/hooks/useQiblaDirection';
 import { getShortestAngle, isWithinTolerance } from '../../components/QiblaCompass/utils/angleUtils';
-import { useTheme } from '../../contexts/ThemeContext';
-import type { AppTheme } from '../../hooks/useAppTheme';
+import { AppTheme, useTheme } from '../../contexts/ThemeContext';
 import { useResponsive } from '../../hooks/useResponsive';
 
 const TOLERANCE = 10; // degrees

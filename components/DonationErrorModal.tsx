@@ -9,8 +9,7 @@ import {
     View,
     useWindowDimensions,
 } from 'react-native';
-import { useTheme } from '../contexts/ThemeContext';
-import type { AppTheme } from '../hooks/useAppTheme';
+import { useTheme, AppTheme } from '../contexts/ThemeContext';
 import { useResponsive } from '../hooks/useResponsive';
 
 export interface DonationError {
@@ -170,7 +169,7 @@ export default function DonationErrorModal({
             <View style={styles.supportBox}>
               <Ionicons name="information-circle" size={20} color={theme.colors.brand.navy[700]} />
               <Text style={styles.supportText}>
-                Need help? Contact us at support@alansar.org.au
+                Need help? Contact us at support@alansar.au
               </Text>
             </View>
           </ScrollView>

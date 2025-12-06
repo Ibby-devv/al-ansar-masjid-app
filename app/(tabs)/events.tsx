@@ -9,8 +9,7 @@ import Badge from '../../components/ui/Badge';
 import Card from '../../components/ui/Card';
 import PillButton from '../../components/ui/PillButton';
 import SectionHeader from '../../components/ui/SectionHeader';
-import { useTheme } from '../../contexts/ThemeContext';
-import type { AppTheme } from '../../hooks/useAppTheme';
+import { AppTheme, useTheme } from '../../contexts/ThemeContext';
 import { useResponsive } from '../../hooks/useResponsive';
 
 // Import custom hooks
@@ -498,7 +497,7 @@ const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => nu
   },
   timeBadgeText: {
     marginLeft: ms(6, 0.1),
-    fontSize: ms(17, 0.2) * fontScale,
+    fontSize: ms(16, 0.2) * fontScale,
     fontWeight: '800',
     color: theme.colors.accent.blue,
   },

@@ -224,7 +224,7 @@ export default function ResponsiveTest(): React.JSX.Element {
           lineHeight: vs(16)
         }
       ]}>
-        💡 ROTATE DEVICE NOW - watch "Runtime" padding change instantly!
+        💡 ROTATE DEVICE NOW - watch &quot;Runtime&quot; padding change instantly!
       </Text>
     </View>
   );
