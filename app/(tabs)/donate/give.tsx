@@ -8,19 +8,19 @@ import * as StripeTypes from "@stripe/stripe-react-native";
 import { useStripe } from "@stripe/stripe-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    BackHandler,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-    useWindowDimensions,
+  ActivityIndicator,
+  Alert,
+  BackHandler,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CampaignCard from "../../../components/CampaignCard";
@@ -225,11 +225,11 @@ export default function GiveTab(): React.JSX.Element | null {
       return false;
     }
 
-    // Email required for recurring donations
-    if (isRecurring && (!donorEmail.trim() || !donorEmail.includes("@"))) {
+    // Email required for recurring donations (cannot be anonymous)
+    if (isRecurring && (isAnonymous || !donorEmail.trim() || !donorEmail.includes("@"))) {
       Alert.alert(
         "Email Required",
-        "A valid email address is required for recurring donations so you can manage your subscription."
+        "A valid email address is required for recurring donations so you can manage your subscription. Please uncheck 'Donate Anonymously'."
       );
       return false;
     }
@@ -250,7 +250,9 @@ export default function GiveTab(): React.JSX.Element | null {
         isRecurring,
         frequency: isRecurring ? frequency : undefined,
         donorName: isAnonymous ? "Anonymous" : donorName.trim(),
-        donorEmail: donorEmail.trim() || "anonymous@donation.com",
+        // Send empty string for anonymous instead of fake email
+        // This prevents duplicate customer creation in Stripe
+        donorEmail: isAnonymous ? "" : donorEmail.trim(),
         donorPhone: "",
         donorMessage: undefined,
         campaignId: selectedCampaign?.id || undefined,
