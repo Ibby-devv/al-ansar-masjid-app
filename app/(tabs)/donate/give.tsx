@@ -23,6 +23,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import GooglePayIcon from "../../../assets/images/google-pay-mark_800.svg";
 import CampaignCard from "../../../components/CampaignCard";
 import DonationErrorModal, { DonationError } from "../../../components/DonationErrorModal";
 import DonationSuccessModal from "../../../components/DonationSuccessModal";
@@ -690,11 +691,7 @@ export default function GiveTab(): React.JSX.Element | null {
                     )}
                     {Platform.OS === "android" && (
                       <View style={styles.paymentMethodBadge}>
-                        <Ionicons
-                          name="logo-google"
-                          size={20}
-                          color="#4285F4"
-                        />
+                        <GooglePayIcon width={80} height={60} />
                         <Text style={styles.paymentMethodText}>Google Pay</Text>
                       </View>
                     )}
@@ -1078,7 +1075,7 @@ const createStyles = (theme: ThemeFromHook, ms: (size: number, factor?: number) 
     borderRadius: theme.radius.sm,
   },
   paymentMethodText: {
-    fontSize: ms(13, 0.1) * fontScale,
+    fontSize: ms(15, 0.1) * fontScale,
     fontWeight: "600",
     color: theme.colors.text.strong,
   },
