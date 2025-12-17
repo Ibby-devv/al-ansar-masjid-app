@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { StyleSheet, Text, TextStyle, TouchableOpacity, ViewStyle, useWindowDimensions } from "react-native";
-import { useTheme, AppTheme } from "../../contexts/ThemeContext";
+import { AppTheme, useTheme } from "../../contexts/ThemeContext";
 import { useResponsive } from "../../hooks/useResponsive";
 
 type PillButtonProps = {
@@ -59,7 +59,7 @@ const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => nu
   textBase: {
     fontSize: ms(14, 0.2) * fontScale,
     fontWeight: "800",
-    letterSpacing: ms(0.2, 0.05),
+    letterSpacing: 0.3,
     lineHeight: ms(18, 0.2) * fontScale,
   },
   textUnselected: {
