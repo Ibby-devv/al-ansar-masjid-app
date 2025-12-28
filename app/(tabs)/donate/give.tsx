@@ -691,7 +691,7 @@ export default function GiveTab(): React.JSX.Element | null {
                     )}
                     {Platform.OS === "android" && (
                       <View style={styles.paymentMethodBadge}>
-                        <GooglePayIcon width={80} height={60} />
+                        <GooglePayIcon width={100} height={40} />
                         <Text style={styles.paymentMethodText}>Google Pay</Text>
                       </View>
                     )}
@@ -1070,7 +1070,7 @@ const createStyles = (theme: ThemeFromHook, ms: (size: number, factor?: number) 
     alignItems: "center",
     gap: 6,
     paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
     backgroundColor: theme.colors.surface.soft,
     borderRadius: theme.radius.sm,
   },

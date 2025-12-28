@@ -28,7 +28,7 @@ export default function EventsScreen(): React.JSX.Element {
   
   // Load events and categories from Firebase
   const { upcomingEvents, loading: eventsLoading } = useEvents();
-  const { categories, loading: categoriesLoading } = useEventCategories();
+  const { categories, loading: categoriesLoading, hasRealData } = useEventCategories();
   const { mosqueSettings } = useFirebaseData();
 
   // Helpers for prominent date display and relative badges
@@ -82,7 +82,7 @@ export default function EventsScreen(): React.JSX.Element {
   // ✅ NEW: Get category label dynamically
   const getCategoryLabel = (categoryId: string): string => {
     const category = categories.find(cat => cat.id === categoryId);
-    return category?.label || categoryId;
+    return category?.label || 'Unknown'; // Show meaningful fallback
   };
 
   // Filter events by category
@@ -170,27 +170,29 @@ export default function EventsScreen(): React.JSX.Element {
         </SafeAreaView>
       </LinearGradient>
 
-      {/* Category Filter */}
-      <View style={styles.categoryFilterWrapper}>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          contentContainerStyle={styles.categoryFilterContent}
-        >
-          {categoriesLoading ? (
-            <Text style={styles.categoryButtonText}>Loading categories...</Text>
-          ) : (
-            categoryFilters.map(cat => (
-              <PillButton
-                key={cat.id}
-                label={cat.label}
-                selected={selectedCategory === cat.id}
-                onPress={() => setSelectedCategory(cat.id)}
-              />
-            ))
-          )}
-        </ScrollView>
-      </View>
+      {/* Category Filter - Only show if we have real category data */}
+      {hasRealData && (
+        <View style={styles.categoryFilterWrapper}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={styles.categoryFilterContent}
+          >
+            {categoriesLoading ? (
+              <Text style={styles.categoryButtonText}>Loading categories...</Text>
+            ) : (
+              categoryFilters.map(cat => (
+                <PillButton
+                  key={cat.id}
+                  label={cat.label}
+                  selected={selectedCategory === cat.id}
+                  onPress={() => setSelectedCategory(cat.id)}
+                />
+              ))
+            )}
+          </ScrollView>
+        </View>
+      )}
 
       {/* Events List */}
       <View style={styles.eventsContainer}>

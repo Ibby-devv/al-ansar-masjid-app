@@ -6,15 +6,26 @@ import { db } from '../firebase';
 import { EventCategoriesConfig, EventCategory } from '../types';
 import { getCachedData, setCachedData } from '../utils/cache';
 
+// ============================================================================
+// Hook Interface
+// ============================================================================
+
 interface UseEventCategoriesReturn {
   categories: EventCategory[];
   loading: boolean;
   error: string | null;
+  hasRealData: boolean; // True if categories from Firestore/cache
 }
 
+/**
+ * Hook to load event categories
+ * - Filters only show when hasRealData is true
+ * - Event badges use category.label from this data, or show raw ID if not found
+ */
 export const useEventCategories = (): UseEventCategoriesReturn => {
   const [categories, setCategories] = useState<EventCategory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [hasRealData, setHasRealData] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,8 +37,9 @@ export const useEventCategories = (): UseEventCategoriesReturn => {
 
         // 1. Load from cache first (instant)
         const cachedData = await getCachedData<EventCategory[]>(CACHE_KEYS.EVENT_CATEGORIES);
-        if (cachedData) {
+        if (cachedData && cachedData.length > 0) {
           setCategories(cachedData);
+          setHasRealData(true);
           setLoading(false);
           console.log('✅ Event categories loaded from cache:', cachedData.length);
         }
@@ -41,26 +53,17 @@ export const useEventCategories = (): UseEventCategoriesReturn => {
               if (docSnapshot.exists()) {
                 const data = docSnapshot.data() as EventCategoriesConfig;
                 
-                if (data.categories) {
+                if (data.categories && data.categories.length > 0) {
                   // Filter active categories and sort by order
                   const activeCategories = data.categories
                     .filter((cat: EventCategory) => cat.is_active)
                     .sort((a: EventCategory, b: EventCategory) => a.order - b.order);
                   
                   setCategories(activeCategories);
-                  
-                  // Update cache
+                  setHasRealData(true);
                   await setCachedData(CACHE_KEYS.EVENT_CATEGORIES, activeCategories);
-                  
                   console.log('🏷️ Event categories updated:', activeCategories.length);
-                } else {
-                  // Fallback to default categories
-                  setCategories(getDefaultCategories());
                 }
-              } else {
-                // Document doesn't exist, use defaults
-                console.warn('⚠️ No event categories found in Firestore, using defaults');
-                setCategories(getDefaultCategories());
               }
               
               setLoading(false);
@@ -68,14 +71,12 @@ export const useEventCategories = (): UseEventCategoriesReturn => {
             (err) => {
               console.error('Error listening to event categories:', err);
               setError(err.message);
-              setCategories(getDefaultCategories()); // Fallback on error
               setLoading(false);
             }
           );
       } catch (err) {
         console.error('Error setting up categories listener:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
-        setCategories(getDefaultCategories());
         setLoading(false);
       }
     };
@@ -95,57 +96,6 @@ export const useEventCategories = (): UseEventCategoriesReturn => {
     categories,
     loading,
     error,
+    hasRealData,
   };
 };
-
-// Fallback default categories (same as admin dashboard)
-const getDefaultCategories = (): EventCategory[] => [
-  {
-    id: 'lecture',
-    label: 'Lectures',
-    color_bg: '#dbeafe',
-    color_text: '#1e40af',
-    order: 1,
-    is_active: true,
-  },
-  {
-    id: 'community',
-    label: 'Community Events',
-    color_bg: '#fef3c7',
-    color_text: '#92400e',
-    order: 2,
-    is_active: true,
-  },
-  {
-    id: 'youth',
-    label: 'Youth Programs',
-    color_bg: '#fce7f3',
-    color_text: '#9f1239',
-    order: 3,
-    is_active: true,
-  },
-  {
-    id: 'women',
-    label: "Women's Events",
-    color_bg: '#f3e8ff',
-    color_text: '#6b21a8',
-    order: 4,
-    is_active: true,
-  },
-  {
-    id: 'education',
-    label: 'Educational',
-    color_bg: '#dcfce7',
-    color_text: '#15803d',
-    order: 5,
-    is_active: true,
-  },
-  {
-    id: 'charity',
-    label: 'Charity & Fundraising',
-    color_bg: '#fff7ed',
-    color_text: '#c2410c',
-    order: 6,
-    is_active: true,
-  },
-];
