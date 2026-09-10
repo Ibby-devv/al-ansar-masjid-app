@@ -274,7 +274,7 @@ export default function QiblaScreen(): React.JSX.Element {
       {isValid && heading && (
         <View style={styles.instructionRow}>
           {aligned ? (
-            <ThemedText style={[styles.instructionText, styles.instructionAligned]}>You&apos;re facing Makkah</ThemedText>
+            <ThemedText style={[styles.instructionText, styles.instructionAligned]}>You&apos;re facing the Kaaba</ThemedText>
           ) : (
             <ThemedText style={styles.instructionText}>
               Turn to your {turnLeft ? <ThemedText style={styles.instructionEmph}>left</ThemedText> : turnRight ? <ThemedText style={styles.instructionEmph}>right</ThemedText> : <ThemedText style={styles.instructionEmph}>side</ThemedText>}

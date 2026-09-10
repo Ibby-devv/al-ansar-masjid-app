@@ -1,243 +1,206 @@
 # Google Play Store Deployment Guide
-# Al Ansar Masjid App - Internal Testing
 
-This guide walks you through deploying the Al Ansar Masjid app to Google Play Store for internal testing.
+Al Ansar Masjid app — how to build and upload to Play Console.
 
-## Prerequisites
+## TL;DR — Use EAS for Play Store
 
-1. ✓ EAS CLI installed: `npm install -g eas-cli`
-2. ✓ Expo account (login with: `eas login`)
-3. ✓ Google Play Console account
-4. ✓ Java Development Kit (JDK) installed for keystore generation
-
-## Step 1: Generate Upload Keystore (First Time Only)
-
-The app is currently using debug signing. For Play Store, you need a production keystore.
-
-### Option A: Let EAS Generate Keystore (Easiest)
-```powershell
-cd d:\DEV\MosqueApp\al-ansar-masjid-app
-eas credentials
-```
-- Select: Android → production
-- Choose: Set up a new keystore
-- EAS will generate and manage the keystore for you
-
-### Option B: Generate Your Own Keystore
-```powershell
-cd d:\DEV\MosqueApp\al-ansar-masjid-app\android\app
-.\generate-keystore.ps1
-```
-
-After generating, create `android/keystore.properties`:
-```properties
-storePassword=YOUR_KEYSTORE_PASSWORD
-keyPassword=YOUR_KEY_PASSWORD
-keyAlias=upload
-storeFile=upload-keystore.keystore
-```
-
-**Important:** Add to `.gitignore`:
-```
-android/keystore.properties
-android/app/upload-keystore.keystore
-```
-
-## Step 2: Build Android App Bundle (AAB)
-
-Build the production AAB file for Play Store:
+Play Store releases are meant to go through **EAS** (Expo Application Services). The upload signing key is stored in your **Expo account**, so you do **not** need a keystore file on each PC.
 
 ```powershell
-cd d:\DEV\MosqueApp\al-ansar-masjid-app
-
-# Make sure you're logged in
+# From the project root (install CLI once if needed: npm install -g eas-cli)
 eas login
-
-# Build for production
 eas build --platform android --profile production
 ```
 
-This will:
-- Build an Android App Bundle (.aab)
-- Auto-increment the version code
-- Sign the app with your upload keystore
-- Upload to EAS servers
+When the cloud build finishes (~10–20 min):
 
-The build process takes 10-20 minutes. You can:
-- Watch the build online at the provided URL
-- Or continue working and check status with: `eas build:list`
-
-Once complete, download the AAB file from the EAS dashboard or use:
 ```powershell
 eas build:download --platform android --profile production
+# Upload the .aab in Play Console → Testing → Internal testing → Create release
 ```
 
-## Step 3: Create Google Play Console App
+Or submit automatically (needs `android/pc-api-key.json`):
 
-1. Go to [Google Play Console](https://play.google.com/console)
-2. Click "Create app"
-3. Fill in details:
-   - App name: **Al Ansar Masjid**
-   - Default language: **English (United States)**
-   - App or game: **App**
-   - Free or paid: **Free**
-4. Accept declarations and create app
-
-## Step 4: Set Up App Content & Store Listing
-
-### Store Listing
-1. Navigate to: Store presence → Main store listing
-2. Fill in:
-   - **App name:** Al Ansar Masjid
-   - **Short description:** Prayer times, donations, and community events for Al Ansar Masjid
-   - **Full description:** Comprehensive description of features (prayer times, Qibla compass, donations, events, etc.)
-   - **App icon:** 512x512 PNG (from assets/images/icon.png)
-   - **Feature graphic:** 1024x500 PNG
-   - **Phone screenshots:** At least 2 screenshots (1080x1920 or similar)
-
-### App Content
-Complete all required sections:
-1. **Privacy policy:** Add your privacy policy URL
-2. **App access:** Declare if special access is needed
-3. **Ads:** Declare if app contains ads (probably "No")
-4. **Content rating:** Complete questionnaire
-5. **Target audience:** Select age groups
-6. **Data safety:** Declare data collection practices
-
-## Step 5: Upload AAB for Internal Testing
-
-1. In Play Console, go to: **Testing → Internal testing**
-2. Click "**Create new release**"
-3. Upload the AAB file you downloaded from EAS
-4. Review release details:
-   - Version name: 1.0.0
-   - Version code: (auto-incremented)
-5. Add release notes (e.g., "Initial internal testing release")
-6. Click "**Save**" then "**Review release**"
-7. Click "**Start rollout to Internal testing**"
-
-## Step 6: Add Internal Testers
-
-1. Go to: **Testing → Internal testing → Testers tab**
-2. Create an email list of testers
-3. Add tester email addresses
-4. Save changes
-5. Copy the opt-in URL and share with testers
-
-Testers will:
-1. Click the opt-in URL
-2. Accept the invitation
-3. Download the app from Play Store
-4. Start testing
-
-## Step 7: Future Updates
-
-For subsequent releases:
-
-```powershell
-# 1. Update version in app.json (optional, EAS can auto-increment)
-# 2. Build new version
-cd d:\DEV\MosqueApp\al-ansar-masjid-app
-eas build --platform android --profile production
-
-# 3. Once build completes, download AAB
-eas build:download --platform android --profile production
-
-# 4. Upload to Play Console → Internal testing → Create new release
-```
-
-Or use EAS Submit to automate uploading:
-```powershell
-# Set up service account (one-time, see Step 8 below)
-eas submit --platform android --profile production
-```
-
-## Step 8: Automate Submissions (Optional)
-
-To use `eas submit` for automatic uploads:
-
-1. In Google Play Console, set up a service account:
-   - Go to: Setup → API access
-   - Link to Google Cloud project or create new
-   - Create service account with Play Console permissions
-   - Download JSON key file
-
-2. Save as `android/pc-api-key.json` (add to .gitignore)
-
-3. Submit automatically:
 ```powershell
 eas submit --platform android --profile production
 ```
 
-## Troubleshooting
-
-### Build Fails
-- Check EAS build logs online
-- Ensure all dependencies are properly installed
-- Verify `google-services.json` is present
-
-### Upload Rejected
-- Ensure version code is higher than previous uploads
-- Check that package name matches: `com.alansarmasjid.app`
-- Verify app is properly signed
-
-### Testing Link Doesn't Work
-- Ensure tester email is added to internal testing list
-- Tester must accept invitation first
-- App must be rolled out to internal testing
-
-## Commands Reference
-
-```powershell
-# Login to EAS
-eas login
-
-# Check current credentials
-eas credentials
-
-# Build production AAB
-eas build --platform android --profile production
-
-# Build APK for testing
-eas build --platform android --profile production-apk
-
-# List builds
-eas build:list
-
-# Download latest build
-eas build:download --platform android --profile production
-
-# Submit to Play Store (with service account)
-eas submit --platform android --profile production
-
-# Check build status
-eas build:view [BUILD_ID]
-```
-
-## Important Notes
-
-1. **Version Management:** EAS auto-increments `versionCode`. Update `version` in `app.json` manually for major releases.
-
-2. **Keystore Security:** Never commit keystore files or credentials to git. Store securely and backup.
-
-3. **Testing Track:** Start with internal testing (up to 100 testers), then move to closed testing (broader audience) before production.
-
-4. **Review Time:** Internal testing is instant. Closed/Open testing requires Google review (1-3 days).
-
-5. **App Signing:** Google Play App Signing is recommended. Google re-signs your app with their key after upload.
-
-## Next Steps After Internal Testing
-
-1. Collect feedback from internal testers
-2. Fix bugs and issues
-3. Create closed testing release (larger audience)
-4. Complete all Play Console requirements
-5. Submit for production review
-6. Launch to production!
+There is **no** npm script that runs this end-to-end.  
+`.\deploy-playstore.ps1` only **prints** these steps (and can install the EAS CLI). It does **not** build or upload for you.
 
 ---
 
-For more information:
-- [EAS Build Documentation](https://docs.expo.dev/build/introduction/)
-- [EAS Submit Documentation](https://docs.expo.dev/submit/introduction/)
-- [Google Play Console Help](https://support.google.com/googleplay/android-developer)
+## EAS vs local Gradle — which to use?
+
+| Goal | Use | Command |
+|------|-----|---------|
+| Upload to Google Play | **EAS** (recommended) | `eas build --platform android --profile production` |
+| Local release AAB / APK on this machine | Local Gradle | `npm run clean:build:bundle` (or `build:release`) |
+| Dev / debug APK | Local Gradle | `npm run clean:build:debug` |
+
+**Why EAS for Play?**  
+Earlier uploads were signed with the EAS-managed upload key. Local builds without `android/keystore.properties` fall back to the **debug** keystore. Play then rejects the AAB with “signed with the wrong key.”
+
+Expected Play upload cert (example from a real rejection):
+
+- Play expects: your EAS/upload key SHA1  
+- Debug key looks like: `5E:8F:16:06:2E:A3:CD:2C:4A:0D:54:78:76:BA:A6:F3:8C:AB:F6:25`
+
+If you see that debug fingerprint, you built locally without release signing.
+
+---
+
+## Versioning
+
+| Field | Where | Who bumps it |
+|-------|--------|----------------|
+| `versionCode` (integer Play requires to increase) | `app.json` → `android.versionCode` and `android/app/build.gradle` | **EAS production:** auto (`autoIncrement: true` in `eas.json`). **Local:** bump both places yourself before each Play upload. |
+| `version` / `versionName` (user-facing, e.g. `1.2`) | `app.json` and `build.gradle` | You, when you want a new visible version. |
+
+Package name must stay: `com.alansarmasjid.app`.
+
+---
+
+## Prerequisites (EAS path)
+
+1. Node / npm installed; run `npm install` in the project root first  
+2. EAS CLI: `npm install -g eas-cli` (or use `npx eas-cli …`)  
+3. Expo account: `eas login`  
+4. Google Play Console access to this app  
+
+Signing: prefer **EAS-managed keystore** (`eas credentials` → Android → production). Do not create a *new* keystore if the app is already on Play — Play expects the existing upload certificate.
+
+---
+
+## Step-by-step: Play release with EAS
+
+### 1. (Optional) Bump user-facing version
+
+Edit `app.json` → `"version"` (and keep `versionName` in `android/app/build.gradle` in sync if you care about local consistency).  
+Leave `versionCode` alone for EAS; it auto-increments from remote.
+
+### 2. Build
+
+```powershell
+eas build --platform android --profile production
+```
+
+This builds an **AAB**, signs with the Expo-stored upload key, and auto-increments `versionCode`.
+
+Profiles in `eas.json`:
+
+- `production` — AAB for Play Store  
+- `production-apk` — same signing, APK output  
+- `preview` — internal APK  
+- `development` — dev client  
+
+### 3. Download or submit
+
+```powershell
+eas build:list
+eas build:download --platform android --profile production
+```
+
+Upload the AAB in Play Console, **or**:
+
+```powershell
+eas submit --platform android --profile production
+```
+
+(`eas submit` needs a Play service account JSON at `android/pc-api-key.json` — gitignored.)
+
+### 4. Internal testing (manual upload)
+
+1. [Play Console](https://play.google.com/console) → **Testing → Internal testing**  
+2. **Create new release** → upload AAB → release notes → rollout  
+3. Add testers under the Testers tab and share the opt-in URL  
+
+---
+
+## Local Gradle builds (not for Play unless signing is set up)
+
+Useful for device installs and debugging. **Not** the default Play path.
+
+```powershell
+npm install                    # required; missing packages break the JS bundle step
+npm run clean                  # safe clean (scripts/clean-build.js) — prefer over gradlew clean
+npm run clean:build:debug      # debug APK
+npm run clean:build:release    # release APK
+npm run clean:build:bundle     # release AAB
+```
+
+Outputs:
+
+- Debug APK: `android/app/build/outputs/apk/debug/app-debug.apk`  
+- Release APK: `android/app/build/outputs/apk/release/app-release.apk`  
+- Release AAB: `android/app/build/outputs/bundle/release/app-release.aab`  
+
+Install helpers: `npm run install:debug` / `npm run install:release`.
+
+### Local release signing (only if you insist on uploading a local AAB)
+
+1. Download the **existing** upload keystore from EAS (`eas credentials`) — do not generate a new one for an app already on Play.  
+2. Place it under `android/app/` (e.g. `upload-keystore.keystore`).  
+3. Copy `android/keystore.properties.template` → `android/keystore.properties` and fill in passwords / alias / `storeFile`.  
+4. If a clean prebuild wiped signing blocks: `npm run restore:signing`.  
+5. Bump `versionCode` in **both** `app.json` and `android/app/build.gradle`.  
+6. `npm run clean:build:bundle` and upload the AAB.
+
+`keystore.properties` and `*.keystore` (except debug) are gitignored — they are not shared across PCs via git. That’s why EAS is easier on multiple machines.
+
+Optional local key generation (new apps only): `android/app/generate-keystore.ps1`.
+
+---
+
+## Scripts reference
+
+| Script / command | What it actually does |
+|------------------|------------------------|
+| `.\deploy-playstore.ps1` | Prints EAS instructions; may install `eas-cli`. **Does not build.** |
+| `eas build --platform android --profile production` | Cloud AAB for Play (correct signing). |
+| `eas submit --platform android --profile production` | Upload latest/compatible build to Play. |
+| `npm run clean:build:bundle` | Local AAB via Gradle (debug-signed if no keystore.properties). |
+| `npm run restore:signing` | Re-inject release signing config into `build.gradle` after prebuild. |
+| `npm run clean` | Delete Android build artifacts safely. |
+
+---
+
+## Troubleshooting
+
+### “Android App Bundle is signed with the wrong key”
+You uploaded a **locally** built AAB signed with the debug key (or a different keystore). Rebuild with **EAS production**, or configure the **same** upload keystore Play already has.
+
+### “versionCode already used” / must be higher
+Bump `versionCode` (local) or use EAS `production` so `autoIncrement` runs.
+
+### Bundle step: Unable to resolve module …
+Run `npm install` and rebuild. Example: missing `@react-native-async-storage/async-storage` fails `:app:createBundleReleaseJsAndAssets`.
+
+### Strange `Γûô` characters in the console
+Metro progress bar Unicode vs Windows code page. Harmless. Optional: `chcp 65001`.
+
+### EAS CLI not found
+`npm install -g eas-cli` or `npx eas-cli build --platform android --profile production`.
+
+---
+
+## Store listing / first-time Console setup
+
+If the app is new in Play Console: create the app, complete store listing, privacy policy, content rating, data safety, etc., then upload via Internal testing as above. Details for listing assets and tester setup are the same as a normal Play internal-test rollout.
+
+---
+
+## Related files
+
+- `eas.json` — build/submit profiles  
+- `app.json` — `version`, `android.versionCode`  
+- `android/app/build.gradle` — local `versionCode` / signing  
+- `android/keystore.properties.template` — local signing template  
+- `generated-docs/DEPLOYMENT_CHECKLIST.md` — checklist  
+- `generated-docs/GETTING_STARTED.md` — short intro  
+
+External docs:
+
+- [EAS Build](https://docs.expo.dev/build/introduction/)  
+- [EAS Submit](https://docs.expo.dev/submit/introduction/)  
+- [Play Console Help](https://support.google.com/googleplay/android-developer)

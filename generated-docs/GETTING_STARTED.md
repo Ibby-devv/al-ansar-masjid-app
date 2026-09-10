@@ -18,27 +18,28 @@ Your Al Ansar Masjid app is now ready for Play Store deployment! Here's what was
 
 ## Quick Start (3 Simple Steps)
 
-### 1. Run the Quick Start Script
+### Play Store builds use EAS (not local Gradle)
+
+Signing for Play lives in your Expo account. Local `npm run build:bundle` is a different path and will fail Play upload unless you configure the same upload keystore.
+
+Full guide: `generated-docs/PLAY_STORE_DEPLOYMENT.md`
+
+### 1. Optional helper (prints commands only)
 ```powershell
-cd d:\DEV\MosqueApp\al-ansar-masjid-app
 .\deploy-playstore.ps1
 ```
+Does **not** run the build.
 
-This will show you all the commands you need.
-
-### 2. Login and Configure Keystore
+### 2. Login (first time on a machine)
 ```powershell
-# Login to EAS
 eas login
-
-# Let EAS manage your keystore (easiest option)
-eas credentials
-# Select: Android → production → Set up new keystore
+# Keystore should already exist in EAS for this app — do not create a new one
+# eas credentials   # only to view/download existing Android production credentials
 ```
 
 ### 3. Build and Deploy
 ```powershell
-# Build production AAB (takes 10-20 minutes)
+# Build production AAB (takes 10-20 minutes) — this is the command you want
 eas build --platform android --profile production
 
 # After build completes, download AAB

@@ -104,14 +104,15 @@
 **Important Files:**
 - Configuration: `eas.json`, `app.json`
 - Build config: `android/app/build.gradle`
-- Deployment guide: `PLAY_STORE_DEPLOYMENT.md`
-- Quick start: `deploy-playstore.ps1`
+- Deployment guide: `generated-docs/PLAY_STORE_DEPLOYMENT.md`
+- Quick start (prints commands only): `deploy-playstore.ps1`
 
 **Security Reminders:**
 - Never commit keystore files
 - Never commit keystore.properties
 - Never commit pc-api-key.json
 - Keep all credentials secure and backed up
+- Prefer EAS-managed upload key for Play; do not generate a new keystore for an app already published
 
 ## Ready for Next Stage?
 
@@ -125,4 +126,4 @@ After successful internal testing:
 
 ---
 
-Last Updated: November 6, 2025
+Last Updated: September 10, 2026

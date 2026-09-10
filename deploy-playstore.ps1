@@ -1,8 +1,16 @@
-# Quick Deploy Script for Play Store Internal Testing
+# Play Store deployment helper (INSTRUCTIONAL ONLY)
 # Al Ansar Masjid App
+#
+# This script does NOT run eas build / download / submit.
+# It prints the commands to run. Full guide:
+#   generated-docs/PLAY_STORE_DEPLOYMENT.md
+#
+# Actual Play Store build command:
+#   eas build --platform android --profile production
 
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host "Play Store Deployment - Quick Start" -ForegroundColor Cyan
+Write-Host "(prints commands only — does not build)" -ForegroundColor DarkYellow
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host ""
 
