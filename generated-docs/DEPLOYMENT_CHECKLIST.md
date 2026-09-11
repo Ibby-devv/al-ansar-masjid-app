@@ -23,13 +23,24 @@
 
 ## Build & Upload
 
+- [ ] Bump version before building (required for every Play upload)
+  - [ ] `app.json`
+    - [ ] Increment `expo.version` (user-facing version name, e.g. `"1.2"` → `"1.3"`)
+    - [ ] Increment `expo.android.versionCode` (integer, must be higher than the last upload, e.g. `25` → `26`)
+  - [ ] `android/app/build.gradle`
+    - [ ] Increment `versionName` to match `expo.version`
+    - [ ] Increment `versionCode` to match `expo.android.versionCode`
+  - [ ] Keep both files in sync — Gradle is what the AAB embeds when building locally (`npm run build:bundle`)
+  - [ ] Do **not** rely on `package.json` version for Play Console
 - [ ] Build production AAB
-  - [ ] Run: `eas build --platform android --profile production`
-  - [ ] Wait for build to complete (10-20 minutes)
+  - [ ] Option A (local): `npm run build:bundle`
+  - [ ] Option B (EAS): `eas build --platform android --profile production`
+  - [ ] Wait for build to complete
   - [ ] Build successful ✓
-- [ ] Download AAB file
-  - [ ] Run: `eas build:download --platform android --profile production`
-  - [ ] AAB file saved locally
+- [ ] Download / locate AAB file
+  - [ ] Local: `android/app/build/outputs/bundle/release/app-release.aab`
+  - [ ] EAS: `eas build:download --platform android --profile production`
+  - [ ] AAB file saved / ready to upload
 
 ## Google Play Console Setup
 
@@ -58,7 +69,7 @@
   - [ ] Navigate to: Testing → Internal testing
   - [ ] Click "Create new release"
   - [ ] Upload AAB file
-  - [ ] Review version name (1.0.0) and version code
+  - [ ] Confirm version name and version code match the values you bumped
   - [ ] Add release notes
   - [ ] Save and review release
   - [ ] Start rollout to internal testing
@@ -96,14 +107,16 @@
 
 ## Notes
 
-**Version:** 1.0.0 (Version Code: Auto-incremented by EAS)
-**Package:** com.alansarmasjid.app
-**Build Type:** App Bundle (AAB)
-**Testing Track:** Internal Testing
+**Version / versionCode:** bump manually in both `app.json` and `android/app/build.gradle` before every upload  
+**Current (as of last checklist edit):** version `1.2`, versionCode `25`  
+**Package:** com.alansarmasjid.app  
+**Build Type:** App Bundle (AAB)  
+**Testing Track:** Internal Testing  
 
 **Important Files:**
+- Version source of truth: `app.json` (`expo.version`, `expo.android.versionCode`)
+- Native Android values (must match): `android/app/build.gradle` (`versionName`, `versionCode`)
 - Configuration: `eas.json`, `app.json`
-- Build config: `android/app/build.gradle`
 - Deployment guide: `generated-docs/PLAY_STORE_DEPLOYMENT.md`
 - Quick start (prints commands only): `deploy-playstore.ps1`
 
@@ -126,4 +139,4 @@ After successful internal testing:
 
 ---
 
-Last Updated: September 10, 2026
+Last Updated: September 11, 2026
