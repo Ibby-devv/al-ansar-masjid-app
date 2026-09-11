@@ -112,6 +112,7 @@ export const useAutoFetchPrayerTimes = (
       const updatedPrayerTimes: PrayerTimes = {
         ...currentPrayerTimes,
         fajr_adhan: formatTime(adhanPrayerTimes.fajr),
+        shuruq_adhan: formatTime(adhanPrayerTimes.sunrise),
         dhuhr_adhan: formatTime(adhanPrayerTimes.dhuhr),
         asr_adhan: formatTime(adhanPrayerTimes.asr),
         maghrib_adhan: formatTime(adhanPrayerTimes.maghrib),
@@ -126,6 +127,7 @@ export const useAutoFetchPrayerTimes = (
 
       console.log(`✅ Prayer times auto-calculated using ${methodName}:
         Fajr: ${formatTime(adhanPrayerTimes.fajr)}
+        Shuruq: ${formatTime(adhanPrayerTimes.sunrise)}
         Dhuhr: ${formatTime(adhanPrayerTimes.dhuhr)}
         Asr: ${formatTime(adhanPrayerTimes.asr)}
         Maghrib: ${formatTime(adhanPrayerTimes.maghrib)}

@@ -6,6 +6,9 @@ export interface PrayerTimes {
   fajr_iqama: string;
   fajr_iqama_type: 'fixed' | 'offset';
   fajr_iqama_offset?: number;
+
+  /** Sunrise — adhan only, no iqama */
+  shuruq_adhan?: string;
   
   dhuhr_adhan: string;
   dhuhr_iqama: string;

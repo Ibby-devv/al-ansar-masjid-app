@@ -285,7 +285,7 @@ export default function HomeScreen(): React.JSX.Element {
     return <LoadingScreen />;
   }
 
-  // Prayer times array
+  // Prayer times array (Shuruq/sunrise has adhan only)
   const prayers: (Prayer & { icon: string; showIqama: boolean })[] = [
     {
       name: "Fajr",
@@ -293,6 +293,13 @@ export default function HomeScreen(): React.JSX.Element {
       iqama: getDisplayedIqamaTime("fajr"),
       icon: "moon",
       showIqama: true,
+    },
+    {
+      name: "Shuruq",
+      adhan: prayerTimes?.shuruq_adhan,
+      iqama: undefined,
+      icon: "sunny",
+      showIqama: false,
     },
     {
       name: "Dhuhr",
@@ -407,7 +414,7 @@ export default function HomeScreen(): React.JSX.Element {
               </View>
               {/* Skeleton rows only when loading and NO cached data */}
               {loading && !prayerTimes ? (
-                [0,1,2,3,4].map((i) => (
+                [0,1,2,3,4,5].map((i) => (
                   <View key={`sk-${i}`} style={[styles.tableRow, styles.tableRowDivider]}> 
                     <View style={styles.rowLeft}>
                       <View style={[styles.iconCircleSmall, { opacity: 0.4 }]} />
