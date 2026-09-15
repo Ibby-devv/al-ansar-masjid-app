@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Donate — Direction A (Calm)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy-900: #0b1220;
+      --navy-800: #172554;
+      --navy-700: #1e3a8a;
+      --navy-600: #1e40af;
+      --gold-600: #d97706;
+      --gold-400: #f59e0b;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --surface-muted: #f1f5f9;
+      --text: #0f172a;
+      --text-strong: #1f2937;
+      --text-muted: #64748b;
+      --text-subtle: #94a3b8;
+      --border: #e5e7eb;
+      --border-soft: #e2e8f0;
+      --progress: #e5e7eb;
+      --progress-fill: #3b82f6;
+      --green: #22c55e;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --phone-w: 390px;
+      --phone-h: 844px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: "Poppins", system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(30, 58, 138, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(217, 119, 6, 0.08), transparent),
+        #e8edf5;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 48px;
+      gap: 20px;
+    }
+
+    .page-meta {
+      text-align: center;
+      max-width: 420px;
+    }
+
+    .page-meta h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--navy-800);
+      letter-spacing: -0.02em;
+    }
+
+    .page-meta p {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .stage-switch {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      max-width: 420px;
+    }
+
+    .stage-switch button {
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .stage-switch button.active {
+      background: var(--navy-800);
+      color: #fff;
+    }
+
+    /* Phone shell */
+    .phone {
+      width: var(--phone-w);
+      height: var(--phone-h);
+      background: var(--surface-muted);
+      border-radius: 36px;
+      box-shadow:
+        0 0 0 10px #1a1f2e,
+        0 0 0 12px #2a3144,
+        0 28px 60px rgba(15, 23, 42, 0.28);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .notch {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 28px;
+      background: #1a1f2e;
+      border-radius: 20px;
+      z-index: 20;
+    }
+
+    .screen {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      min-height: 0;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .screen.active { display: flex; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Shared header — matches donate/index */
+    .app-header {
+      background: linear-gradient(135deg, #172554 0%, #1e3a8a 55%, #0b1220 100%);
+      padding: 52px 20px 28px;
+      border-radius: 0 0 24px 24px;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .app-header::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .app-header h2 {
+      position: relative;
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .app-header p {
+      position: relative;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+
+    .pill-toggle {
+      margin: -12px 20px 0;
+      background: var(--surface);
+      border-radius: 999px;
+      padding: 4px;
+      display: flex;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
+    }
+
+    .pill-toggle span {
+      flex: 1;
+      text-align: center;
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 10px 4px;
+      border-radius: 999px;
+      color: var(--text-muted);
+    }
+
+    .pill-toggle span.on {
+      background: var(--navy-700);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 20px 28px;
+      min-height: 0;
+    }
+
+    .scroll::-webkit-scrollbar { width: 0; }
+
+    /* ——— Campaign chooser ——— */
+    .intro {
+      margin-bottom: 18px;
+    }
+
+    #form-intro {
+      margin-bottom: 16px;
+    }
+
+    .intro h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-strong);
+      letter-spacing: -0.02em;
+    }
+
+    .intro p {
+      margin-top: 4px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .general-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 4px 18px;
+      border-bottom: 1px solid var(--border-soft);
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .general-row:hover { opacity: 0.85; }
+
+    .general-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #eff6ff;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      color: var(--navy-700);
+    }
+
+    .general-row .copy { flex: 1; min-width: 0; }
+
+    .general-row .copy strong {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-strong);
+    }
+
+    .general-row .copy span {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    .chev {
+      color: var(--text-subtle);
+      font-size: 1.1rem;
+    }
+
+    .campaign {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 14px;
+      border: 1px solid var(--border-soft);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .campaign:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .campaign-img {
+      height: 120px;
+      background:
+        linear-gradient(160deg, rgba(23, 37, 84, 0.55), rgba(11, 18, 32, 0.4)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath fill='rgba(255,255,255,0.08)' d='M40 8 L48 28 L70 28 L52 40 L58 60 L40 48 L22 60 L28 40 L10 28 L32 28 Z'/%3E%3C/svg%3E")
+        center / 64px repeat,
+        linear-gradient(145deg, #1e3a8a, #0b1220);
+    }
+
+    .campaign-img.alt {
+      background:
+        linear-gradient(160deg, rgba(217, 119, 6, 0.35), rgba(11, 18, 32, 0.45)),
+        linear-gradient(145deg, #92400e, #1e3a8a);
+    }
+
+    .campaign-body { padding: 14px 16px 16px; }
+
+    .campaign-body h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-strong);
+      margin-bottom: 4px;
+    }
+
+    .campaign-body p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-bottom: 12px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .progress-track {
+      height: 6px;
+      background: var(--progress);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--progress-fill);
+      border-radius: 999px;
+      width: 0;
+      animation: growBar 1s ease forwards;
+    }
+
+    .campaign:nth-child(2) .progress-fill { width: 68%; animation-delay: 0.1s; }
+    .campaign:nth-child(3) .progress-fill { width: 42%; animation-delay: 0.2s; }
+
+    @keyframes growBar {
+      from { transform: scaleX(0); transform-origin: left; }
+      to { transform: scaleX(1); transform-origin: left; }
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .progress-meta strong { color: var(--text-strong); font-weight: 600; }
+
+    /* ——— Form screen ——— */
+    .form-screen .scroll {
+      padding-bottom: 120px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--navy-700);
+      background: none;
+      border: none;
+      font-family: inherit;
+      cursor: pointer;
+      margin-bottom: 14px;
+      padding: 0;
+    }
+
+    .cause-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fffbeb;
+      border: 1px solid rgba(217, 119, 6, 0.25);
+      color: var(--gold-600);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+      max-width: 100%;
+    }
+
+    .cause-chip .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--gold-600);
+      flex-shrink: 0;
+    }
+
+    .cause-chip span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .panel {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      padding: 22px 18px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .amount-focus {
+      text-align: center;
+      margin-bottom: 22px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .amount-focus .eyebrow {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .amount-display {
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: var(--navy-800);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      transition: color 0.2s;
+    }
+
+    .amount-display .currency {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-right: 2px;
+      vertical-align: 8px;
+    }
+
+    .amount-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .amt {
+      border: 1.5px solid var(--border);
+      background: var(--surface-soft);
+      border-radius: var(--radius-md);
+      padding: 14px 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-strong);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.12s;
+    }
+
+    .amt:hover { border-color: var(--navy-600); }
+    .amt:active { transform: scale(0.97); }
+
+    .amt.selected {
+      background: var(--navy-700);
+      border-color: var(--navy-700);
+      color: #fff;
+    }
+
+    .custom-amount {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-soft);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+    }
+
+    .custom-amount:focus-within {
+      border-color: var(--navy-600);
+      background: #fff;
+    }
+
+    .custom-amount .prefix {
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    .custom-amount input {
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-strong);
+      outline: none;
+      width: 100%;
+    }
+
+    .custom-amount input::placeholder { color: var(--text-subtle); font-weight: 400; }
+
+    .block {
+      padding-top: 20px;
+    }
+
+    .block + .block {
+      border-top: 1px solid var(--border-soft);
+      margin-top: 4px;
+    }
+
+    .block-label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .segment {
+      display: flex;
+      background: var(--surface-muted);
+      border-radius: var(--radius-md);
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .segment button {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      padding: 10px 6px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    }
+
+    .segment button.on {
+      background: #fff;
+      color: var(--navy-800);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+    }
+
+    .freq-row {
+      display: none;
+      gap: 8px;
+      margin-top: 12px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .freq-row.visible { display: flex; }
+
+    .freq {
+      flex-shrink: 0;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .freq.on {
+      border-color: var(--gold-600);
+      background: #fffbeb;
+      color: var(--gold-600);
+      font-weight: 600;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 0;
+    }
+
+    .toggle-row label {
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-strong);
+    }
+
+    .toggle-row .hint {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 400;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .switch {
+      width: 44px;
+      height: 26px;
+      border-radius: 999px;
+      background: #cbd5e1;
+      position: relative;
+      cursor: pointer;
+      border: none;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+
+    .switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      transition: transform 0.2s;
+    }
+
+    .switch.on { background: var(--navy-700); }
+    .switch.on::after { transform: translateX(18px); }
+    .switch:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .fields { display: none; gap: 10px; flex-direction: column; }
+    .fields.visible { display: flex; }
+
+    .field {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      color: var(--text-strong);
+      background: var(--surface-soft);
+      outline: none;
+      width: 100%;
+    }
+
+    .field:focus {
+      border-color: var(--navy-600);
+      background: #fff;
+    }
+
+    .field::placeholder { color: var(--text-subtle); }
+
+    .type-chips,
+    .type-chip {
+      /* donation types removed — causes are general or campaign only */
+      display: none !important;
+    }
+
+    /* Sticky CTA */
+    .cta-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 14px 20px 28px;
+      background: linear-gradient(to top, var(--surface-muted) 70%, transparent);
+      pointer-events: none;
+    }
+
+    .cta-bar > * { pointer-events: auto; }
+
+    .donate-btn {
+      width: 100%;
+      border: none;
+      background: var(--navy-800);
+      color: #fff;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(23, 37, 84, 0.35);
+      transition: transform 0.12s, background 0.15s;
+    }
+
+    .donate-btn:hover { background: var(--navy-900); }
+    .donate-btn:active { transform: scale(0.98); }
+
+    .donate-btn .heart {
+      width: 18px;
+      height: 18px;
+      fill: var(--gold-400);
+    }
+
+    .trust {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .trust svg {
+      width: 13px;
+      height: 13px;
+      fill: var(--green);
+    }
+
+    .note {
+      margin-top: 8px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+      max-width: 360px;
+    }
+
+    .note code {
+      font-size: 0.7rem;
+      background: rgba(255,255,255,0.8);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-meta">
+    <h1>Direction A — Calm mosque giving</h1>
+    <p>Matches the app: amount-first, One-time / Recurring, no donation-type picker. Causes are general fund or a campaign.</p>
+  </div>
+
+  <div class="stage-switch" role="tablist">
+    <button type="button" class="active" data-stage="campaigns" id="tab-campaigns">With campaigns</button>
+    <button type="button" data-stage="form" id="tab-form">Giving to a cause</button>
+    <button type="button" data-stage="nocampaigns" id="tab-nocampaigns">No campaigns</button>
+  </div>
+
+  <div class="phone" aria-label="Phone prototype">
+    <div class="notch" aria-hidden="true"></div>
+
+    <!-- Stage 1: Campaigns -->
+    <div class="screen active" id="screen-campaigns">
+      <header class="app-header">
+        <h2>Donate</h2>
+        <p>Support Al Ansar</p>
+      </header>
+      <div class="pill-toggle" aria-hidden="true">
+        <span class="on">Give</span>
+        <span>History</span>
+        <span>Manage</span>
+      </div>
+      <div class="scroll">
+        <div class="intro">
+          <h3>Support a cause</h3>
+          <p>Choose a campaign, or give to general mosque funds.</p>
+        </div>
+
+        <div class="general-row" onclick="goForm('General donation')" role="button" tabindex="0">
+          <div class="general-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/>
+            </svg>
+          </div>
+          <div class="copy">
+            <strong>General donation</strong>
+            <span>Daily operations and community programs</span>
+          </div>
+          <span class="chev">›</span>
+        </div>
+
+        <article class="campaign" onclick="goForm('Ramadan Food Packs')">
+          <div class="campaign-img"></div>
+          <div class="campaign-body">
+            <h4>Ramadan Food Packs</h4>
+            <p>Provide iftar meals for families in need throughout the blessed month.</p>
+            <div class="progress-track"><div class="progress-fill" style="width:68%"></div></div>
+            <div class="progress-meta">
+              <span><strong>$12,400</strong> raised</span>
+              <span>68%</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="campaign" onclick="goForm('Masjid Expansion')">
+          <div class="campaign-img alt"></div>
+          <div class="campaign-body">
+            <h4>Masjid Expansion</h4>
+            <p>Help us expand prayer space and facilities for our growing community.</p>
+            <div class="progress-track"><div class="progress-fill" style="width:42%"></div></div>
+            <div class="progress-meta">
+              <span><strong>$84,000</strong> raised</span>
+              <span>42%</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- Stage 2: Form -->
+    <div class="screen form-screen" id="screen-form">
+      <header class="app-header">
+        <h2>Donate</h2>
+        <p>Support Al Ansar</p>
+      </header>
+      <div class="pill-toggle" aria-hidden="true">
+        <span class="on">Give</span>
+        <span>History</span>
+        <span>Manage</span>
+      </div>
+      <div class="scroll">
+        <button type="button" class="back-link" id="back-link" onclick="goCampaigns()">
+          ← Back to causes
+        </button>
+
+        <div class="cause-chip" id="cause-chip">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="cause-label">Ramadan Food Packs</span>
+        </div>
+
+        <div class="intro" id="form-intro" hidden>
+          <h3>Make a donation</h3>
+          <p>Support Al Ansar’s daily operations and community programs.</p>
+        </div>
+
+        <div class="panel">
+          <div class="amount-focus">
+            <div class="eyebrow">Your gift</div>
+            <div class="amount-display" id="amount-display">
+              <span class="currency">$</span><span id="amount-value">50</span>
+            </div>
+          </div>
+
+          <div class="amount-grid" id="amount-grid">
+            <button type="button" class="amt" data-amount="20">$20</button>
+            <button type="button" class="amt selected" data-amount="50">$50</button>
+            <button type="button" class="amt" data-amount="100">$100</button>
+            <button type="button" class="amt" data-amount="200">$200</button>
+            <button type="button" class="amt" data-amount="500">$500</button>
+            <button type="button" class="amt" data-amount="1000">$1,000</button>
+          </div>
+
+          <div class="custom-amount">
+            <span class="prefix">$</span>
+            <input type="number" id="custom-input" placeholder="Or enter custom amount" min="1" inputmode="decimal" />
+          </div>
+
+          <div class="block">
+            <div class="block-label">Frequency</div>
+            <div class="segment" id="freq-segment">
+              <button type="button" class="on" data-mode="once">One-time</button>
+              <button type="button" data-mode="recurring">Recurring</button>
+            </div>
+            <div class="freq-row" id="freq-row">
+              <button type="button" class="freq" data-f="weekly">Weekly</button>
+              <button type="button" class="freq" data-f="fortnightly">Fortnightly</button>
+              <button type="button" class="freq on" data-f="monthly">Monthly</button>
+              <button type="button" class="freq" data-f="yearly">Yearly</button>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="toggle-row">
+              <div>
+                <label for="anon-switch">Give anonymously</label>
+                <span class="hint" id="anon-hint">Your name won’t appear on records</span>
+              </div>
+              <button type="button" class="switch" id="anon-switch" aria-pressed="false"></button>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="block-label">Your details</div>
+            <div class="fields visible" id="donor-fields">
+              <input class="field" type="text" placeholder="Full name" id="donor-name" />
+              <input class="field" type="email" placeholder="Email (optional)" id="donor-email" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-bar">
+        <button type="button" class="donate-btn" id="donate-btn">
+          <svg class="heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          Donate $<span id="cta-amount">50.00</span>
+        </button>
+        <div class="trust">
+          <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+          Secure payment powered by Stripe
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note">Prototype only — open <code>prototypes/donate-direction-a.html</code> in a browser. Not wired to the app.</p>
+
+  <script>
+    const $ = (sel, root = document) => root.querySelector(sel);
+    const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+
+    let amount = 50;
+    let isRecurring = false;
+    let isAnonymous = false;
+    let isGeneral = false;
+    let noCampaigns = false;
+
+    function setStage(stage) {
+      $$(".stage-switch button").forEach((b) => {
+        b.classList.toggle("active", b.dataset.stage === stage);
+      });
+      $("#screen-campaigns").classList.toggle("active", stage === "campaigns");
+      $("#screen-form").classList.toggle("active", stage === "form" || stage === "nocampaigns");
+    }
+
+    function applyFormChrome() {
+      const showCauseChrome = !noCampaigns;
+      $("#back-link").style.display = showCauseChrome ? "" : "none";
+      $("#cause-chip").style.display = showCauseChrome && !isGeneral ? "inline-flex" : "none";
+      // Intro for general (from list or no-campaigns); hide when a campaign is selected
+      const showIntro = noCampaigns || isGeneral;
+      $("#form-intro").style.display = showIntro ? "block" : "none";
+      $("#form-intro").hidden = !showIntro;
+    }
+
+    function goCampaigns() {
+      noCampaigns = false;
+      setStage("campaigns");
+    }
+
+    function goForm(cause, opts = {}) {
+      noCampaigns = Boolean(opts.noCampaigns);
+      isGeneral = noCampaigns || cause === "General donation";
+      $("#cause-label").textContent = cause;
+      applyFormChrome();
+      setStage(noCampaigns ? "nocampaigns" : "form");
+    }
+
+    $$(".stage-switch button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (btn.dataset.stage === "form") {
+          goForm("Ramadan Food Packs");
+        } else if (btn.dataset.stage === "nocampaigns") {
+          goForm("General donation", { noCampaigns: true });
+        } else {
+          goCampaigns();
+        }
+      });
+    });
+
+    function formatAmount(n) {
+      return Number(n).toLocaleString("en-AU", {
+        minimumFractionDigits: Number.isInteger(Number(n)) ? 0 : 2,
+        maximumFractionDigits: 2,
+      });
+    }
+
+    function formatCta(n) {
+      return Number(n).toLocaleString("en-AU", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+
+    function syncAmount(n, fromCustom) {
+      amount = Math.max(0, Number(n) || 0);
+      $("#amount-value").textContent = formatAmount(amount || 0);
+      $("#cta-amount").textContent = formatCta(amount || 0);
+
+      if (!fromCustom) {
+        $("#custom-input").value = "";
+      }
+
+      $$(".amt").forEach((b) => {
+        const match = !fromCustom && Number(b.dataset.amount) === amount;
+        b.classList.toggle("selected", match);
+      });
+    }
+
+    $$(".amt").forEach((btn) => {
+      btn.addEventListener("click", () => syncAmount(btn.dataset.amount, false));
+    });
+
+    $("#custom-input").addEventListener("input", (e) => {
+      const v = e.target.value;
+      if (v === "") return;
+      syncAmount(v, true);
+      $$(".amt").forEach((b) => b.classList.remove("selected"));
+    });
+
+    $$("#freq-segment button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        $$("#freq-segment button").forEach((b) => b.classList.remove("on"));
+        btn.classList.add("on");
+        isRecurring = btn.dataset.mode === "recurring";
+        $("#freq-row").classList.toggle("visible", isRecurring);
+
+        if (isRecurring && isAnonymous) {
+          isAnonymous = false;
+          $("#anon-switch").classList.remove("on");
+          $("#anon-switch").setAttribute("aria-pressed", "false");
+        }
+        $("#anon-switch").disabled = isRecurring;
+        $("#anon-hint").textContent = isRecurring
+          ? "Not available for recurring gifts"
+          : "Your name won’t appear on records";
+        updateDonorFields();
+        $("#donor-email").placeholder = isRecurring ? "Email (required)" : "Email (optional)";
+      });
+    });
+
+    $$("#freq-row .freq").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        $$("#freq-row .freq").forEach((b) => b.classList.remove("on"));
+        btn.classList.add("on");
+      });
+    });
+
+    function updateDonorFields() {
+      const show = !isAnonymous || isRecurring;
+      $("#donor-fields").classList.toggle("visible", show);
+    }
+
+    $("#anon-switch").addEventListener("click", () => {
+      if (isRecurring) return;
+      isAnonymous = !isAnonymous;
+      $("#anon-switch").classList.toggle("on", isAnonymous);
+      $("#anon-switch").setAttribute("aria-pressed", String(isAnonymous));
+      updateDonorFields();
+    });
+
+    $("#donate-btn").addEventListener("click", () => {
+      const label = noCampaigns
+        ? "general mosque funds"
+        : $("#cause-label").textContent;
+      alert(`Prototype only.\n\nWould donate $${formatCta(amount)} to “${label}”${isRecurring ? " (recurring)" : ""}.`);
+    });
+  </script>
+</body>
+</html>

@@ -76,13 +76,14 @@ export default function DonationSuccessModal({
   };
 
   const handleShareReceipt = async () => {
+    const causeLine = campaignName || donationType || "General donation";
     const message = `
 JazakAllah Khair! 🌙
 
-${isRecurring ? 'Recurring ' : ''}Donation Receipt
-Amount: $${amount.toFixed(2)} AUD${isRecurring ? ` (${frequency})` : ''}
-Type: ${donationType}${campaignName ? `\nCampaign: ${campaignName}` : ''}
-${receiptNumber ? `Receipt: ${receiptNumber}` : ''}
+${isRecurring ? "Recurring " : ""}Donation Receipt
+Amount: $${amount.toFixed(2)} AUD${isRecurring ? ` (${frequency})` : ""}
+${campaignName ? "Campaign" : "Cause"}: ${causeLine}
+${receiptNumber ? `Receipt: ${receiptNumber}` : ""}
 
 Al Ansar Masjid
 Thank you for your generous support!
@@ -153,18 +154,18 @@ Thank you for your generous support!
               <View style={styles.divider} />
 
               <View style={styles.detailRow}>
-                <Ionicons name="heart" size={20} color={theme.colors.text.muted} />
-                <Text style={styles.detailLabel}>Donation Type</Text>
-                <Text style={styles.detailValue}>{donationType}</Text>
+                <Ionicons
+                  name={campaignName ? "flag" : "heart"}
+                  size={20}
+                  color={theme.colors.text.muted}
+                />
+                <Text style={styles.detailLabel}>
+                  {campaignName ? "Campaign" : "Cause"}
+                </Text>
+                <Text style={styles.detailValue}>
+                  {campaignName || donationType || "General donation"}
+                </Text>
               </View>
-
-              {campaignName && (
-                <View style={styles.detailRow}>
-                  <Ionicons name="flag" size={20} color={theme.colors.text.muted} />
-                  <Text style={styles.detailLabel}>Campaign</Text>
-                  <Text style={styles.detailValue}>{campaignName}</Text>
-                </View>
-              )}
 
               {receiptNumber && (
                 <View style={styles.detailRow}>

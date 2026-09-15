@@ -1,7 +1,7 @@
 // ============================================================================
 // COMPONENT: GeneralDonationCard
 // Location: components/GeneralDonationCard.tsx
-// Displays general donation option when campaigns are present
+// Quiet row for general donation when campaigns are present
 // ============================================================================
 
 import { Ionicons } from '@expo/vector-icons';
@@ -19,49 +19,48 @@ export default function GeneralDonationCard({ onPress }: GeneralDonationCardProp
   const { ms } = useResponsive();
   const { fontScale } = useWindowDimensions();
   const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
-  
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.row}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel="General donation"
+    >
       <View style={styles.iconContainer}>
-        <Ionicons name="heart" size={32} color={theme.colors.brand.navy[700]} />
+        <Ionicons name="heart-outline" size={ms(22, 0.2)} color={theme.colors.brand.navy[700]} />
       </View>
-      
+
       <View style={styles.content}>
-        <Text style={styles.title}>💚 General Donation</Text>
+        <Text style={styles.title}>General donation</Text>
         <Text style={styles.description}>
-          Support our daily operations and community programs
+          Daily operations and community programs
         </Text>
       </View>
 
-      <Ionicons name="chevron-forward" size={24} color={theme.colors.text.muted} />
+      <Ionicons name="chevron-forward" size={ms(20, 0.2)} color={theme.colors.text.subtle} />
     </TouchableOpacity>
   );
 }
 
 const createStyles = (theme: AppTheme, ms: (size: number, scale?: number) => number, fontScale: number) => StyleSheet.create({
-  card: {
-    backgroundColor: theme.colors.surface.base,
-    borderRadius: ms(16, 0.1),
-    padding: ms(16, 0.1),
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: ms(14, 0.1),
+    paddingVertical: ms(14, 0.1),
     marginBottom: ms(16, 0.1),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderLeftWidth: ms(4, 0.05),
-    borderLeftColor: theme.colors.accent.green,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.border.soft,
   },
   iconContainer: {
-    width: ms(56, 0.2),
-    height: ms(56, 0.2),
-    borderRadius: ms(28, 0.1),
+    width: ms(44, 0.2),
+    height: ms(44, 0.2),
+    borderRadius: ms(12, 0.1),
     backgroundColor: theme.colors.accent.blueSoft,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: ms(16, 0.1),
     flexShrink: 0,
   },
   content: {
@@ -69,13 +68,13 @@ const createStyles = (theme: AppTheme, ms: (size: number, scale?: number) => num
     minWidth: 0,
   },
   title: {
-    fontSize: ms(18, 0.2) * fontScale,
-    fontWeight: 'bold',
+    fontSize: ms(16, 0.2) * fontScale,
+    fontWeight: '600',
     color: theme.colors.text.strong,
-    marginBottom: ms(4, 0.1),
+    marginBottom: ms(2, 0.05),
   },
   description: {
-    fontSize: ms(14, 0.2) * fontScale,
+    fontSize: ms(13, 0.2) * fontScale,
     color: theme.colors.text.muted,
     lineHeight: ms(18, 0.2),
   },
