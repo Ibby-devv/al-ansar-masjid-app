@@ -1,0 +1,29 @@
+---
+description: Al Ansar Masjid app tech stack, architecture, and directory layout
+alwaysApply: true
+---
+
+# Project Overview
+
+Expo SDK 54 / React Native 0.81 / TypeScript (strict) mosque app: prayer times, Qibla, Stripe donations, events, FCM.
+
+## Layout
+
+- `app/` — Expo Router screens (file-based); tabs in `app/(tabs)/`
+- `components/` — reusable UI; `components/ui/` for generics
+- `hooks/` — business logic; `services/` — Firebase/API; `types/` — shared types
+- `constants/` — theme, channels, configs
+- `android/` — **committed native project** — do not gitignore; avoid edits unless required
+- `firebase.ts` — App Check, Firestore, regional Functions (`australia-southeast1`)
+- `index.js` — entry; FCM background handlers must register **before** app loads
+
+## Path alias
+
+`@/*` maps to project root (`tsconfig.json`).
+
+## Hard constraints
+
+- No test frameworks unless explicitly requested (manual device/Expo Go testing)
+- Prefer Expo packages over bare RN alternatives; minimize new deps (SDK 54 compatible)
+- No Redux/MobX — hooks + local state
+- Do not reorder `index.js` imports or casually change `metro.config.js` / `firebase.ts` / `eas.json` / `app.json`

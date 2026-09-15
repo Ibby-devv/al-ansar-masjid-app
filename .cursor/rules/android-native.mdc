@@ -1,0 +1,30 @@
+---
+description: Android native project, builds, and known workarounds
+globs: "android/**"
+alwaysApply: false
+---
+
+# Android Native
+
+`android/` is version-controlled. Change only when necessary (permissions, deps, icons/splash).
+
+## Common touch points
+
+- `AndroidManifest.xml` — permissions, deep link `alansar://`, metadata
+- `app/build.gradle` — signing, deps, RN config
+- `gradle.properties` — JVM args, new arch, Hermes
+- Signing: use `keystore.properties.template`; never commit `*.keystore`, `keystore.properties`, `pc-api-key.json`
+
+## Builds
+
+```bash
+npm run clean                 # not ./gradlew clean alone
+npm run build:debug
+cd android && ./gradlew assembleDebug
+# EAS production AAB
+eas build --platform android --profile production
+```
+
+After native module mismatches: `npm run clean && npm install && npm start`.
+
+Ensure EAS Build compatibility when changing native config. Test thoroughly before merge.

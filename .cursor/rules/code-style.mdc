@@ -1,0 +1,42 @@
+---
+description: TypeScript, naming, imports, components, and StyleSheet conventions
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Code Style
+
+## Typing & components
+
+- Strict TypeScript — no `any`; explicit return types on functions
+- Functional components only; prefer `React.JSX.Element` return type
+- Default export PascalCase components; hooks `useX` camelCase
+- Props: named `interface ComponentProps { ... }`
+- Files match export: `ComponentName.tsx`, `useCustomHook.ts`
+- Types in `types/`; constants `UPPER_SNAKE_CASE`; config objects camelCase
+
+## Preferred screen pattern
+
+```typescript
+export default function ScreenName(): React.JSX.Element {
+  const [state, setState] = useState<Type>(initialValue);
+  useEffect(() => { /* ... */ }, [deps]);
+  return <View>{/* ... */}</View>;
+}
+```
+
+## Import order
+
+1. React / React Native  
+2. Third-party (Expo, Firebase, etc.)  
+3. Local components  
+4. Hooks  
+5. Types, constants, utilities  
+
+## Styling & comments
+
+- `StyleSheet.create()` at file bottom; colors from `constants/theme.ts`
+- Screen containers: `SafeAreaView` from `react-native-safe-area-context`
+- Gradients: `expo-linear-gradient`
+- Prefer self-documenting names; comment complex logic, workarounds, Firebase shape expectations
+- JSDoc on reused exported hooks/functions; `// ======` section headers for large files

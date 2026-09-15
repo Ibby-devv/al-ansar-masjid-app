@@ -1,0 +1,51 @@
+---
+description: Enforce RN/TS best practices; improve code you touch
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Best Practices
+
+When writing or editing code: follow current RN/Expo/TS best practices; refactor touched code; fix smells.
+
+## TypeScript
+
+- Explicit types; avoid `as` unless necessary; prefer unions/discriminated unions
+- Extract shared types to `types/`
+
+## React Native
+
+- Correct hook dependency arrays; accessibilityLabel/Role on interactive elements
+- Split large files (>500 lines); functions >50 lines → smaller units
+- FlatList: stable keys, windowing, `getItemLayout` when useful
+- Cache with AsyncStorage for offline (see `useDonation.ts`); debounce input handlers
+
+## Errors & state
+
+```typescript
+// Good
+try {
+  setData(await fetchData());
+} catch (error) {
+  console.error('Failed to fetch data:', error);
+  setError('Unable to load data. Please try again.');
+}
+
+// useEffect cleanup to avoid races
+useEffect(() => {
+  let isMounted = true;
+  load().then((r) => { if (isMounted) setData(r); });
+  return () => { isMounted = false; };
+}, []);
+```
+
+## When modifying existing code
+
+1. Fix lint warnings in that file  
+2. Add missing types; extract magic values  
+3. Add error handling; clarify names  
+4. Remove unused imports/vars  
+
+## Security
+
+Never commit secrets/keystores. Validate input; do not put secrets in AsyncStorage; avoid leaking internals in errors.

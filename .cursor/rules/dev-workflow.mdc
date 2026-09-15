@@ -1,0 +1,38 @@
+---
+description: Install, lint, clean, Expo/Android/EAS commands and workflow
+alwaysApply: true
+---
+
+# Dev Workflow & Commands
+
+## Always
+
+1. `npm install` on fresh clone before building  
+2. Match existing patterns before adding files  
+3. Screens → `app/`; UI → `components/`; logic → `hooks/` or `services/`; types → `types/`  
+4. `npm run lint` after changes (0 errors required; known warnings in donate/give & events OK until touched)  
+5. Manual test via `npm start` / Expo Go — do not add test frameworks unless asked  
+
+## Commands
+
+```bash
+npm install
+npm run lint
+npm run clean          # prefer over ./gradlew clean (missing dirs OK)
+npm start              # or npx expo start; clear cache: npx expo start -c
+npm run android
+npm run build:debug | build:release | build:bundle
+npm run clean:build:debug   # clean + build variants
+```
+
+Gradle from `android/`: `./gradlew assembleDebug`, `bundleRelease` (first run downloads Gradle ~30–60s).
+
+EAS: `eas build --platform android --profile production` (~10–20 min). Profiles in `eas.json`: development, preview, production, production-apk.
+
+## Pre-commit
+
+Lint clean; strict types; no stray `console.log`; explicit returns; hook deps; async error handling; no secrets; unused imports/vars removed.
+
+## Android native
+
+Only change `android/` when needed (permissions, gradle, resources). Test with `npm run build:debug`. Document in commit message.

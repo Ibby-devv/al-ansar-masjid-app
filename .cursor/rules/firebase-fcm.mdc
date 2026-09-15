@@ -1,0 +1,27 @@
+---
+description: Firebase, FCM, and notification constraints for this app
+globs: "{firebase.ts,index.js,services/**,hooks/**}"
+alwaysApply: false
+---
+
+# Firebase & FCM
+
+## Region & init
+
+- Cloud Functions: `australia-southeast1` — use `regionalFunctions` from `firebase.ts`
+- App Check: debug provider in `__DEV__`; production uses Play Integrity / DeviceCheck
+- Prefer one-time Firestore fetches over realtime listeners for mostly-static data
+
+## FCM background handler (critical)
+
+`messaging().setBackgroundMessageHandler()` must stay top-level and run **before** app init.
+
+- Implemented in `services/FCMService.ts`
+- Imported from `index.js` — **do not reorder** those imports
+- Do not move the handler into React components or late init
+
+## Sensitive / fragile files
+
+Avoid casual edits: `firebase.ts`, `index.js`, `google-services.json`, notification channel constants.
+
+Document Firebase document shape expectations in comments when querying collections.

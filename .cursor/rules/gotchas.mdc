@@ -1,0 +1,34 @@
+---
+description: Known issues, fragile files, and when-in-doubt guidance
+alwaysApply: true
+---
+
+# Gotchas & Guardrails
+
+## Fixes when you touch these files
+
+- `app/(tabs)/donate/give.tsx` — unused `campaignsLoading`, `error`
+- `app/(tabs)/events.tsx` — unused `formatEventDate`
+
+## Do not casually modify
+
+`index.js` (import order), `metro.config.js` (SVG transformer), `firebase.ts`, `eas.json`, `app.json`, `android/app/build.gradle`, `android/gradle.properties`, `AndroidManifest.xml`.
+
+## Common fixes
+
+| Problem | Fix |
+|---------|-----|
+| `./gradlew clean` fails | `npm run clean` |
+| Metro cache | `npx expo start -c` or delete `.expo/` |
+| Native module mismatch | `npm run clean && npm install && npm start` |
+| Functions timeout | Confirm `australia-southeast1` / `regionalFunctions` |
+
+## Assets & nav
+
+- Images: `assets/images/`; icons: Ionicons preferred; SVG via metro transformer
+- Fonts: Poppins (`@expo-google-fonts/poppins`)
+- Routing: Expo Router in `app/`; deep links `alansar://`; `router.push()` for params
+
+## When in doubt
+
+Match existing patterns → strict TS → lint early → test on device → keep simple → leave code better than found → ask if requirements are unclear.
