@@ -396,7 +396,10 @@ export default function HomeScreen(): React.JSX.Element {
         {activeView === "prayer" && (
           <View style={styles.prayerCardsContainer}>
             {nextPrayer && (
-              <NextBanner text={`Next: ${nextPrayer.name} in ${nextPrayer.timeRemaining}`} />
+              <NextBanner
+                prayerName={nextPrayer.name}
+                timeRemaining={nextPrayer.timeRemaining}
+              />
             )}
             {!loading && !prayerTimes ? (
               <EmptyState
@@ -443,7 +446,7 @@ export default function HomeScreen(): React.JSX.Element {
                         <Ionicons
                           name={prayer.icon as any}
                           size={18}
-                          color={isNextPrayer ? theme.colors.brand.gold[600] : theme.colors.accent.blue}
+                          color={isNextPrayer ? theme.colors.brand.navy[700] : theme.colors.accent.blue}
                         />
                       </View>
                       <Text 
@@ -633,7 +636,7 @@ const createStyles = (theme: ReturnType<typeof useTheme>, ms: (size: number, fac
     borderBottomColor: theme.colors.border.base,
   },
   nextRow: {
-    backgroundColor: theme.colors.accent.amberSoft,
+    backgroundColor: theme.colors.accent.blueSoft,
   },
   rowLeft: {
     flex: 2,
@@ -707,7 +710,9 @@ const createStyles = (theme: ReturnType<typeof useTheme>, ms: (size: number, fac
     marginRight: ms(10, 0.1),
   },
   iconCircleActive: {
-    backgroundColor: theme.colors.accent.amberSoft,
+    backgroundColor: theme.colors.surface.card,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.brand.navy[700],
   },
   prayerCardName: {
     fontSize: ms(18, 0.5) * fontScale,
@@ -717,7 +722,7 @@ const createStyles = (theme: ReturnType<typeof useTheme>, ms: (size: number, fac
     flexShrink: 1,
   },
   nextPrayerText: {
-    color: theme.colors.brand.gold[600],
+    color: theme.colors.brand.navy[700],
   },
   nextBadge: {
     backgroundColor: theme.colors.brand.gold[600],
