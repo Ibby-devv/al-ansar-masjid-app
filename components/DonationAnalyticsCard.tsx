@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useTheme, AppTheme } from '../contexts/ThemeContext';
@@ -18,109 +17,95 @@ export default function DonationAnalyticsCard({
   const { ms } = useResponsive();
   const { fontScale } = useWindowDimensions();
   const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
-  
-  // Calculate analytics
-  const totalOneTime = donations.reduce((sum, d) => sum + d.amount, 0) / 100; // Convert from cents
+
+  const totalOneTime = donations.reduce((sum, d) => sum + d.amount, 0) / 100;
   const totalRecurring = subscriptions.reduce((sum, s) => sum + s.amount, 0) / 100;
   const totalDonated = totalOneTime + totalRecurring;
-  
+
   const totalCount = donations.length + subscriptions.length;
   const averageDonation = totalCount > 0 ? totalDonated / totalCount : 0;
 
-  // Breakdown by donation type
-  const typeBreakdown: { [key: string]: number } = {};
+  const causeBreakdown: { [key: string]: number } = {};
   [...donations, ...subscriptions].forEach((d) => {
-    const type = d.donation_type_label || 'General';
-    typeBreakdown[type] = (typeBreakdown[type] || 0) + d.amount / 100;
+    const cause = d.donation_type_label || 'General donation';
+    causeBreakdown[cause] = (causeBreakdown[cause] || 0) + d.amount / 100;
   });
 
-  const topTypes = Object.entries(typeBreakdown)
+  const topCauses = Object.entries(causeBreakdown)
     .sort(([, a], [, b]) => b - a)
     .slice(0, 3);
 
   const getColorForIndex = (index: number): string => {
     const colors = [
       theme.colors.brand.navy[700],
+      theme.colors.brand.gold[600],
       theme.colors.accent.green,
-      theme.colors.accent.blue,
     ];
     return colors[index] || theme.colors.brand.navy[700];
   };
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Ionicons name="stats-chart" size={24} color={theme.colors.brand.navy[700]} />
-        <Text style={styles.headerTitle}>Your Impact</Text>
-      </View>
+      <Text style={styles.headerTitle}>Your impact</Text>
+      <Text style={styles.headerSubtitle}>
+        A quiet summary of your gifts to Al Ansar.
+      </Text>
 
-      {/* Main Stats */}
       <View style={styles.statsGrid}>
-        {/* Total Donated */}
-        <View style={styles.statCard}>
+        <View style={styles.statCell}>
           <Text style={styles.statValue}>${totalDonated.toFixed(2)}</Text>
-          <Text style={styles.statLabel}>Total Donated</Text>
+          <Text style={styles.statLabel}>Total donated</Text>
         </View>
 
-        {/* Total Donations */}
-        <View style={styles.statCard}>
+        <View style={styles.statCell}>
           <Text style={styles.statValue}>{totalCount}</Text>
           <Text style={styles.statLabel}>Donations</Text>
         </View>
 
-        {/* Average */}
-        <View style={styles.statCard}>
+        <View style={styles.statCell}>
           <Text style={styles.statValue}>${averageDonation.toFixed(2)}</Text>
           <Text style={styles.statLabel}>Average</Text>
         </View>
 
-        {/* Active Subscriptions */}
-        <View style={styles.statCard}>
+        <View style={styles.statCell}>
           <Text style={styles.statValue}>{subscriptions.length}</Text>
           <Text style={styles.statLabel}>Recurring</Text>
         </View>
       </View>
 
-      {/* Breakdown Section */}
-      {topTypes.length > 0 && (
-        <>
-          <View style={styles.divider} />
-          
-          <View style={styles.breakdownSection}>
-            <Text style={styles.breakdownTitle}>Top Categories</Text>
-            {topTypes.map(([type, amount], index) => {
-              const percentage = (amount / totalDonated) * 100;
-              return (
-                <View key={type} style={styles.breakdownRow}>
-                  <View style={styles.breakdownInfo}>
-                    <View
-                      style={[
-                        styles.breakdownDot,
-                        { backgroundColor: getColorForIndex(index) },
-                      ]}
-                    />
-                    <Text style={styles.breakdownType}>{type}</Text>
-                  </View>
-                  <View style={styles.breakdownValues}>
-                    <Text style={styles.breakdownAmount}>${amount.toFixed(2)}</Text>
-                    <Text style={styles.breakdownPercentage}>
-                      {percentage.toFixed(0)}%
-                    </Text>
-                  </View>
+      {topCauses.length > 0 && (
+        <View style={styles.breakdownSection}>
+          <Text style={styles.blockLabel}>Top causes</Text>
+          {topCauses.map(([cause, amount], index) => {
+            const percentage = totalDonated > 0 ? (amount / totalDonated) * 100 : 0;
+            return (
+              <View key={cause} style={styles.breakdownRow}>
+                <View style={styles.breakdownInfo}>
+                  <View
+                    style={[
+                      styles.breakdownDot,
+                      { backgroundColor: getColorForIndex(index) },
+                    ]}
+                  />
+                  <Text style={styles.breakdownCause} numberOfLines={1}>
+                    {cause}
+                  </Text>
                 </View>
-              );
-            })}
-          </View>
-        </>
+                <View style={styles.breakdownValues}>
+                  <Text style={styles.breakdownAmount}>${amount.toFixed(2)}</Text>
+                  <Text style={styles.breakdownPercentage}>
+                    {percentage.toFixed(0)}%
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
       )}
 
-      {/* Thank You Message */}
-      <View style={styles.thankYouBox}>
-        <Text style={styles.thankYouText}>
-          JazakAllah Khair for your generous support! 🌙
-        </Text>
-      </View>
+      <Text style={styles.thankYouText}>
+        JazakAllah Khair for your generous support.
+      </Text>
     </View>
   );
 }
@@ -128,58 +113,64 @@ export default function DonationAnalyticsCard({
 const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
   container: {
     backgroundColor: theme.colors.surface.base,
-    borderRadius: theme.radius.lg,
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
-    ...theme.shadow.soft,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
+    borderRadius: theme.radius.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.border.soft,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.xl,
+    paddingBottom: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
   },
   headerTitle: {
-    fontSize: ms(18, 0.2) * fontScale,
-    fontWeight: 'bold',
+    fontSize: ms(16, 0.2) * fontScale,
+    fontWeight: '600',
     color: theme.colors.text.strong,
+    letterSpacing: -0.2,
+  },
+  headerSubtitle: {
+    marginTop: ms(4, 0.05),
+    marginBottom: theme.spacing.lg,
+    fontSize: ms(12, 0.15) * fontScale,
+    color: theme.colors.text.muted,
+    lineHeight: ms(17, 0.15),
   },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.md,
-    marginBottom: theme.spacing.md,
+    gap: theme.spacing.sm,
   },
-  statCard: {
+  statCell: {
     flex: 1,
     minWidth: '45%',
     backgroundColor: theme.colors.surface.soft,
-    padding: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.md,
     borderRadius: theme.radius.md,
-    alignItems: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.colors.border.soft,
   },
   statValue: {
-    fontSize: ms(24, 0.3) * fontScale,
-    fontWeight: 'bold',
-    color: theme.colors.brand.navy[700],
-    marginBottom: ms(4, 0.1),
+    fontSize: ms(20, 0.25) * fontScale,
+    fontWeight: '700',
+    color: theme.colors.brand.navy[800],
+    marginBottom: ms(2, 0.05),
   },
   statLabel: {
-    fontSize: ms(12, 0.2) * fontScale,
+    fontSize: ms(11, 0.15) * fontScale,
     color: theme.colors.text.muted,
   },
-  divider: {
-    height: ms(1, 0.05),
-    backgroundColor: theme.colors.border.base,
-    marginVertical: theme.spacing.lg,
-  },
   breakdownSection: {
-    marginBottom: theme.spacing.md,
+    marginTop: theme.spacing.xl,
+    paddingTop: theme.spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: theme.colors.border.soft,
   },
-  breakdownTitle: {
-    fontSize: ms(14, 0.2) * fontScale,
-    fontWeight: '600',
-    color: theme.colors.text.strong,
+  blockLabel: {
+    fontSize: ms(11, 0.15) * fontScale,
+    fontWeight: '500',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: theme.colors.text.muted,
     marginBottom: theme.spacing.md,
   },
   breakdownRow: {
@@ -187,20 +178,23 @@ const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => nu
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: theme.spacing.sm,
+    gap: theme.spacing.sm,
   },
   breakdownInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.sm,
     flex: 1,
+    minWidth: 0,
   },
   breakdownDot: {
-    width: ms(12, 0.1),
-    height: ms(12, 0.1),
-    borderRadius: ms(6, 0.05),
+    width: ms(8, 0.05),
+    height: ms(8, 0.05),
+    borderRadius: ms(4, 0.05),
+    flexShrink: 0,
   },
-  breakdownType: {
-    fontSize: ms(14, 0.2) * fontScale,
+  breakdownCause: {
+    fontSize: ms(13, 0.2) * fontScale,
     color: theme.colors.text.base,
     flex: 1,
   },
@@ -208,29 +202,26 @@ const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => nu
     flexDirection: 'row',
     alignItems: 'center',
     gap: theme.spacing.md,
+    flexShrink: 0,
   },
   breakdownAmount: {
-    fontSize: ms(14, 0.2) * fontScale,
+    fontSize: ms(13, 0.2) * fontScale,
     fontWeight: '600',
     color: theme.colors.text.strong,
-    minWidth: ms(70, 0.2),
+    minWidth: ms(64, 0.2),
     textAlign: 'right',
   },
   breakdownPercentage: {
-    fontSize: ms(12, 0.2) * fontScale,
+    fontSize: ms(12, 0.15) * fontScale,
     color: theme.colors.text.muted,
-    minWidth: ms(35, 0.1),
+    minWidth: ms(32, 0.1),
     textAlign: 'right',
   },
-  thankYouBox: {
-    backgroundColor: theme.colors.accent.blueSoft,
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.sm,
-    marginTop: theme.spacing.sm,
-  },
   thankYouText: {
-    fontSize: ms(14, 0.2) * fontScale,
-    color: theme.colors.brand.navy[700],
+    marginTop: theme.spacing.lg,
+    fontSize: ms(12, 0.15) * fontScale,
+    color: theme.colors.text.muted,
     textAlign: 'center',
+    lineHeight: ms(17, 0.15),
   },
 });
