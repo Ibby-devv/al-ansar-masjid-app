@@ -28,6 +28,13 @@ import DonationErrorModal, { DonationError } from "../../../components/DonationE
 import DonationSuccessModal from "../../../components/DonationSuccessModal";
 import EmptyState from "../../../components/EmptyState";
 import GeneralDonationCard from "../../../components/GeneralDonationCard";
+import {
+  BlockLabel,
+  Chip,
+  Panel,
+  PrimaryButton,
+  ScreenIntro,
+} from "../../../components/ui/calm";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { Campaign, useCampaigns } from "../../../hooks/useCampaigns";
 import { useDonation } from "../../../hooks/useDonation";
@@ -416,12 +423,10 @@ export default function GiveTab(): React.JSX.Element | null {
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.contentContainer}>
-              <View style={styles.intro}>
-                <Text style={styles.introTitle}>Support a cause</Text>
-                <Text style={styles.introSubtitle}>
-                  Choose a campaign, or give to general mosque funds.
-                </Text>
-              </View>
+              <ScreenIntro
+                title="Support a cause"
+                subtitle="Choose a campaign, or give to general mosque funds."
+              />
 
               <GeneralDonationCard onPress={handleGeneralDonationPress} />
 
@@ -468,16 +473,13 @@ export default function GiveTab(): React.JSX.Element | null {
                     </Text>
                   </View>
                 ) : (
-                  <View style={styles.intro}>
-                    <Text style={styles.introTitle}>Make a donation</Text>
-                    <Text style={styles.introSubtitle}>
-                      Support Al Ansar’s daily operations and community
-                      programs.
-                    </Text>
-                  </View>
+                  <ScreenIntro
+                    title="Make a donation"
+                    subtitle="Support Al Ansar’s daily operations and community programs."
+                  />
                 )}
 
-                <View style={styles.panel}>
+                <Panel>
                   <View style={styles.amountFocus}>
                     <Text style={styles.eyebrow}>Your gift</Text>
                     <Text style={styles.amountDisplay}>
@@ -528,7 +530,7 @@ export default function GiveTab(): React.JSX.Element | null {
                   </View>
 
                   <View style={styles.block}>
-                    <Text style={styles.blockLabel}>Frequency</Text>
+                    <BlockLabel>Frequency</BlockLabel>
                     <View style={styles.segment}>
                       <TouchableOpacity
                         style={[
@@ -574,38 +576,23 @@ export default function GiveTab(): React.JSX.Element | null {
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.freqRow}
                       >
-                        {enabledFrequencies.map((freq) => {
-                          const selected = frequency === freq.id;
-                          return (
-                            <TouchableOpacity
-                              key={freq.id}
-                              style={[
-                                styles.freqChip,
-                                selected && styles.freqChipSelected,
-                              ]}
-                              onPress={() =>
-                                setFrequency(
-                                  freq.id as
-                                    | "weekly"
-                                    | "fortnightly"
-                                    | "monthly"
-                                    | "yearly"
-                                )
-                              }
-                              accessibilityRole="button"
-                              accessibilityState={{ selected }}
-                            >
-                              <Text
-                                style={[
-                                  styles.freqChipText,
-                                  selected && styles.freqChipTextSelected,
-                                ]}
-                              >
-                                {freq.label}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        })}
+                        {enabledFrequencies.map((freq) => (
+                          <Chip
+                            key={freq.id}
+                            label={freq.label}
+                            selected={frequency === freq.id}
+                            tone="gold"
+                            onPress={() =>
+                              setFrequency(
+                                freq.id as
+                                  | "weekly"
+                                  | "fortnightly"
+                                  | "monthly"
+                                  | "yearly"
+                              )
+                            }
+                          />
+                        ))}
                       </ScrollView>
                     )}
                   </View>
@@ -638,7 +625,7 @@ export default function GiveTab(): React.JSX.Element | null {
 
                   {showDonorFields && (
                     <View style={styles.block}>
-                      <Text style={styles.blockLabel}>Your details</Text>
+                      <BlockLabel>Your details</BlockLabel>
                       <TextInput
                         style={styles.input}
                         placeholder="Full name"
@@ -673,7 +660,7 @@ export default function GiveTab(): React.JSX.Element | null {
                       )}
                     </View>
                   )}
-                </View>
+                </Panel>
 
                 {__DEV__ && (
                   <View style={styles.devButtons}>
@@ -725,31 +712,15 @@ export default function GiveTab(): React.JSX.Element | null {
             </ScrollView>
 
             <View style={styles.ctaBar}>
-              <TouchableOpacity
-                style={[
-                  styles.donateButton,
-                  processing && styles.donateButtonDisabled,
-                ]}
+              <PrimaryButton
+                label={`Donate $${displayAmount.toFixed(2)}`}
                 onPress={handleDonate}
                 disabled={processing}
-                accessibilityRole="button"
+                loading={processing}
+                icon="heart"
+                iconColor={theme.colors.brand.gold[400]}
                 accessibilityLabel={`Donate ${displayAmount.toFixed(2)} dollars`}
-              >
-                {processing ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <>
-                    <Ionicons
-                      name="heart"
-                      size={ms(20, 0.2)}
-                      color={theme.colors.brand.gold[400]}
-                    />
-                    <Text style={styles.donateButtonText}>
-                      Donate ${displayAmount.toFixed(2)}
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
+              />
               <View style={styles.securityNote}>
                 <Ionicons
                   name="shield-checkmark"
@@ -835,21 +806,6 @@ const createStyles = (
       paddingHorizontal: theme.spacing.xl,
       paddingTop: theme.spacing.lg,
     },
-    intro: {
-      marginBottom: theme.spacing.lg,
-    },
-    introTitle: {
-      fontSize: ms(18, 0.25) * fontScale,
-      fontWeight: "600",
-      color: theme.colors.text.strong,
-      letterSpacing: -0.2,
-    },
-    introSubtitle: {
-      marginTop: ms(4, 0.05),
-      fontSize: ms(13, 0.2) * fontScale,
-      color: theme.colors.text.muted,
-      lineHeight: ms(18, 0.2),
-    },
     backLink: {
       flexDirection: "row",
       alignItems: "center",
@@ -888,15 +844,6 @@ const createStyles = (
       fontSize: ms(13, 0.2) * fontScale,
       fontWeight: "600",
       color: theme.colors.brand.gold[600],
-    },
-    panel: {
-      backgroundColor: theme.colors.surface.base,
-      borderRadius: theme.radius.xl,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.soft,
-      paddingHorizontal: theme.spacing.lg,
-      paddingTop: theme.spacing.xl,
-      paddingBottom: theme.spacing.md,
     },
     amountFocus: {
       alignItems: "center",
@@ -983,20 +930,14 @@ const createStyles = (
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: theme.colors.border.soft,
     },
-    blockLabel: {
-      fontSize: ms(11, 0.15) * fontScale,
-      fontWeight: "500",
-      letterSpacing: 0.6,
-      textTransform: "uppercase",
-      color: theme.colors.text.muted,
-      marginBottom: theme.spacing.md,
-    },
     segment: {
       flexDirection: "row",
       backgroundColor: theme.colors.surface.muted,
       borderRadius: theme.radius.md,
       padding: ms(3, 0.05),
       gap: ms(2, 0.05),
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.border.soft,
     },
     segmentItem: {
       flex: 1,
@@ -1007,7 +948,8 @@ const createStyles = (
     },
     segmentItemSelected: {
       backgroundColor: theme.colors.surface.base,
-      ...theme.shadow.soft,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.brand.navy[700],
     },
     segmentText: {
       fontSize: ms(13, 0.2) * fontScale,
@@ -1022,27 +964,6 @@ const createStyles = (
       flexDirection: "row",
       gap: theme.spacing.sm,
       paddingTop: theme.spacing.md,
-    },
-    freqChip: {
-      borderWidth: ms(1.5, 0.05),
-      borderColor: theme.colors.border.base,
-      backgroundColor: theme.colors.surface.base,
-      borderRadius: theme.radius.pill,
-      paddingVertical: ms(8, 0.1),
-      paddingHorizontal: ms(14, 0.1),
-    },
-    freqChipSelected: {
-      borderColor: theme.colors.brand.gold[600],
-      backgroundColor: theme.colors.accent.amberSoft,
-    },
-    freqChipText: {
-      fontSize: ms(13, 0.2) * fontScale,
-      fontWeight: "500",
-      color: theme.colors.text.muted,
-    },
-    freqChipTextSelected: {
-      color: theme.colors.brand.gold[600],
-      fontWeight: "600",
     },
     toggleRow: {
       flexDirection: "row",
@@ -1100,26 +1021,6 @@ const createStyles = (
       backgroundColor: theme.colors.surface.muted,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: theme.colors.border.soft,
-    },
-    donateButton: {
-      backgroundColor: theme.colors.brand.navy[800],
-      borderRadius: theme.radius.lg,
-      paddingVertical: theme.spacing.lg,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: theme.spacing.sm,
-      ...theme.shadow.header,
-    },
-    donateButtonDisabled: {
-      backgroundColor: theme.colors.text.muted,
-      shadowOpacity: 0,
-      elevation: 0,
-    },
-    donateButtonText: {
-      color: theme.colors.text.header,
-      fontSize: ms(16, 0.2) * fontScale,
-      fontWeight: "600",
     },
     securityNote: {
       flexDirection: "row",

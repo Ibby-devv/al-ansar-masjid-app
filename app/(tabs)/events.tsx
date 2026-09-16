@@ -10,12 +10,12 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PatternOverlay from "../../components/PatternOverlay";
+import { Chip, Panel } from "../../components/ui/calm";
 import { AppTheme, useTheme } from "../../contexts/ThemeContext";
 import { useEventCategories } from "../../hooks/useEventCategories";
 import { useEvents } from "../../hooks/useEvents";
@@ -242,27 +242,14 @@ export default function EventsScreen(): React.JSX.Element {
             {categoriesLoading ? (
               <Text style={styles.categoryLoadingText}>Loading categories…</Text>
             ) : (
-              categoryFilters.map((cat) => {
-                const selected = selectedCategory === cat.id;
-                return (
-                  <TouchableOpacity
-                    key={cat.id}
-                    style={[styles.chip, selected && styles.chipSelected]}
-                    onPress={() => setSelectedCategory(cat.id)}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected }}
-                  >
-                    <Text
-                      style={[
-                        styles.chipText,
-                        selected && styles.chipTextSelected,
-                      ]}
-                    >
-                      {cat.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })
+              categoryFilters.map((cat) => (
+                <Chip
+                  key={cat.id}
+                  label={cat.label}
+                  selected={selectedCategory === cat.id}
+                  onPress={() => setSelectedCategory(cat.id)}
+                />
+              ))
             )}
           </ScrollView>
         </View>
@@ -296,7 +283,7 @@ export default function EventsScreen(): React.JSX.Element {
               const showPerEventBadge = !section.relBadge && relEvent;
 
               return (
-                <View style={styles.eventCard}>
+                <Panel compact style={styles.eventCard}>
                   {event.image_url ? (
                     <Image
                       source={{ uri: event.image_url }}
@@ -398,7 +385,7 @@ export default function EventsScreen(): React.JSX.Element {
                       ) : null}
                     </View>
                   </View>
-                </View>
+                </Panel>
               );
             }}
             ListEmptyComponent={
@@ -479,27 +466,6 @@ const createStyles = (
       color: theme.colors.text.muted,
       fontWeight: "500",
     },
-    chip: {
-      borderWidth: ms(1.5, 0.05),
-      borderColor: theme.colors.border.base,
-      backgroundColor: theme.colors.surface.base,
-      borderRadius: theme.radius.pill,
-      paddingVertical: ms(8, 0.1),
-      paddingHorizontal: ms(14, 0.1),
-    },
-    chipSelected: {
-      borderColor: theme.colors.brand.navy[700],
-      backgroundColor: theme.colors.accent.blueSoft,
-    },
-    chipText: {
-      fontSize: ms(13, 0.2) * fontScale,
-      fontWeight: "500",
-      color: theme.colors.text.muted,
-    },
-    chipTextSelected: {
-      color: theme.colors.brand.navy[700],
-      fontWeight: "600",
-    },
     eventsContainer: {
       flex: 1,
       backgroundColor: theme.colors.surface.muted,
@@ -551,13 +517,7 @@ const createStyles = (
       color: theme.colors.brand.navy[700],
     },
     eventCard: {
-      backgroundColor: theme.colors.surface.base,
-      borderRadius: theme.radius.xl,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.soft,
-      padding: theme.spacing.lg,
       marginBottom: theme.spacing.md,
-      overflow: "hidden",
     },
     eventImage: {
       width: "100%",
