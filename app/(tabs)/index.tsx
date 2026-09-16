@@ -17,7 +17,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import PatternOverlay from "../../components/PatternOverlay";
 import NextBanner from "../../components/ui/NextBanner";
-import PillToggle from "../../components/ui/PillToggle";
 import UpdatingBanner from "../../components/ui/UpdatingBanner";
 
 import EmptyState from "../../components/EmptyState";
@@ -29,8 +28,6 @@ import { useFirebaseData } from "../../hooks/useFirebaseData";
 import { useResponsive } from "../../hooks/useResponsive";
 
 import { Prayer, calculateIqamaTime } from "../../types";
-
-type ViewType = "prayer" | "jumuah";
 
 const getOrdinalSuffix = (num: number): string => {
   const j = num % 10;
@@ -46,7 +43,6 @@ export default function HomeScreen(): React.JSX.Element {
   const { ms } = useResponsive();
   const { fontScale } = useWindowDimensions();
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
-  const [activeView, setActiveView] = useState<ViewType>("prayer");
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
   const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating, error, refetch } =
@@ -352,156 +348,137 @@ export default function HomeScreen(): React.JSX.Element {
           </SafeAreaView>
         </LinearGradient>
 
-        <PillToggle
-          options={[
-            { key: "prayer", label: "Prayer Times" },
-            { key: "jumuah", label: "Jumu'ah Times" },
-          ]}
-          value={activeView}
-          onChange={(key) => setActiveView(key as ViewType)}
-          style={{ marginTop: -12, marginBottom: 12 }}
-        />
+        <View style={styles.prayerCardsContainer}>
+          {nextPrayer && (
+            <NextBanner
+              prayerName={nextPrayer.name}
+              prayerTime={nextPrayer.time}
+              timeRemaining={nextPrayer.timeRemaining}
+            />
+          )}
+          {!loading && !prayerTimes ? (
+            <EmptyState
+              variant={error ? "error" : "offline"}
+              icon="time-outline"
+              title="Prayer Times Unavailable"
+              message={
+                error ||
+                "Please check your internet connection and pull down to refresh. Prayer times will appear when you're back online."
+              }
+            />
+          ) : (
+            <View style={styles.prayerTableCard}>
+              <View style={[styles.tableRow, styles.tableHeaderRow, styles.tableRowDivider]}>
+                <Text style={[styles.rowName, styles.rowHeaderLabel]}>Prayer</Text>
+                <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Adhan</Text>
+                <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Iqama</Text>
+              </View>
+              {loading && !prayerTimes ? (
+                [0, 1, 2, 3, 4, 5].map((i) => (
+                  <View key={`sk-${i}`} style={[styles.tableRow, styles.tableRowDivider]}>
+                    <View style={styles.skelName} />
+                    <View style={styles.skelTime} />
+                    <View style={styles.skelTime} />
+                  </View>
+                ))
+              ) : (
+                prayers.map((prayer, index) => {
+                  const isNextPrayer = nextPrayer?.name === prayer.name;
+                  const isLast = index === prayers.length - 1;
 
-        {activeView === "prayer" && (
-          <View style={styles.prayerCardsContainer}>
-            {nextPrayer && (
-              <NextBanner
-                prayerName={nextPrayer.name}
-                prayerTime={nextPrayer.time}
-                timeRemaining={nextPrayer.timeRemaining}
-              />
-            )}
-            {!loading && !prayerTimes ? (
-              <EmptyState
-                variant={error ? "error" : "offline"}
-                icon="time-outline"
-                title="Prayer Times Unavailable"
-                message={
-                  error ||
-                  "Please check your internet connection and pull down to refresh. Prayer times will appear when you're back online."
-                }
-              />
-            ) : (
-              <View style={styles.prayerTableCard}>
-                <View style={[styles.tableRow, styles.tableHeaderRow, styles.tableRowDivider]}>
-                  <Text style={[styles.rowName, styles.rowHeaderLabel]}>Prayer</Text>
-                  <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Adhan</Text>
-                  <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Iqama</Text>
-                </View>
-                {loading && !prayerTimes ? (
-                  [0, 1, 2, 3, 4, 5].map((i) => (
-                    <View key={`sk-${i}`} style={[styles.tableRow, styles.tableRowDivider]}>
-                      <View style={styles.skelName} />
-                      <View style={styles.skelTime} />
-                      <View style={styles.skelTime} />
-                    </View>
-                  ))
-                ) : (
-                  prayers.map((prayer, index) => {
-                    const isNextPrayer = nextPrayer?.name === prayer.name;
-                    const isLast = index === prayers.length - 1;
-
-                    return (
-                      <View
-                        key={prayer.name}
+                  return (
+                    <View
+                      key={prayer.name}
+                      style={[
+                        styles.tableRow,
+                        isNextPrayer && styles.nextRow,
+                        !isLast && styles.tableRowDivider,
+                      ]}
+                    >
+                      <Text
+                        style={[styles.rowName, isNextPrayer && styles.nextPrayerText]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {prayer.name}
+                      </Text>
+                      <Text style={styles.rowTime}>{prayer.adhan || "--:--"}</Text>
+                      <Text
                         style={[
-                          styles.tableRow,
-                          isNextPrayer && styles.nextRow,
-                          !isLast && styles.tableRowDivider,
+                          styles.rowTime,
+                          prayer.showIqama ? styles.rowIqama : styles.rowIqamaEmpty,
+                          isNextPrayer && prayer.showIqama && styles.rowIqamaNext,
                         ]}
                       >
-                        <Text
-                          style={[styles.rowName, isNextPrayer && styles.nextPrayerText]}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                        >
-                          {prayer.name}
-                        </Text>
-                        <Text style={styles.rowTime}>{prayer.adhan || "--:--"}</Text>
-                        <Text
-                          style={[
-                            styles.rowTime,
-                            prayer.showIqama ? styles.rowIqama : styles.rowIqamaEmpty,
-                            isNextPrayer && prayer.showIqama && styles.rowIqamaNext,
-                          ]}
-                        >
-                          {prayer.showIqama ? prayer.iqama || "--:--" : "—"}
-                        </Text>
-                      </View>
-                    );
-                  })
-                )}
-              </View>
-            )}
-            {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
-              <View style={styles.updatingContainer}>
-                <UpdatingBanner text="Updating…" />
-              </View>
-            )}
-            {!updating && isStale && prayerTimes && (
-              <View style={styles.staleBanner}>
-                <Text style={styles.staleBannerText}>
-                  Prayer times last updated on{" "}
-                  {formatDateTimeDisplay(
-                    prayerTimes?.last_updated || mosqueSettings?.last_updated,
-                  ) || "a previous day"}
-                  .
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
+                        {prayer.showIqama ? prayer.iqama || "--:--" : "—"}
+                      </Text>
+                    </View>
+                  );
+                })
+              )}
+            </View>
+          )}
 
-        {activeView === "jumuah" && (
-          <View style={styles.jumuahCardsContainer}>
-            {loading && !jumuahTimes ? (
-              [0].map((i) => (
-                <View key={`j-sk-${i}`} style={styles.jumuahCard}>
-                  <View style={styles.jumuahHeader}>
-                    <View style={[styles.jumuahSkelIcon, { opacity: 0.35 }]} />
-                    <View style={styles.jumuahSkelTitle} />
-                  </View>
-                  <View style={styles.jumuahTimeRow}>
-                    <View style={styles.jumuahSkelLine} />
-                    <View style={styles.jumuahSkelLine} />
-                  </View>
-                </View>
-              ))
-            ) : !jumuahTimes ? (
-              <EmptyState
-                variant={error ? "error" : "offline"}
-                icon="calendar-outline"
-                title="Jumu'ah Times Unavailable"
-                message={
-                  error ||
-                  "Please check your internet connection and pull down to refresh. Jumu'ah times will appear when you're back online."
-                }
-              />
-            ) : (
-              jumuahTimes.times.map((time, index) => (
-                <View key={time.id} style={styles.jumuahCard}>
-                  <View style={styles.jumuahHeader}>
-                    <Ionicons name="calendar" size={24} color={theme.colors.brand.gold[600]} />
-                    <Text style={styles.jumuahCardTitle}>
-                      {jumuahTimes.times.length === 1
-                        ? "Jumu'ah"
-                        : `${getOrdinalSuffix(index + 1)} Jumu'ah`}
-                    </Text>
-                  </View>
-                  <View style={styles.jumuahTimeRow}>
-                    <Text style={styles.jumuahLabel}>Khutbah</Text>
-                    <Text style={styles.jumuahTime}>{time.khutbah}</Text>
-                  </View>
-                </View>
-              ))
-            )}
-            {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
-              <View style={styles.updatingContainer}>
-                <UpdatingBanner text="Updating…" />
+          {(loading && !jumuahTimes) || (jumuahTimes && jumuahTimes.times.length > 0) ? (
+            <View style={[styles.prayerTableCard, styles.jumuahTableCard]}>
+              <View style={[styles.tableRow, styles.tableHeaderRow, styles.tableRowDivider]}>
+                <Text style={[styles.rowName, styles.rowHeaderLabel]}>Jumu'ah</Text>
+                <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Khutbah</Text>
               </View>
-            )}
-          </View>
-        )}
+              {loading && !jumuahTimes ? (
+                [0].map((i) => (
+                  <View key={`j-sk-${i}`} style={styles.tableRow}>
+                    <View style={styles.skelName} />
+                    <View style={styles.skelTime} />
+                  </View>
+                ))
+              ) : (
+                jumuahTimes!.times.map((time, index) => {
+                  const isLast = index === jumuahTimes!.times.length - 1;
+                  const label =
+                    jumuahTimes!.times.length === 1
+                      ? "Jumu'ah"
+                      : `${getOrdinalSuffix(index + 1)} Jumu'ah`;
+
+                  return (
+                    <View
+                      key={time.id}
+                      style={[styles.tableRow, !isLast && styles.tableRowDivider]}
+                    >
+                      <Text
+                        style={styles.rowName}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {label}
+                      </Text>
+                      <Text style={[styles.rowTime, styles.rowIqama]}>
+                        {time.khutbah || "--:--"}
+                      </Text>
+                    </View>
+                  );
+                })
+              )}
+            </View>
+          ) : null}
+
+          {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
+            <View style={styles.updatingContainer}>
+              <UpdatingBanner text="Updating…" />
+            </View>
+          )}
+          {!updating && isStale && prayerTimes && (
+            <View style={styles.staleBanner}>
+              <Text style={styles.staleBannerText}>
+                Prayer times last updated on{" "}
+                {formatDateTimeDisplay(
+                  prayerTimes?.last_updated || mosqueSettings?.last_updated,
+                ) || "a previous day"}
+                .
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -579,6 +556,7 @@ const createStyles = (
     },
     prayerCardsContainer: {
       paddingHorizontal: theme.spacing.lg,
+      paddingTop: theme.spacing.lg,
       paddingBottom: theme.spacing.md,
     },
     prayerTableCard: {
@@ -586,6 +564,9 @@ const createStyles = (
       borderRadius: theme.radius.lg,
       paddingVertical: theme.spacing.sm,
       ...theme.shadow.soft,
+    },
+    jumuahTableCard: {
+      marginTop: theme.spacing.md,
     },
     tableRow: {
       flexDirection: "row",
@@ -638,49 +619,6 @@ const createStyles = (
     nextPrayerText: {
       color: theme.colors.brand.navy[700],
     },
-    jumuahCardsContainer: {
-      paddingHorizontal: theme.spacing.lg,
-      paddingBottom: theme.spacing.md,
-    },
-    jumuahCard: {
-      backgroundColor: theme.colors.surface.base,
-      borderRadius: ms(14, 0.1),
-      padding: theme.spacing.lg,
-      marginBottom: theme.spacing.sm,
-      ...theme.shadow.soft,
-    },
-    jumuahHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginBottom: theme.spacing.md,
-    },
-    jumuahCardTitle: {
-      fontSize: ms(18, 0.5) * fontScale,
-      fontWeight: "700",
-      color: theme.colors.text.strong,
-      marginLeft: ms(10, 0.1),
-      flex: 1,
-      flexShrink: 1,
-    },
-    jumuahTimeRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      backgroundColor: theme.colors.surface.soft,
-      borderRadius: ms(10, 0.1),
-      padding: theme.spacing.md,
-    },
-    jumuahLabel: {
-      fontSize: ms(14, 0.4) * fontScale,
-      color: theme.colors.text.muted,
-      fontWeight: "500",
-    },
-    jumuahTime: {
-      fontSize: ms(20, 0.5) * fontScale,
-      fontWeight: "700",
-      color: theme.colors.brand.navy[700],
-    },
     staleBanner: {
       backgroundColor: theme.colors.accent.amberSoft,
       borderRadius: ms(8, 0.1),
@@ -707,25 +645,6 @@ const createStyles = (
       borderRadius: ms(4, 0.1),
       backgroundColor: theme.colors.surface.soft,
       marginHorizontal: ms(4, 0.1),
-    },
-    jumuahSkelIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: theme.colors.surface.soft,
-    },
-    jumuahSkelTitle: {
-      flex: 1,
-      height: ms(20),
-      borderRadius: ms(6, 0.1),
-      backgroundColor: theme.colors.surface.soft,
-      marginLeft: ms(10, 0.1),
-    },
-    jumuahSkelLine: {
-      width: ms(90),
-      height: ms(22),
-      borderRadius: ms(6, 0.1),
-      backgroundColor: theme.colors.surface.soft,
     },
     updatingContainer: {
       marginTop: ms(12, 0.1),
