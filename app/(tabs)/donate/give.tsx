@@ -74,7 +74,7 @@ export default function GiveTab(): React.JSX.Element | null {
 
   const customAmountInputRef = useRef<TextInput>(null);
 
-  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(true);
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
 
@@ -329,7 +329,7 @@ export default function GiveTab(): React.JSX.Element | null {
       setCustomAmount("");
       setDonorName("");
       setDonorEmail("");
-      setIsAnonymous(false);
+      setIsAnonymous(true);
       setIsRecurring(false);
     } catch (err: any) {
       const parsedError = parseError(err);
@@ -357,7 +357,7 @@ export default function GiveTab(): React.JSX.Element | null {
     setCustomAmount("");
     setDonorName("");
     setDonorEmail("");
-    setIsAnonymous(false);
+    setIsAnonymous(true);
     setIsRecurring(false);
   };
 
@@ -617,7 +617,7 @@ export default function GiveTab(): React.JSX.Element | null {
                           false: theme.colors.border.base,
                           true: theme.colors.brand.navy[700],
                         }}
-                        thumbColor={theme.colors.surface.base}
+                        thumbColor="#ffffff"
                         ios_backgroundColor={theme.colors.border.base}
                       />
                     </View>
