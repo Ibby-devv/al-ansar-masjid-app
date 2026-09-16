@@ -36,11 +36,11 @@ export default function EmptyState({
   const getIconColor = (): string => {
     switch (variant) {
       case 'offline':
-        return theme.colors.text.muted;
+        return theme.colors.icon.muted;
       case 'error':
         return theme.colors.accent.amber;
       default:
-        return theme.colors.accent.blue;
+        return theme.colors.icon.brand;
     }
   };
 

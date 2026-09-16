@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Home — Prayer Times (Calm)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy-900: #0b1220;
+      --navy-800: #172554;
+      --navy-700: #1e3a8a;
+      --navy-600: #1e40af;
+      --gold-600: #d97706;
+      --gold-400: #f59e0b;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --surface-muted: #f1f5f9;
+      --text: #0f172a;
+      --text-strong: #1f2937;
+      --text-muted: #64748b;
+      --border: #e5e7eb;
+      --blue-soft: #eff6ff;
+      --blue: #60a5fa;
+      --amber-soft: #fffbeb;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+      --phone-w: 390px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: "Poppins", system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(30, 58, 138, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(217, 119, 6, 0.08), transparent),
+        #e8edf5;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 48px;
+      gap: 20px;
+    }
+
+    .page-meta {
+      text-align: center;
+      max-width: 520px;
+    }
+
+    .page-meta h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--navy-800);
+      letter-spacing: -0.02em;
+    }
+
+    .page-meta p {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .compare {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 28px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .col {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .caption {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .phone {
+      width: min(100%, var(--phone-w));
+      background: var(--surface-muted);
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow:
+        0 20px 50px rgba(15, 23, 42, 0.12),
+        0 2px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--navy-800), var(--navy-700), var(--navy-900));
+      color: #fff;
+      padding: 12px 16px 22px;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+    }
+
+    .header.compact {
+      padding: 10px 16px 18px;
+    }
+
+    .settings {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .settings-btn {
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 4px;
+      padding-top: 4px;
+    }
+
+    .halo {
+      width: 112px;
+      height: 112px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.06);
+      display: grid;
+      place-items: center;
+      margin-bottom: 6px;
+    }
+
+    .halo.small {
+      width: 72px;
+      height: 72px;
+      margin-bottom: 2px;
+    }
+
+    .logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-weight: 600;
+      font-size: 18px;
+      letter-spacing: 0.04em;
+    }
+
+    .halo.small .logo {
+      width: 52px;
+      height: 52px;
+      font-size: 14px;
+    }
+
+    .mosque-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .compact .mosque-name {
+      font-size: 1.05rem;
+    }
+
+    .date {
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .date.hijri {
+      font-size: 0.72rem;
+      color: rgba(255, 255, 255, 0.62);
+    }
+
+    .body {
+      padding: 0 16px 18px;
+    }
+
+    .toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      border-radius: 999px;
+      padding: 3px;
+      margin-top: -12px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    .toggle span {
+      flex: 1;
+      text-align: center;
+      padding: 10px 8px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .toggle .on {
+      background: var(--navy-700);
+      color: #fff;
+    }
+
+    .next-quiet {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      font-size: 0.78rem;
+    }
+
+    .next-quiet .bar {
+      width: 3px;
+      align-self: stretch;
+      background: var(--gold-600);
+      border-radius: 2px;
+    }
+
+    .next-quiet .label {
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    .next-quiet .prayer {
+      flex: 1;
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+
+    .next-quiet .eta {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    .next-hero {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      display: grid;
+      gap: 4px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .next-hero .eyebrow {
+      color: var(--gold-600);
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .next-hero .title {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--text-strong);
+      line-height: 1.2;
+    }
+
+    .next-hero .eta {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .table {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) 1fr 1fr;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .row:last-child { border-bottom: 0; }
+
+    .row.head {
+      background: var(--surface-soft);
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .row .time { text-align: right; }
+    .row .iqama { color: var(--navy-600); text-align: right; }
+
+    .namecell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .icon::after {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: currentColor;
+      opacity: 0.85;
+    }
+
+    .row.next { background: var(--blue-soft); }
+    .row.next .pname { color: var(--navy-700); }
+
+    .row.next-soft { background: var(--amber-soft); }
+    .row.next-soft .pname { color: var(--navy-700); }
+    .row.next-soft .iqama { color: var(--gold-600); }
+
+    .dash {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .notes {
+      margin-top: 8px;
+      max-width: var(--phone-w);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-meta">
+    <h1>Home — Prayer Times</h1>
+    <p>Current layout vs a calmer proposal: no Hijri date, tighter header, stronger next-prayer cue, quieter table.</p>
+  </div>
+
+  <div class="compare">
+    <div class="col">
+      <div class="caption">Current</div>
+      <div class="phone" aria-label="Current homepage layout">
+        <div class="header">
+          <div class="settings">
+            <button type="button" class="settings-btn" aria-label="Settings">⚙</button>
+          </div>
+          <div class="hero">
+            <div class="halo"><div class="logo">AA</div></div>
+            <p class="mosque-name">Al Ansar Masjid</p>
+            <p class="date">Tuesday, 15 September 2026</p>
+            <p class="date hijri">22 Rabiʻ I 1448 AH</p>
+          </div>
+        </div>
+        <div class="body">
+          <div class="toggle" role="tablist" aria-label="Schedule view">
+            <span class="on">Prayer Times</span>
+            <span>Jumu'ah Times</span>
+          </div>
+          <div class="next-quiet" aria-label="Next prayer">
+            <div class="bar" aria-hidden="true"></div>
+            <span class="label">Next</span>
+            <span class="prayer">Asr</span>
+            <span class="eta">1 Hour 24 Minutes</span>
+          </div>
+          <div class="table" role="table" aria-label="Prayer times">
+            <div class="row head" role="row">
+              <div></div>
+              <div class="time">Adhan</div>
+              <div class="time">Iqama</div>
+            </div>
+            <div class="row" role="row">
+              <div class="namecell"><span class="icon" aria-hidden="true"></span><span>Fajr</span></div>
+              <div class="time">5:42 AM</div>
+              <div class="iqama">6:00 AM</div>
+            </div>
+            <div class="row" role="row">
+              <div class="namecell"><span class="icon" aria-hidden="true"></span><span>Shuruq</span></div>
+              <div class="time">6:58 AM</div>
+              <div class="iqama"></div>
+            </div>
+            <div class="row" role="row">
+              <div class="namecell"><span class="icon" aria-hidden="true"></span><span>Dhuhr</span></div>
+              <div class="time">12:05 PM</div>
+              <div class="iqama">12:30 PM</div>
+            </div>
+            <div class="row next" role="row">
+              <div class="namecell"><span class="icon" aria-hidden="true"></span><span class="pname">Asr</span></div>
+              <div class="time">3:28 PM</div>
+              <div class="iqama">3:45 PM</div>
+            </div>
+            <div class="row" role="row">
+              <div class="namecell"><span class="icon" aria-hidden="true"></span><span>Maghrib</span></div>
+              <div class="time">5:51 PM</div>
+              <div class="iqama">5:56 PM</div>
+            </div>
+            <div class="row" role="row">
+              <div class="namecell"><span class="icon" aria-hidden="true"></span><span>Isha</span></div>
+              <div class="time">7:12 PM</div>
+              <div class="iqama">7:30 PM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="caption">Proposed</div>
+      <div class="phone" aria-label="Proposed calmer homepage layout">
+        <div class="header compact">
+          <div class="settings">
+            <button type="button" class="settings-btn" aria-label="Settings">⚙</button>
+          </div>
+          <div class="hero">
+            <div class="halo small"><div class="logo">AA</div></div>
+            <p class="mosque-name">Al Ansar Masjid</p>
+            <p class="date">Tuesday, 15 September 2026</p>
+          </div>
+        </div>
+        <div class="body">
+          <div class="toggle" role="tablist" aria-label="Schedule view">
+            <span class="on">Prayer Times</span>
+            <span>Jumu'ah Times</span>
+          </div>
+          <div class="next-hero" aria-label="Next prayer Asr in 1 hour 24 minutes">
+            <p class="eyebrow">Next prayer</p>
+            <p class="title">Asr · 3:45 PM</p>
+            <p class="eta">in 1 hr 24 min</p>
+          </div>
+          <div class="table" role="table" aria-label="Prayer times">
+            <div class="row head" role="row">
+              <div>Prayer</div>
+              <div class="time">Adhan</div>
+              <div class="time">Iqama</div>
+            </div>
+            <div class="row" role="row">
+              <div>Fajr</div>
+              <div class="time">5:42 AM</div>
+              <div class="iqama">6:00 AM</div>
+            </div>
+            <div class="row" role="row">
+              <div>Shuruq</div>
+              <div class="time">6:58 AM</div>
+              <div class="iqama dash">—</div>
+            </div>
+            <div class="row" role="row">
+              <div>Dhuhr</div>
+              <div class="time">12:05 PM</div>
+              <div class="iqama">12:30 PM</div>
+            </div>
+            <div class="row next-soft" role="row">
+              <div class="pname">Asr</div>
+              <div class="time">3:28 PM</div>
+              <div class="iqama">3:45 PM</div>
+            </div>
+            <div class="row" role="row">
+              <div>Maghrib</div>
+              <div class="time">5:51 PM</div>
+              <div class="iqama">5:56 PM</div>
+            </div>
+            <div class="row" role="row">
+              <div>Isha</div>
+              <div class="time">7:12 PM</div>
+              <div class="iqama">7:30 PM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="notes">No Hijri · smaller header · next prayer as primary cue · no row icons · Shuruq uses —</p>
+    </div>
+  </div>
+</body>
+</html>

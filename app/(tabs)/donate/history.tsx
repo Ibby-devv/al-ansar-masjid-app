@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Linking,
   Platform,
@@ -15,6 +14,12 @@ import {
 } from "react-native";
 import DonationAnalyticsCard from "../../../components/DonationAnalyticsCard";
 import PillToggle from "../../../components/ui/PillToggle";
+import {
+  BlockLabel,
+  Panel,
+  PrimaryButton,
+  ScreenIntro,
+} from "../../../components/ui/calm";
 import { AppTheme, useTheme } from "../../../contexts/ThemeContext";
 import { regionalFunctions } from "../../../firebase";
 import { useFirebaseData } from "../../../hooks/useFirebaseData";
@@ -115,13 +120,13 @@ export default function HistoryTab(): React.JSX.Element {
   };
 
   const renderDonation = (donation: Donation) => (
-    <View key={donation.id} style={styles.donationCard}>
+    <Panel key={donation.id} compact>
       <View style={styles.donationHeader}>
         <View style={styles.donationIcon}>
           <Ionicons
             name="heart-outline"
             size={ms(20, 0.2)}
-            color={theme.colors.brand.navy[700]}
+            color={theme.colors.icon.brand}
           />
         </View>
         <View style={styles.donationInfo}>
@@ -142,7 +147,7 @@ export default function HistoryTab(): React.JSX.Element {
           <Ionicons
             name="document-text-outline"
             size={ms(14, 0.15)}
-            color={theme.colors.text.muted}
+            color={theme.colors.icon.muted}
           />
           <Text style={styles.receiptText}>
             Receipt: {donation.receipt_number}
@@ -160,21 +165,21 @@ export default function HistoryTab(): React.JSX.Element {
           <Ionicons
             name="receipt-outline"
             size={ms(16, 0.2)}
-            color={theme.colors.brand.navy[700]}
+            color={theme.colors.icon.brand}
           />
           <Text style={styles.viewReceiptText}>View receipt</Text>
           <Ionicons
             name="open-outline"
             size={ms(12, 0.15)}
-            color={theme.colors.text.muted}
+            color={theme.colors.icon.muted}
           />
         </TouchableOpacity>
       )}
-    </View>
+    </Panel>
   );
 
   const renderSubscription = (subscription: Donation) => (
-    <View key={subscription.id} style={styles.donationCard}>
+    <Panel key={subscription.id} compact>
       <View style={styles.donationHeader}>
         <View style={[styles.donationIcon, styles.recurringIcon]}>
           <Ionicons
@@ -202,7 +207,7 @@ export default function HistoryTab(): React.JSX.Element {
           </View>
         </View>
       </View>
-    </View>
+    </Panel>
   );
 
   return (
@@ -214,16 +219,13 @@ export default function HistoryTab(): React.JSX.Element {
       >
         {!hasLoaded && (
           <>
-            <View style={styles.intro}>
-              <Text style={styles.introTitle}>Donation history</Text>
-              <Text style={styles.introSubtitle}>
-                Enter the email used for your donations to view past gifts and
-                recurring subscriptions.
-              </Text>
-            </View>
+            <ScreenIntro
+              title="Donation history"
+              subtitle="Enter the email used for your donations to view past gifts and recurring subscriptions."
+            />
 
-            <View style={styles.panel}>
-              <Text style={styles.blockLabel}>Your email</Text>
+            <Panel>
+              <BlockLabel>Your email</BlockLabel>
               <TextInput
                 style={styles.input}
                 placeholder="email@example.com"
@@ -235,27 +237,15 @@ export default function HistoryTab(): React.JSX.Element {
                 autoCorrect={false}
               />
 
-              <TouchableOpacity
-                style={[styles.ctaButton, loading && styles.ctaButtonDisabled]}
-                onPress={loadDonations}
-                disabled={loading}
-                accessibilityRole="button"
-                accessibilityLabel="View history"
-              >
-                {loading ? (
-                  <ActivityIndicator color={theme.colors.text.header} />
-                ) : (
-                  <>
-                    <Ionicons
-                      name="search-outline"
-                      size={ms(20, 0.2)}
-                      color={theme.colors.text.header}
-                    />
-                    <Text style={styles.ctaButtonText}>View history</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
+              <PrimaryButton
+                label="View history"
+                onPress={() => {
+                  void loadDonations();
+                }}
+                loading={loading}
+                icon="search-outline"
+              />
+            </Panel>
           </>
         )}
 
@@ -266,7 +256,7 @@ export default function HistoryTab(): React.JSX.Element {
                 <Ionicons
                   name="mail-outline"
                   size={ms(18, 0.2)}
-                  color={theme.colors.text.muted}
+                  color={theme.colors.icon.muted}
                 />
                 <Text style={styles.emailText} numberOfLines={1}>
                   {email}
@@ -315,7 +305,7 @@ export default function HistoryTab(): React.JSX.Element {
                     <Ionicons
                       name="heart-outline"
                       size={ms(40, 0.2)}
-                      color={theme.colors.text.subtle}
+                      color={theme.colors.icon.subtle}
                     />
                     <Text style={styles.emptyText}>
                       No one-time donations found
@@ -331,7 +321,7 @@ export default function HistoryTab(): React.JSX.Element {
                     <Ionicons
                       name="refresh-outline"
                       size={ms(40, 0.2)}
-                      color={theme.colors.text.subtle}
+                      color={theme.colors.icon.subtle}
                     />
                     <Text style={styles.emptyText}>
                       No recurring donations found
@@ -364,38 +354,6 @@ const createStyles = (
       paddingTop: theme.spacing.lg,
       paddingBottom: ms(40, 0.1),
     },
-    intro: {
-      marginBottom: theme.spacing.lg,
-    },
-    introTitle: {
-      fontSize: ms(18, 0.25) * fontScale,
-      fontWeight: "600",
-      color: theme.colors.text.strong,
-      letterSpacing: -0.2,
-    },
-    introSubtitle: {
-      marginTop: ms(4, 0.05),
-      fontSize: ms(13, 0.2) * fontScale,
-      color: theme.colors.text.muted,
-      lineHeight: ms(18, 0.2),
-    },
-    panel: {
-      backgroundColor: theme.colors.surface.base,
-      borderRadius: theme.radius.xl,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.soft,
-      paddingHorizontal: theme.spacing.lg,
-      paddingTop: theme.spacing.xl,
-      paddingBottom: theme.spacing.lg,
-    },
-    blockLabel: {
-      fontSize: ms(11, 0.15) * fontScale,
-      fontWeight: "500",
-      letterSpacing: 0.6,
-      textTransform: "uppercase",
-      color: theme.colors.text.muted,
-      marginBottom: theme.spacing.md,
-    },
     input: {
       backgroundColor: theme.colors.surface.soft,
       borderRadius: theme.radius.md,
@@ -405,28 +363,8 @@ const createStyles = (
       fontSize: ms(15, 0.2) * fontScale,
       color: theme.colors.text.strong,
       marginBottom: theme.spacing.lg,
-      borderWidth: ms(1.5, 0.05),
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.colors.border.base,
-    },
-    ctaButton: {
-      backgroundColor: theme.colors.brand.navy[800],
-      borderRadius: theme.radius.lg,
-      paddingVertical: theme.spacing.lg,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: theme.spacing.sm,
-      ...theme.shadow.header,
-    },
-    ctaButtonDisabled: {
-      backgroundColor: theme.colors.text.muted,
-      shadowOpacity: 0,
-      elevation: 0,
-    },
-    ctaButtonText: {
-      color: theme.colors.text.header,
-      fontSize: ms(16, 0.2) * fontScale,
-      fontWeight: "600",
     },
     emailDisplay: {
       flexDirection: "row",
@@ -459,7 +397,7 @@ const createStyles = (
       paddingVertical: ms(6, 0.1),
     },
     changeButtonText: {
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
       fontSize: ms(14, 0.2) * fontScale,
       fontWeight: "600",
     },
@@ -469,13 +407,6 @@ const createStyles = (
     },
     donationsList: {
       gap: theme.spacing.md,
-    },
-    donationCard: {
-      backgroundColor: theme.colors.surface.base,
-      borderRadius: theme.radius.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.soft,
-      padding: theme.spacing.lg,
     },
     donationHeader: {
       flexDirection: "row",
@@ -558,7 +489,7 @@ const createStyles = (
     viewReceiptText: {
       fontSize: ms(13, 0.2) * fontScale,
       fontWeight: "600",
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
     },
     emptyState: {
       alignItems: "center",

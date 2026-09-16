@@ -29,7 +29,7 @@ export default function GeneralDonationCard({ onPress }: GeneralDonationCardProp
       accessibilityLabel="General donation"
     >
       <View style={styles.iconContainer}>
-        <Ionicons name="heart-outline" size={ms(22, 0.2)} color={theme.colors.brand.navy[700]} />
+        <Ionicons name="heart-outline" size={ms(22, 0.2)} color={theme.colors.icon.brand} />
       </View>
 
       <View style={styles.content}>
@@ -39,7 +39,7 @@ export default function GeneralDonationCard({ onPress }: GeneralDonationCardProp
         </Text>
       </View>
 
-      <Ionicons name="chevron-forward" size={ms(20, 0.2)} color={theme.colors.text.subtle} />
+      <Ionicons name="chevron-forward" size={ms(20, 0.2)} color={theme.colors.icon.muted} />
     </TouchableOpacity>
   );
 }

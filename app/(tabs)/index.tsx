@@ -1,39 +1,33 @@
 import { Ionicons } from "@expo/vector-icons";
-import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-    Image,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-    useWindowDimensions,
+  Image,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import PatternOverlay from "../../components/PatternOverlay";
 import NextBanner from "../../components/ui/NextBanner";
-import PillToggle from "../../components/ui/PillToggle";
 import UpdatingBanner from "../../components/ui/UpdatingBanner";
 
-// Import custom components
 import EmptyState from "../../components/EmptyState";
 import LoadingScreen from "../../components/LoadingScreen";
 
-// Import theme context
 import { useTheme } from "../../contexts/ThemeContext";
 
-// Import custom hooks
 import { useFirebaseData } from "../../hooks/useFirebaseData";
 import { useResponsive } from "../../hooks/useResponsive";
 
-// Import types and utility
 import { Prayer, calculateIqamaTime } from "../../types";
-
-type ViewType = "prayer" | "jumuah";
 
 const getOrdinalSuffix = (num: number): string => {
   const j = num % 10;
@@ -46,58 +40,39 @@ const getOrdinalSuffix = (num: number): string => {
 
 export default function HomeScreen(): React.JSX.Element {
   const theme = useTheme();
-  const { ms, width, height } = useResponsive(); // Get responsive scaling function
-  const { fontScale } = useWindowDimensions(); // Get accessibility font scaling
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
   const [currentTime, setCurrentTime] = useState<Date>(new Date());
-  const [activeView, setActiveView] = useState<ViewType>("prayer");
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  // Load data from Firebase using custom hooks
-  const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating, error } = useFirebaseData();
-  
-  // Debug: Log screen dimensions and scaling
-  useEffect(() => {
-    console.log('📱 Screen Debug:', {
-      width,
-      height,
-      fontScale,
-      'Sample 18px scaled': ms(18, 0.2) * fontScale,
-      'Sample 24px scaled': ms(24, 0.2) * fontScale,
-    });
-  }, [width, height, ms, fontScale]);
-  
-  // Memoize styles based on theme and responsive scale
+  const { prayerTimes, jumuahTimes, mosqueSettings, loading, updating, error, refetch } =
+    useFirebaseData();
+
   const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
 
-
-  // Format timestamp with both date and time for better context
   const formatDateTimeDisplay = (timestamp?: FirebaseFirestoreTypes.Timestamp): string | null => {
     if (!timestamp) return null;
     try {
       let date: Date;
-      
-      // Handle both Firestore Timestamp objects and cached plain objects
-      if (typeof timestamp === 'object' && timestamp !== null) {
-        // Check if it's a Firestore Timestamp with toDate method
-        if ('toDate' in timestamp && typeof timestamp.toDate === 'function') {
+
+      if (typeof timestamp === "object" && timestamp !== null) {
+        if ("toDate" in timestamp && typeof timestamp.toDate === "function") {
           date = timestamp.toDate();
-        } 
-        // Handle cached data (plain object with seconds/nanoseconds)
-        else if ('seconds' in timestamp && typeof timestamp.seconds === 'number') {
-          date = new Date((timestamp as any).seconds * 1000);
-        } 
-        else {
+        } else if ("seconds" in timestamp && typeof timestamp.seconds === "number") {
+          date = new Date((timestamp as { seconds: number }).seconds * 1000);
+        } else {
           return null;
         }
       } else {
         return null;
       }
-      
-      const d = String(date.getDate()).padStart(2, '0');
-      const m = String(date.getMonth() + 1).padStart(2, '0');
+
+      const d = String(date.getDate()).padStart(2, "0");
+      const m = String(date.getMonth() + 1).padStart(2, "0");
       const y = date.getFullYear();
       const hours = date.getHours();
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const ampm = hours >= 12 ? "PM" : "AM";
       const displayHours = hours % 12 || 12;
       return `${d}-${m}-${y} at ${displayHours}:${minutes} ${ampm}`;
     } catch {
@@ -105,7 +80,6 @@ export default function HomeScreen(): React.JSX.Element {
     }
   };
 
-  // Helper to get start of day for accurate date-only comparisons
   const getStartOfDay = (date: Date): Date => {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
   };
@@ -113,48 +87,35 @@ export default function HomeScreen(): React.JSX.Element {
   const isStale = (() => {
     const last = prayerTimes?.last_updated || mosqueSettings?.last_updated;
     if (!last) return false;
-    
+
     try {
-      // Handle both Firestore Timestamp objects and cached plain objects
       let lastDate: Date;
-      
-      if (typeof last === 'object' && last !== null) {
-        // Check if it's a Firestore Timestamp with toDate method
-        if ('toDate' in last && typeof last.toDate === 'function') {
+
+      if (typeof last === "object" && last !== null) {
+        if ("toDate" in last && typeof last.toDate === "function") {
           lastDate = last.toDate();
-        } 
-        // Handle cached data (plain object with seconds/nanoseconds)
-        else if ('seconds' in last && typeof last.seconds === 'number') {
-          lastDate = new Date((last as any).seconds * 1000);
-        } 
-        // Fallback: not a valid timestamp
-        else {
-          console.warn('last_updated has unexpected format:', last);
+        } else if ("seconds" in last && typeof last.seconds === "number") {
+          lastDate = new Date((last as { seconds: number }).seconds * 1000);
+        } else {
+          console.warn("last_updated has unexpected format:", last);
           return false;
         }
       } else {
-        console.warn('last_updated is not an object:', last);
+        console.warn("last_updated is not an object:", last);
         return false;
       }
-      
-      // Only consider stale if last_updated is before today (not just different)
+
       const today = new Date();
-      
-      // Set both to start of day for accurate day comparison
       const lastDateStartOfDay = getStartOfDay(lastDate);
       const todayStartOfDay = getStartOfDay(today);
-      
+
       return lastDateStartOfDay.getTime() < todayStartOfDay.getTime();
-    } catch (error) {
-      console.error('Error checking staleness:', error);
+    } catch (err) {
+      console.error("Error checking staleness:", err);
       return false;
     }
   })();
 
-  // Jumu'ah times don't change daily, so we don't check staleness
-  // (unlike prayer times which update every day)
-
-  // Update current time every minute
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -163,39 +124,35 @@ export default function HomeScreen(): React.JSX.Element {
     return () => clearInterval(timer);
   }, []);
 
-  // Format date
+  const onRefresh = useCallback(async (): Promise<void> => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
+
   const formatDate = (date: Date): string => {
     return date.toLocaleDateString("en-US", {
       weekday: "long",
       day: "2-digit",
       month: "long",
       year: "numeric",
-      timeZone: (mosqueSettings as any)?.timezone || "Australia/Sydney",
+      timeZone: (mosqueSettings as { timezone?: string } | null)?.timezone || "Australia/Sydney",
     });
   };
 
-  // Calculate Islamic (Hijri) date
-  const getIslamicDate = (date: Date): string => {
-    try {
-      const islamicDate = new Intl.DateTimeFormat("en-US-u-ca-islamic", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        timeZone: (mosqueSettings as any)?.timezone || "Australia/Sydney",
-      }).format(date);
+  const MOSQUE_TZ: string =
+    (mosqueSettings as { timezone?: string } | null)?.timezone || "Australia/Sydney";
 
-      return islamicDate;
-    } catch (error) {
-      console.error("Error formatting Islamic date:", error);
-      return "";
-    }
-  };
-
-  // ====== Timezone-aware helpers (uses mosqueSettings.timezone when available) ======
-  const MOSQUE_TZ: string = (mosqueSettings as any)?.timezone || "Australia/Sydney";
-
-  // Get current wall-clock components using Intl parts
-  const getSydneyNowParts = (): { year: number; month: number; day: number; hour: number; minute: number } => {
+  const getSydneyNowParts = (): {
+    year: number;
+    month: number;
+    day: number;
+    hour: number;
+    minute: number;
+  } => {
     const parts = new Intl.DateTimeFormat("en-AU", {
       timeZone: MOSQUE_TZ,
       year: "numeric",
@@ -206,16 +163,27 @@ export default function HomeScreen(): React.JSX.Element {
       hour12: false,
     }).formatToParts(new Date());
 
-    const map: Record<string, number> = {} as any;
+    const map: Record<string, number> = {};
     for (const p of parts) {
-      if (p.type === "year" || p.type === "month" || p.type === "day" || p.type === "hour" || p.type === "minute") {
+      if (
+        p.type === "year" ||
+        p.type === "month" ||
+        p.type === "day" ||
+        p.type === "hour" ||
+        p.type === "minute"
+      ) {
         map[p.type] = parseInt(p.value, 10);
       }
     }
-    return { year: map.year, month: map.month, day: map.day, hour: map.hour, minute: map.minute };
+    return {
+      year: map.year,
+      month: map.month,
+      day: map.day,
+      hour: map.hour,
+      minute: map.minute,
+    };
   };
 
-  // Parse a 12-hour time string like "5:30 PM" into minutes since midnight
   const parseTimeToMinutes = (timeString: string | undefined): number | null => {
     if (!timeString) return null;
     const match = timeString.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
@@ -228,105 +196,97 @@ export default function HomeScreen(): React.JSX.Element {
     return hours * 60 + minutes;
   };
 
-  // Format a difference in minutes to "X Hours Y Minutes"
   const formatMinuteDiff = (diffMins: number): string => {
     const hours = Math.floor(diffMins / 60);
     const minutes = diffMins % 60;
     if (hours > 0) {
-      return `${hours} Hour${hours > 1 ? "s" : ""} ${minutes} Minute${minutes !== 1 ? "s" : ""}`;
+      return `in ${hours} hr${hours > 1 ? "s" : ""} ${minutes} min`;
     }
-    return `${minutes} Minute${minutes !== 1 ? "s" : ""}`;
+    return `in ${minutes} min`;
   };
 
-  // Get the displayed iqama time
   const getDisplayedIqamaTime = (prayer: string): string => {
     if (!prayerTimes) return "--:--";
 
-    const adhanTime = (prayerTimes as any)[`${prayer}_adhan`];
-    const iqamaType = (prayerTimes as any)[`${prayer}_iqama_type`] || "fixed";
-    const fixedIqama = (prayerTimes as any)[`${prayer}_iqama`];
-    const offset = (prayerTimes as any)[`${prayer}_iqama_offset`];
+    const record = prayerTimes as unknown as Record<string, string | number | undefined>;
+    const adhanTime = record[`${prayer}_adhan`] as string | undefined;
+    const iqamaType = (record[`${prayer}_iqama_type`] as "fixed" | "offset" | undefined) || "fixed";
+    const fixedIqama = record[`${prayer}_iqama`] as string | undefined;
+    const offset = record[`${prayer}_iqama_offset`] as number | undefined;
 
     return calculateIqamaTime(adhanTime, iqamaType, fixedIqama, offset);
   };
 
-  // Calculate next prayer using Sydney timezone wall-clock
-  const getNextPrayer = (): { name: string; timeRemaining: string } | null => {
+  const getNextPrayer = (): { name: string; time: string; timeRemaining: string } | null => {
     const { hour, minute } = getSydneyNowParts();
     const nowMinutes = hour * 60 + minute;
 
     const prayerKeys = ["fajr", "dhuhr", "asr", "maghrib", "isha"] as const;
-    const schedule = prayerKeys.map((key) => ({
-      name: key.charAt(0).toUpperCase() + key.slice(1),
-      minutes: parseTimeToMinutes(getDisplayedIqamaTime(key)),
-    })).filter((p) => p.minutes !== null) as { name: string; minutes: number }[];
+    const schedule = prayerKeys
+      .map((key) => ({
+        name: key.charAt(0).toUpperCase() + key.slice(1),
+        time: getDisplayedIqamaTime(key),
+        minutes: parseTimeToMinutes(getDisplayedIqamaTime(key)),
+      }))
+      .filter((p) => p.minutes !== null) as { name: string; time: string; minutes: number }[];
 
-    // Find the first prayer later today
     for (const p of schedule) {
       if (p.minutes > nowMinutes) {
         const diff = p.minutes - nowMinutes;
-        return { name: p.name, timeRemaining: formatMinuteDiff(diff) };
+        return { name: p.name, time: p.time, timeRemaining: formatMinuteDiff(diff) };
       }
     }
 
-    // Otherwise, next prayer is tomorrow's Fajr
-    const fajrMinutes = parseTimeToMinutes(getDisplayedIqamaTime("fajr"));
+    const fajrTime = getDisplayedIqamaTime("fajr");
+    const fajrMinutes = parseTimeToMinutes(fajrTime);
     if (fajrMinutes !== null) {
-      const diff = (24 * 60 - nowMinutes) + fajrMinutes;
-      return { name: "Fajr", timeRemaining: formatMinuteDiff(diff) };
+      const diff = 24 * 60 - nowMinutes + fajrMinutes;
+      return { name: "Fajr", time: fajrTime, timeRemaining: formatMinuteDiff(diff) };
     }
     return null;
   };
 
   const nextPrayer = getNextPrayer();
 
-  // Show loading screen ONLY if no cached data yet
   if (loading && !prayerTimes && !jumuahTimes && !mosqueSettings) {
     return <LoadingScreen />;
   }
 
-  // Prayer times array (Shuruq/sunrise has adhan only)
-  const prayers: (Prayer & { icon: string; showIqama: boolean })[] = [
+  const prayers: (Prayer & { showIqama: boolean })[] = [
     {
       name: "Fajr",
       adhan: prayerTimes?.fajr_adhan,
       iqama: getDisplayedIqamaTime("fajr"),
-      icon: "moon",
       showIqama: true,
     },
     {
       name: "Shuruq",
       adhan: prayerTimes?.shuruq_adhan,
       iqama: undefined,
-      icon: "sunny",
       showIqama: false,
     },
     {
       name: "Dhuhr",
       adhan: prayerTimes?.dhuhr_adhan,
       iqama: getDisplayedIqamaTime("dhuhr"),
-      icon: "partly-sunny",
       showIqama: true,
     },
     {
       name: "Asr",
       adhan: prayerTimes?.asr_adhan,
       iqama: getDisplayedIqamaTime("asr"),
-      icon: "sunny-outline",
       showIqama: true,
     },
     {
       name: "Maghrib",
       adhan: prayerTimes?.maghrib_adhan,
       iqama: getDisplayedIqamaTime("maghrib"),
-      icon: "moon-outline",
       showIqama: true,
     },
     {
       name: "Isha",
       adhan: prayerTimes?.isha_adhan,
       iqama: getDisplayedIqamaTime("isha"),
-      icon: "moon",
       showIqama: true,
     },
   ];
@@ -335,15 +295,24 @@ export default function HomeScreen(): React.JSX.Element {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header with Gradient */}
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.colors.icon.brand}
+            colors={[theme.colors.icon.brand]}
+          />
+        }
+      >
         <LinearGradient
           colors={theme.gradients.header}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.headerGradient}
         >
-          {/* Subtle geometric pattern behind the hero content */}
           <PatternOverlay
             style={styles.patternOverlay}
             variant="stars"
@@ -356,11 +325,13 @@ export default function HomeScreen(): React.JSX.Element {
               <TouchableOpacity
                 style={styles.settingsButton}
                 onPress={() => router.push("/settings")}
+                accessibilityRole="button"
+                accessibilityLabel="Settings"
               >
-                <Ionicons name="settings-outline" size={24} color={theme.colors.text.header} />
+                <Ionicons name="settings-outline" size={22} color={theme.colors.text.header} />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.heroSection}>
               <View style={styles.logoHalo}>
                 <Image
@@ -369,495 +340,315 @@ export default function HomeScreen(): React.JSX.Element {
                   resizeMode="contain"
                 />
               </View>
-              <Text 
-                style={styles.mosqueName}
-                numberOfLines={2}
-              >
+              <Text style={styles.mosqueName} numberOfLines={2}>
                 {mosqueSettings?.name || "Al Ansar Masjid"}
               </Text>
               <Text style={styles.currentDate}>{formatDate(currentTime)}</Text>
-              <Text style={styles.islamicDate}>{getIslamicDate(currentTime)}</Text>
             </View>
           </SafeAreaView>
         </LinearGradient>
 
-        {/* Toggle Buttons */}
-        <PillToggle
-          options={[
-            { key: "prayer", label: "Prayer Times" },
-            { key: "jumuah", label: "Jumu'ah Times" },
-          ]}
-          value={activeView}
-          onChange={(key) => setActiveView(key as ViewType)}
-          style={{ marginTop: -12, marginBottom: 12 }}
-        />
-
-        {/* Prayer Times View */}
-        {activeView === "prayer" && (
-          <View style={styles.prayerCardsContainer}>
-            {nextPrayer && (
-              <NextBanner
-                prayerName={nextPrayer.name}
-                timeRemaining={nextPrayer.timeRemaining}
-              />
-            )}
-            {!loading && !prayerTimes ? (
-              <EmptyState
-                variant={error ? "error" : "offline"}
-                icon="time-outline"
-                title="Prayer Times Unavailable"
-                message={error || "Please check your internet connection and pull down to refresh. Prayer times will appear when you're back online."}
-              />
-            ) : (
+        <View style={styles.prayerCardsContainer}>
+          {nextPrayer && (
+            <NextBanner
+              prayerName={nextPrayer.name}
+              prayerTime={nextPrayer.time}
+              timeRemaining={nextPrayer.timeRemaining}
+            />
+          )}
+          {!loading && !prayerTimes ? (
+            <EmptyState
+              variant={error ? "error" : "offline"}
+              icon="time-outline"
+              title="Prayer Times Unavailable"
+              message={
+                error ||
+                "Please check your internet connection and pull down to refresh. Prayer times will appear when you're back online."
+              }
+            />
+          ) : (
             <View style={styles.prayerTableCard}>
               <View style={[styles.tableRow, styles.tableHeaderRow, styles.tableRowDivider]}>
-                <View style={styles.rowLeft} />
+                <Text style={[styles.rowName, styles.rowHeaderLabel]}>Prayer</Text>
                 <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Adhan</Text>
                 <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Iqama</Text>
               </View>
-              {/* Skeleton rows only when loading and NO cached data */}
               {loading && !prayerTimes ? (
-                [0,1,2,3,4,5].map((i) => (
-                  <View key={`sk-${i}`} style={[styles.tableRow, styles.tableRowDivider]}> 
-                    <View style={styles.rowLeft}>
-                      <View style={[styles.iconCircleSmall, { opacity: 0.4 }]} />
-                      <View style={styles.skelName} />
-                    </View>
+                [0, 1, 2, 3, 4, 5].map((i) => (
+                  <View key={`sk-${i}`} style={[styles.tableRow, styles.tableRowDivider]}>
+                    <View style={styles.skelName} />
                     <View style={styles.skelTime} />
                     <View style={styles.skelTime} />
                   </View>
                 ))
               ) : (
-              prayers.map((prayer, index) => {
-                const isNextPrayer = nextPrayer?.name === prayer.name;
-                const isLast = index === prayers.length - 1;
+                prayers.map((prayer, index) => {
+                  const isNextPrayer = nextPrayer?.name === prayer.name;
+                  const isLast = index === prayers.length - 1;
 
-                return (
-                  <View
-                    key={prayer.name}
-                    style={[
-                      styles.tableRow,
-                      isNextPrayer && styles.nextRow,
-                      !isLast && styles.tableRowDivider,
-                    ]}
-                  >
-                    <View style={styles.rowLeft}>
-                      <View style={[styles.iconCircleSmall, isNextPrayer && styles.iconCircleActive]}>
-                        <Ionicons
-                          name={prayer.icon as any}
-                          size={18}
-                          color={isNextPrayer ? theme.colors.brand.navy[700] : theme.colors.accent.blue}
-                        />
-                      </View>
-                      <Text 
+                  return (
+                    <View
+                      key={prayer.name}
+                      style={[
+                        styles.tableRow,
+                        isNextPrayer && styles.nextRow,
+                        !isLast && styles.tableRowDivider,
+                      ]}
+                    >
+                      <Text
                         style={[styles.rowName, isNextPrayer && styles.nextPrayerText]}
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
                         {prayer.name}
                       </Text>
+                      <Text style={styles.rowTime}>{prayer.adhan || "--:--"}</Text>
+                      <Text
+                        style={[
+                          styles.rowTime,
+                          prayer.showIqama ? styles.rowIqama : styles.rowIqamaEmpty,
+                          isNextPrayer && prayer.showIqama && styles.rowIqamaNext,
+                        ]}
+                      >
+                        {prayer.showIqama ? prayer.iqama || "--:--" : "—"}
+                      </Text>
                     </View>
-                    <Text style={styles.rowTime}>{prayer.adhan || "--:--"}</Text>
-                    <Text style={[styles.rowTime, styles.rowIqama]}>
-                      {prayer.showIqama ? prayer.iqama || "--:--" : ""}
-                    </Text>
-                  </View>
-                );
-              })
+                  );
+                })
               )}
             </View>
-            )}
-            {/* Show subtle updating indicator below the table */}
-            {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
-              <View style={styles.updatingContainer}>
-                <UpdatingBanner text="Updating…" />
-              </View>
-            )}
-            {/* Staleness banner when data is old AND we're not currently updating */}
-            {!updating && isStale && prayerTimes && (
-              <View style={styles.staleBanner}>
-                <Text style={styles.staleBannerText}>
-                  Prayer times last updated on {formatDateTimeDisplay(prayerTimes?.last_updated || mosqueSettings?.last_updated) || 'a previous day'}.
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
+          )}
 
-        {/* Jumu'ah Times View */}
-        {activeView === "jumuah" && (
-          <View style={styles.jumuahCardsContainer}>
-            {/* No staleness banner for Jumu'ah - times don't change daily */}
-            {/* Skeleton cards only when loading and NO cached data */}
-            {loading && !jumuahTimes ? (
-              [0].map((i) => (
-                <View key={`j-sk-${i}`} style={styles.jumuahCard}>
-                  <View style={styles.jumuahHeader}>
-                    <View style={[styles.iconCircleSmall, { width: 40, height: 40, opacity: 0.35 }]} />
-                    <View style={styles.jumuahSkelTitle} />
-                  </View>
-                  <View style={styles.jumuahTimeRow}>
-                    <View style={styles.jumuahSkelLine} />
-                    <View style={styles.jumuahSkelLine} />
-                  </View>
-                </View>
-              ))
-            ) : !jumuahTimes ? (
-              <EmptyState
-                variant={error ? "error" : "offline"}
-                icon="calendar-outline"
-                title="Jumu'ah Times Unavailable"
-                message={error || "Please check your internet connection and pull down to refresh. Jumu'ah times will appear when you're back online."}
-              />
-            ) : (
-              jumuahTimes.times.map((time, index) => (
-                <View key={time.id} style={styles.jumuahCard}>
-                  <View style={styles.jumuahHeader}>
-                    <Ionicons name="calendar" size={24} color={theme.colors.brand.gold[600]} />
-                    <Text style={styles.jumuahCardTitle}>
-                      {jumuahTimes.times.length === 1
-                        ? "Jumu'ah"
-                        : `${getOrdinalSuffix(index + 1)} Jumu'ah`}
-                    </Text>
-                  </View>
-                  <View style={styles.jumuahTimeRow}>
-                    <Text style={styles.jumuahLabel}>Khutbah</Text>
-                    <Text style={styles.jumuahTime}>{time.khutbah}</Text>
-                  </View>
-                </View>
-              ))
-            )}
-            {/* Show subtle updating indicator below the cards */}
-            {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
-              <View style={styles.updatingContainer}>
-                <UpdatingBanner text="Updating…" />
+          {(loading && !jumuahTimes) || (jumuahTimes && jumuahTimes.times.length > 0) ? (
+            <View style={[styles.prayerTableCard, styles.jumuahTableCard]}>
+              <View style={[styles.tableRow, styles.tableHeaderRow, styles.tableRowDivider]}>
+                <Text style={[styles.rowName, styles.rowHeaderLabel]}>{"Jumu'ah"}</Text>
+                <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Khutbah</Text>
               </View>
-            )}  
-          </View>
-        )}
+              {loading && !jumuahTimes ? (
+                [0].map((i) => (
+                  <View key={`j-sk-${i}`} style={styles.tableRow}>
+                    <View style={styles.skelName} />
+                    <View style={styles.skelTime} />
+                  </View>
+                ))
+              ) : (
+                jumuahTimes!.times.map((time, index) => {
+                  const isLast = index === jumuahTimes!.times.length - 1;
+                  const label =
+                    jumuahTimes!.times.length === 1
+                      ? "Jumu'ah"
+                      : `${getOrdinalSuffix(index + 1)} Jumu'ah`;
+
+                  return (
+                    <View
+                      key={time.id}
+                      style={[styles.tableRow, !isLast && styles.tableRowDivider]}
+                    >
+                      <Text
+                        style={styles.rowName}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {label}
+                      </Text>
+                      <Text style={[styles.rowTime, styles.rowIqama]}>
+                        {time.khutbah || "--:--"}
+                      </Text>
+                    </View>
+                  );
+                })
+              )}
+            </View>
+          ) : null}
+
+          {updating && (prayerTimes || jumuahTimes || mosqueSettings) && (
+            <View style={styles.updatingContainer}>
+              <UpdatingBanner text="Updating…" />
+            </View>
+          )}
+          {!updating && isStale && prayerTimes && (
+            <View style={styles.staleBanner}>
+              <Text style={styles.staleBannerText}>
+                Prayer times last updated on{" "}
+                {formatDateTimeDisplay(
+                  prayerTimes?.last_updated || mosqueSettings?.last_updated,
+                ) || "a previous day"}
+                .
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </View>
   );
 }
 
-const createStyles = (theme: ReturnType<typeof useTheme>, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.surface.muted,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  headerGradient: {
-    paddingBottom: theme.spacing.xl,
-    borderBottomLeftRadius: theme.radius.xl,
-    borderBottomRightRadius: theme.radius.xl,
-    ...theme.shadow.header,
-  },
-  patternOverlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-  },
-  headerTop: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: theme.spacing.sm,
-  },
-  settingsButton: {
-    padding: ms(6, 0.1),
-    borderRadius: theme.spacing.lg,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-  },
-  heroSection: {
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.lg,
-    paddingTop: ms(6, 0.1),
-    paddingBottom: ms(4, 0.1),
-  },
-  logoLarge: {
-    width: ms(90),
-    height: ms(90),
-    marginBottom: ms(10, 0.1),
-  },
-  logoHalo: {
-    width: ms(120),
-    height: ms(120),
-    borderRadius: ms(64),
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
-    marginBottom: theme.spacing.sm,
-  },
-  mosqueName: {
-    fontSize: ms(22, 0.5) * fontScale,
-    fontWeight: "bold",
-    color: theme.colors.text.header,
-    marginBottom: ms(4, 0.1),
-    textAlign: "center",
-  },
-  currentDate: {
-    fontSize: ms(13, 0.3) * fontScale,
-    color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: ms(1, 0.1),
-    textAlign: "center",
-  },
-  islamicDate: {
-    fontSize: ms(12, 0.3) * fontScale,
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: "center",
-  },
-  prayerCardsContainer: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
-  },
-  prayerTableCard: {
-    backgroundColor: theme.colors.surface.base,
-    borderRadius: theme.radius.lg,
-    paddingVertical: theme.spacing.sm,
-    ...theme.shadow.soft,
-  },
-  tableRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: ms(12, 0.1),
-  },
-  tableHeaderRow: {
-    backgroundColor: theme.colors.surface.soft,
-  },
-  tableRowDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.base,
-  },
-  nextRow: {
-    backgroundColor: theme.colors.accent.blueSoft,
-  },
-  rowLeft: {
-    flex: 2,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  iconCircleSmall: {
-    width: ms(32),
-    height: ms(32),
-    borderRadius: ms(16),
-    backgroundColor: theme.colors.accent.blueSoft,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: theme.spacing.sm,
-  },
-  rowName: {
-    fontSize: ms(15, 0.5) * fontScale,
-    color: theme.colors.text.strong,
-    textAlign: "left",
-    fontWeight: "700",
-    flex: 1,
-    flexShrink: 1,
-  },
-  rowTime: {
-    flex: 1,
-    textAlign: "right",
-    fontSize: ms(15, 0.5) * fontScale,
-    color: theme.colors.text.base,
-    fontWeight: "700",
-  },
-  rowHeaderLabel: {
-    fontSize: ms(12, 0.3) * fontScale,
-    color: theme.colors.text.muted,
-    fontWeight: "800",
-  },
-  rowIqama: {
-    color: theme.colors.brand.navy[600],
-  },
-  prayerCard: {
-    backgroundColor: theme.colors.surface.base,
-    borderRadius: ms(14, 0.1),
-    padding: theme.spacing.md,
-    marginBottom: theme.spacing.sm,
-    ...theme.shadow.soft,
-  },
-  nextPrayerCard: {
-    backgroundColor: theme.colors.accent.amberSoft,
-    borderWidth: 2,
-    borderColor: theme.colors.brand.gold[400],
-    shadowColor: theme.colors.brand.gold[600],
-    shadowOffset: { width: 0, height: ms(2, 0.1) },
-    shadowOpacity: 0.12,
-    shadowRadius: ms(8, 0.1),
-    elevation: 3,
-  },
-  prayerCardHeader: {
-    marginBottom: ms(10, 0.1),
-  },
-  prayerNameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: ms(6, 0.1),
-  },
-  iconCircle: {
-    width: ms(36),
-    height: ms(36),
-    borderRadius: ms(18),
-    backgroundColor: theme.colors.accent.blueSoft,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: ms(10, 0.1),
-  },
-  iconCircleActive: {
-    backgroundColor: theme.colors.surface.card,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: theme.colors.brand.navy[700],
-  },
-  prayerCardName: {
-    fontSize: ms(18, 0.5) * fontScale,
-    fontWeight: "700",
-    color: theme.colors.text.strong,
-    flex: 1,
-    flexShrink: 1,
-  },
-  nextPrayerText: {
-    color: theme.colors.brand.navy[700],
-  },
-  nextBadge: {
-    backgroundColor: theme.colors.brand.gold[600],
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: ms(3, 0.1),
-    borderRadius: ms(10, 0.1),
-  },
-  nextBadgeText: {
-    color: theme.colors.text.inverse,
-    fontSize: ms(10, 0.3) * fontScale,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  countdownText: {
-    fontSize: ms(13, 0.3) * fontScale,
-    fontWeight: "600",
-    color: theme.colors.brand.gold[600],
-    marginLeft: ms(46),
-  },
-  prayerCardTimes: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.surface.soft,
-    borderRadius: ms(10, 0.1),
-    padding: ms(10, 0.1),
-  },
-  timeBlock: {
-    flex: 1,
-    alignItems: "center",
-  },
-  timeDivider: {
-    width: 1,
-    height: ms(35),
-    backgroundColor: theme.colors.border.soft,
-    marginHorizontal: ms(6, 0.1),
-  },
-  timeLabel: {
-    fontSize: ms(11, 0.3) * fontScale,
-    color: theme.colors.text.muted,
-    marginTop: ms(3, 0.1),
-    marginBottom: ms(1, 0.1),
-  },
-  timeValue: {
-    fontSize: ms(18, 0.5) * fontScale,
-    fontWeight: "700",
-    color: theme.colors.text.strong,
-  },
-  iqamaTime: {
-    color: theme.colors.brand.navy[700],
-  },
-  jumuahCardsContainer: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
-  },
-  jumuahCard: {
-    backgroundColor: theme.colors.surface.base,
-    borderRadius: ms(14, 0.1),
-    padding: theme.spacing.lg,
-    marginBottom: theme.spacing.sm,
-    ...theme.shadow.soft,
-  },
-  jumuahHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: theme.spacing.md,
-  },
-  jumuahCardTitle: {
-    fontSize: ms(18, 0.5) * fontScale,
-    fontWeight: "700",
-    color: theme.colors.text.strong,
-    marginLeft: ms(10, 0.1),
-    flex: 1,
-    flexShrink: 1,
-  },
-  jumuahTimeRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: theme.colors.surface.soft,
-    borderRadius: ms(10, 0.1),
-    padding: theme.spacing.md,
-  },
-  jumuahLabel: {
-    fontSize: ms(14, 0.4) * fontScale,
-    color: theme.colors.text.muted,
-    fontWeight: "500",
-  },
-  jumuahTime: {
-    fontSize: ms(20, 0.5) * fontScale,
-    fontWeight: "700",
-    color: theme.colors.brand.navy[700],
-  },
-  staleBanner: {
-    backgroundColor: theme.colors.accent.amberSoft,
-    borderRadius: ms(8, 0.1),
-    paddingHorizontal: ms(12, 0.1),
-    paddingVertical: ms(8, 0.1),
-    marginTop: ms(12, 0.1),
-    borderWidth: 1,
-    borderColor: theme.colors.brand.gold[400],
-  },
-  staleBannerText: {
-    fontSize: ms(12, 0.3) * fontScale,
-    color: theme.colors.text.strong,
-    fontWeight: '600',
-  },
-  skelName: {
-    width: ms(60),
-    height: ms(16),
-    borderRadius: ms(4, 0.1),
-    backgroundColor: theme.colors.surface.soft,
-  },
-  skelTime: {
-    flex: 1,
-    height: ms(18),
-    borderRadius: ms(4, 0.1),
-    backgroundColor: theme.colors.surface.soft,
-    marginHorizontal: ms(4, 0.1),
-  },
-  jumuahSkelTitle: {
-    flex: 1,
-    height: ms(20),
-    borderRadius: ms(6, 0.1),
-    backgroundColor: theme.colors.surface.soft,
-    marginLeft: ms(10, 0.1),
-  },
-  jumuahSkelLine: {
-    width: ms(90),
-    height: ms(22),
-    borderRadius: ms(6, 0.1),
-    backgroundColor: theme.colors.surface.soft,
-  },
-  updatingContainer: {
-    marginTop: ms(12, 0.1),
-    alignItems: 'center',
-  },
-});
+const createStyles = (
+  theme: ReturnType<typeof useTheme>,
+  ms: (size: number, factor?: number) => number,
+  fontScale: number,
+) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.surface.muted,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    headerGradient: {
+      paddingBottom: theme.spacing.lg,
+      borderBottomLeftRadius: theme.radius.xl,
+      borderBottomRightRadius: theme.radius.xl,
+      ...theme.shadow.header,
+    },
+    patternOverlay: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+    },
+    headerTop: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      paddingHorizontal: theme.spacing.lg,
+      paddingTop: theme.spacing.sm,
+    },
+    settingsButton: {
+      padding: ms(6, 0.1),
+      borderRadius: theme.spacing.lg,
+      backgroundColor: "rgba(255, 255, 255, 0.15)",
+    },
+    heroSection: {
+      alignItems: "center",
+      paddingHorizontal: theme.spacing.lg,
+      paddingTop: ms(2, 0.1),
+      paddingBottom: ms(2, 0.1),
+    },
+    logoLarge: {
+      width: ms(52),
+      height: ms(52),
+    },
+    logoHalo: {
+      width: ms(72),
+      height: ms(72),
+      borderRadius: ms(36),
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(255,255,255,0.06)",
+      borderWidth: 1,
+      borderColor: "rgba(255,255,255,0.12)",
+      marginBottom: theme.spacing.sm,
+    },
+    mosqueName: {
+      fontSize: ms(18, 0.4) * fontScale,
+      fontWeight: "700",
+      color: theme.colors.text.header,
+      marginBottom: ms(2, 0.1),
+      textAlign: "center",
+    },
+    currentDate: {
+      fontSize: ms(12, 0.3) * fontScale,
+      color: "rgba(255, 255, 255, 0.7)",
+      textAlign: "center",
+    },
+    prayerCardsContainer: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingTop: theme.spacing.lg,
+      paddingBottom: theme.spacing.md,
+    },
+    prayerTableCard: {
+      backgroundColor: theme.colors.surface.base,
+      borderRadius: theme.radius.lg,
+      paddingVertical: theme.spacing.sm,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.border.soft,
+    },
+    jumuahTableCard: {
+      marginTop: theme.spacing.md,
+    },
+    tableRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: ms(12, 0.1),
+    },
+    tableHeaderRow: {
+      backgroundColor: theme.colors.surface.soft,
+    },
+    tableRowDivider: {
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border.base,
+    },
+    nextRow: {
+      backgroundColor: theme.colors.accent.amberSoft,
+    },
+    rowName: {
+      flex: 1.4,
+      fontSize: ms(15, 0.5) * fontScale,
+      color: theme.colors.text.strong,
+      textAlign: "left",
+      fontWeight: "700",
+      flexShrink: 1,
+    },
+    rowTime: {
+      flex: 1,
+      textAlign: "right",
+      fontSize: ms(15, 0.5) * fontScale,
+      color: theme.colors.text.base,
+      fontWeight: "700",
+    },
+    rowHeaderLabel: {
+      fontSize: ms(11, 0.3) * fontScale,
+      color: theme.colors.text.muted,
+      fontWeight: "700",
+      textTransform: "uppercase",
+      letterSpacing: 0.4,
+    },
+    rowIqama: {
+      color: theme.colors.brand.navy[600],
+    },
+    rowIqamaEmpty: {
+      color: theme.colors.text.muted,
+      fontWeight: "400",
+    },
+    rowIqamaNext: {
+      color: theme.colors.brand.gold[600],
+    },
+    nextPrayerText: {
+      color: theme.colors.brand.navy[700],
+    },
+    staleBanner: {
+      backgroundColor: theme.colors.accent.amberSoft,
+      borderRadius: ms(8, 0.1),
+      paddingHorizontal: ms(12, 0.1),
+      paddingVertical: ms(8, 0.1),
+      marginTop: ms(12, 0.1),
+      borderWidth: 1,
+      borderColor: theme.colors.brand.gold[400],
+    },
+    staleBannerText: {
+      fontSize: ms(12, 0.3) * fontScale,
+      color: theme.colors.text.strong,
+      fontWeight: "600",
+    },
+    skelName: {
+      flex: 1.4,
+      height: ms(16),
+      borderRadius: ms(4, 0.1),
+      backgroundColor: theme.colors.surface.soft,
+    },
+    skelTime: {
+      flex: 1,
+      height: ms(18),
+      borderRadius: ms(4, 0.1),
+      backgroundColor: theme.colors.surface.soft,
+      marginHorizontal: ms(4, 0.1),
+    },
+    updatingContainer: {
+      marginTop: ms(12, 0.1),
+      alignItems: "center",
+    },
+  });

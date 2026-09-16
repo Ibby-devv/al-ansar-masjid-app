@@ -1,29 +1,39 @@
-import { ThemedText } from '@/components/themed-text';
-import { FontFamily } from '@/constants/theme';
-import { Ionicons } from '@expo/vector-icons';
-import { useIsFocused } from '@react-navigation/native';
-import * as Haptics from 'expo-haptics';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Linking, StatusBar, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { CompassView } from '../../components/QiblaCompass/components/CompassView';
-import { DebugOverlay } from '../../components/QiblaCompass/components/DebugOverlay';
-import { COMPASS_CONFIG } from '../../components/QiblaCompass/config/compassConfig';
-import { useDeviceMotion } from '../../components/QiblaCompass/hooks/useDeviceMotion';
-import { useHeading } from '../../components/QiblaCompass/hooks/useHeading';
-import { useLocation } from '../../components/QiblaCompass/hooks/useLocation';
-import { usePlacename } from '../../components/QiblaCompass/hooks/usePlacename';
-import { useQiblaDirection } from '../../components/QiblaCompass/hooks/useQiblaDirection';
-import { getShortestAngle, isWithinTolerance } from '../../components/QiblaCompass/utils/angleUtils';
-import { AppTheme, useTheme } from '../../contexts/ThemeContext';
-import { useResponsive } from '../../hooks/useResponsive';
+import { ThemedText } from "@/components/themed-text";
+import { FontFamily } from "@/constants/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
+import * as Haptics from "expo-haptics";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Linking,
+  StatusBar,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { CompassView } from "../../components/QiblaCompass/components/CompassView";
+import { DebugOverlay } from "../../components/QiblaCompass/components/DebugOverlay";
+import { COMPASS_CONFIG } from "../../components/QiblaCompass/config/compassConfig";
+import { useDeviceMotion } from "../../components/QiblaCompass/hooks/useDeviceMotion";
+import { useHeading } from "../../components/QiblaCompass/hooks/useHeading";
+import { useLocation } from "../../components/QiblaCompass/hooks/useLocation";
+import { usePlacename } from "../../components/QiblaCompass/hooks/usePlacename";
+import { useQiblaDirection } from "../../components/QiblaCompass/hooks/useQiblaDirection";
+import {
+  getShortestAngle,
+  isWithinTolerance,
+} from "../../components/QiblaCompass/utils/angleUtils";
+import { AppTheme, useTheme } from "../../contexts/ThemeContext";
+import { useResponsive } from "../../hooks/useResponsive";
 
 const TOLERANCE = 10; // degrees
 
 export default function QiblaScreen(): React.JSX.Element {
   const theme = useTheme();
-  const { ms } = useResponsive(); // Get responsive scaling function
-  const { fontScale } = useWindowDimensions(); // Get accessibility font scaling
+  const { ms } = useResponsive();
+  const { fontScale } = useWindowDimensions();
   const isFocused = useIsFocused();
   const { coordinates, isLoading, error, hasPermission, retry } = useLocation();
   const { name: place, loading: isLoadingPlace } = usePlacename(coordinates);
@@ -31,8 +41,10 @@ export default function QiblaScreen(): React.JSX.Element {
   const { direction: qiblaDirection, isValid } = useQiblaDirection(coordinates);
   const { data: motion } = useDeviceMotion();
 
-  // Memoize styles based on theme and responsive scale
-  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
+  const styles = useMemo(
+    () => createStyles(theme, ms, fontScale),
+    [theme, ms, fontScale]
+  );
 
   const [showDebug, setShowDebug] = useState(false);
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -46,27 +58,29 @@ export default function QiblaScreen(): React.JSX.Element {
   const aligned = isWithinTolerance(headingValue, qiblaDirection, TOLERANCE);
   const baseTurnLeft = diff < -TOLERANCE;
   const baseTurnRight = diff > TOLERANCE;
-  const turnLeft = COMPASS_CONFIG.invertInstruction ? baseTurnRight : baseTurnLeft;
-  const turnRight = COMPASS_CONFIG.invertInstruction ? baseTurnLeft : baseTurnRight;
+  const turnLeft = COMPASS_CONFIG.invertInstruction
+    ? baseTurnRight
+    : baseTurnLeft;
+  const turnRight = COMPASS_CONFIG.invertInstruction
+    ? baseTurnLeft
+    : baseTurnRight;
 
-  // Haptic feedback when transitioning into aligned state
-  // Only trigger when screen is focused to prevent haptics after navigation
   const prevAligned = useRef<boolean>(false);
   useEffect(() => {
     if (isFocused && aligned && !prevAligned.current) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      Haptics.notificationAsync(
+        Haptics.NotificationFeedbackType.Success
+      ).catch(() => {});
     }
     prevAligned.current = aligned;
   }, [aligned, isFocused]);
 
-  // Reset alignment state when screen loses focus
   useEffect(() => {
     if (!isFocused) {
       prevAligned.current = false;
     }
   }, [isFocused]);
 
-  // Cleanup any pending hold timers on unmount
   useEffect(() => {
     return () => {
       if (holdTimerRef.current) {
@@ -76,13 +90,13 @@ export default function QiblaScreen(): React.JSX.Element {
     };
   }, []);
 
-  const onInfoPress = () => {
+  const onInfoPress = (): void => {
     if (COMPASS_CONFIG.debugMode) {
       setShowDebug((v) => !v);
     }
   };
 
-  const onInfoPressIn = () => {
+  const onInfoPressIn = (): void => {
     if (!COMPASS_CONFIG.debugMode) {
       if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
       holdTimerRef.current = setTimeout(() => {
@@ -91,14 +105,13 @@ export default function QiblaScreen(): React.JSX.Element {
     }
   };
 
-  const onInfoPressOut = () => {
+  const onInfoPressOut = (): void => {
     if (holdTimerRef.current) {
       clearTimeout(holdTimerRef.current);
       holdTimerRef.current = null;
     }
   };
 
-  // Show a subtle accuracy hint after sustained low confidence
   useEffect(() => {
     if (!COMPASS_CONFIG.showAccuracyHint) {
       setShowAccuracyHint(false);
@@ -110,7 +123,6 @@ export default function QiblaScreen(): React.JSX.Element {
     const threshold = COMPASS_CONFIG.confidenceLowThreshold ?? 0.5;
     const duration = COMPASS_CONFIG.lowConfidenceMinDurationMs ?? 3000;
     const now = Date.now();
-    // Respect snooze window if active
     const snoozedUntil = snoozedUntilRef.current ?? 0;
     if (now < snoozedUntil) {
       setShowAccuracyHint(false);
@@ -118,7 +130,11 @@ export default function QiblaScreen(): React.JSX.Element {
     }
     if (conf < threshold) {
       if (lowSinceRef.current == null) lowSinceRef.current = now;
-      if (!showAccuracyHint && lowSinceRef.current && now - lowSinceRef.current >= duration) {
+      if (
+        !showAccuracyHint &&
+        lowSinceRef.current &&
+        now - lowSinceRef.current >= duration
+      ) {
         setShowAccuracyHint(true);
       }
     } else {
@@ -127,38 +143,49 @@ export default function QiblaScreen(): React.JSX.Element {
     }
   }, [heading?.confidence, showAccuracyHint]);
 
+  const showPermissionDenied = !hasPermission && hasPermission !== null;
+  const showCompass = isValid && Boolean(heading);
+
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <StatusBar barStyle="light-content" />
-      {/* Top Bar */}
+
       <View style={styles.topBar}>
-        <View style={{ flex: 1 }}>
-          <ThemedText style={styles.locationLabel}>LOCATION</ThemedText>
+        <View style={styles.locationBlock}>
+          <ThemedText style={styles.locationLabel}>Location</ThemedText>
           <View style={styles.locationPill}>
-            <ThemedText 
+            <Ionicons
+              name="location-outline"
+              size={ms(16, 0.2)}
+              color={theme.colors.compass.accent}
+            />
+            <ThemedText
               style={styles.locationText}
               adjustsFontSizeToFit
-              minimumFontScale={0.6}
+              minimumFontScale={0.7}
               numberOfLines={1}
             >
-              {isLoadingPlace ? 'Locating…' : (place || 'Location unavailable')}
+              {isLoadingPlace
+                ? "Locating…"
+                : place || "Location unavailable"}
             </ThemedText>
-            <Ionicons name="chevron-down" size={16} color={theme.colors.compass.muted} />
           </View>
         </View>
-        <TouchableOpacity 
-          style={styles.infoButton} 
-          accessibilityLabel="Info"
-          // In dev, tap toggles. In release, require a 5s continuous hold (press-in) to open.
+        <TouchableOpacity
+          style={styles.infoButton}
+          accessibilityLabel="Compass info"
           onPress={onInfoPress}
           onPressIn={onInfoPressIn}
           onPressOut={onInfoPressOut}
         >
-          <ThemedText style={styles.infoText}>i</ThemedText>
+          <Ionicons
+            name="information-circle-outline"
+            size={ms(22, 0.2)}
+            color={theme.colors.text.header}
+          />
         </TouchableOpacity>
       </View>
 
-      {/* Debug Overlay */}
       {showDebug && (
         <DebugOverlay
           rawHeading={heading?.rawHeading}
@@ -169,14 +196,16 @@ export default function QiblaScreen(): React.JSX.Element {
           confidence={heading?.confidence}
           magnitude={undefined}
           lowConfidence={heading?.lowConfidence}
-          isCalibrated={heading?.accuracy ? heading.accuracy > 0.5 : undefined}
+          isCalibrated={
+            heading?.accuracy ? heading.accuracy > 0.5 : undefined
+          }
           pitch={motion?.pitch}
           roll={motion?.roll}
           magHeading={heading?.magHeading}
           trueHeading={heading?.trueHeading}
           magneticDeclination={
-            heading?.trueHeading !== undefined && 
-            heading?.trueHeading >= 0 && 
+            heading?.trueHeading !== undefined &&
+            heading?.trueHeading >= 0 &&
             heading?.magHeading !== undefined
               ? getShortestAngle(heading.trueHeading, heading.magHeading)
               : undefined
@@ -186,67 +215,103 @@ export default function QiblaScreen(): React.JSX.Element {
           differenceFromQibla={diff}
           headingSource={
             heading?.trueHeading !== undefined && heading?.trueHeading >= 0
-              ? 'True (GPS-corrected)'
-              : 'Magnetic (fallback)'
+              ? "True (GPS-corrected)"
+              : "Magnetic (fallback)"
           }
           forceVisible={true}
           onClose={() => setShowDebug(false)}
         />
       )}
 
-      {/* Subtle Accuracy Hint */}
       {showAccuracyHint && (
         <View style={styles.hintContainer}>
+          <Ionicons
+            name="compass-outline"
+            size={ms(16, 0.2)}
+            color={theme.colors.compass.muted}
+          />
           <ThemedText style={styles.hintText}>
-            Improve accuracy: move your phone in a figure ‘8’
+            Move your phone in a figure-8 to improve accuracy
           </ThemedText>
           <TouchableOpacity
             onPress={() => {
               setShowAccuracyHint(false);
-              // Snooze further hints for a while and reset timer so it doesn't reappear immediately
-              snoozedUntilRef.current = Date.now() + (COMPASS_CONFIG.accuracyHintSnoozeMs ?? 120000);
+              snoozedUntilRef.current =
+                Date.now() + (COMPASS_CONFIG.accuracyHintSnoozeMs ?? 120000);
               lowSinceRef.current = null;
             }}
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss accuracy hint"
           >
             <ThemedText style={styles.hintDismiss}>Dismiss</ThemedText>
           </TouchableOpacity>
         </View>
       )}
 
-      {/* States */}
-      {!hasPermission && hasPermission !== null && (
+      {showPermissionDenied && (
         <View style={styles.stateBox}>
-          <ThemedText style={styles.stateText}>Location access required</ThemedText>
+          <View style={styles.stateIconWell}>
+            <Ionicons
+              name="location-outline"
+              size={ms(28, 0.2)}
+              color={theme.colors.compass.accent}
+            />
+          </View>
+          <ThemedText style={styles.stateTitle}>Location access needed</ThemedText>
+          <ThemedText style={styles.stateText}>
+            Allow location so we can find the Qibla from where you are.
+          </ThemedText>
           <View style={styles.actionRow}>
             <TouchableOpacity
-              style={styles.actionButton}
+              style={styles.actionButtonPrimary}
               onPress={() => {
                 Linking.openSettings().catch(() => {});
               }}
+              accessibilityRole="button"
+              accessibilityLabel="Open settings"
             >
-              <ThemedText style={styles.actionButtonText}>Open Settings</ThemedText>
+              <ThemedText style={styles.actionButtonText}>
+                Open Settings
+              </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: 'rgba(255,255,255,0.06)' }]}
+              style={styles.actionButton}
               onPress={retry}
+              accessibilityRole="button"
+              accessibilityLabel="Retry location"
             >
               <ThemedText style={styles.actionButtonText}>Retry</ThemedText>
             </TouchableOpacity>
           </View>
         </View>
       )}
+
       {isLoading && (
-  <View style={styles.stateBox}><ThemedText style={styles.stateText}>Getting location…</ThemedText></View>
-      )}
-      {error && (
-  <TouchableOpacity onPress={retry} style={styles.stateBox}><ThemedText style={styles.stateText}>{error} • Tap to retry</ThemedText></TouchableOpacity>
-      )}
-      {!isAvailable && headingError && (
-  <View style={styles.stateBox}><ThemedText style={styles.stateText}>{headingError}</ThemedText></View>
+        <View style={styles.stateBoxCompact}>
+          <ThemedText style={styles.stateText}>Getting your location…</ThemedText>
+        </View>
       )}
 
-      {/* Compass */}
-      {isValid && heading && (
+      {error ? (
+        <TouchableOpacity
+          onPress={retry}
+          style={styles.stateBoxCompact}
+          accessibilityRole="button"
+          accessibilityLabel="Retry after location error"
+        >
+          <ThemedText style={styles.stateText}>
+            {error} · Tap to retry
+          </ThemedText>
+        </TouchableOpacity>
+      ) : null}
+
+      {!isAvailable && headingError ? (
+        <View style={styles.stateBoxCompact}>
+          <ThemedText style={styles.stateText}>{headingError}</ThemedText>
+        </View>
+      ) : null}
+
+      {showCompass && (
         <View style={styles.compassArea}>
           <CompassView
             qiblaDirection={qiblaDirection}
@@ -255,13 +320,26 @@ export default function QiblaScreen(): React.JSX.Element {
             showInstruction={false}
             theme={{
               faceColor: theme.colors.compass.face,
-              borderColor: 'rgba(255,255,255,0.7)',
-              tickColor: 'rgba(0,0,0,0.1)',
-              tickMajorColor: 'rgba(0,0,0,0.25)',
+              borderColor:
+                theme.colorScheme === "dark"
+                  ? "rgba(255,255,255,0.35)"
+                  : "rgba(255,255,255,0.7)",
+              tickColor:
+                theme.colorScheme === "dark"
+                  ? "rgba(255,255,255,0.12)"
+                  : "rgba(0,0,0,0.1)",
+              tickMajorColor:
+                theme.colorScheme === "dark"
+                  ? "rgba(255,255,255,0.28)"
+                  : "rgba(0,0,0,0.25)",
               pointerColor: theme.colors.compass.accent,
               pointerAlignedColor: theme.colors.accent.green,
-              cardinalColor: 'rgba(0,0,0,0.2)',
-              kaabahColor: theme.colorScheme === 'dark' ? '#f5f5f5' : '#2f2a2a',
+              cardinalColor:
+                theme.colorScheme === "dark"
+                  ? "rgba(255,255,255,0.22)"
+                  : "rgba(0,0,0,0.2)",
+              kaabahColor:
+                theme.colorScheme === "dark" ? "#f5f5f5" : "#2f2a2a",
               kaabahStripeColor: theme.colors.brand.gold[400],
               directionTextColor: theme.colors.text.header,
               degreeTextColor: theme.colors.compass.muted,
@@ -270,14 +348,24 @@ export default function QiblaScreen(): React.JSX.Element {
         </View>
       )}
 
-      {/* Instruction */}
-      {isValid && heading && (
+      {showCompass && (
         <View style={styles.instructionRow}>
           {aligned ? (
-            <ThemedText style={[styles.instructionText, styles.instructionAligned]}>You&apos;re facing the Kaaba</ThemedText>
+            <ThemedText
+              style={[styles.instructionText, styles.instructionAligned]}
+            >
+              You&apos;re facing the Kaaba
+            </ThemedText>
           ) : (
             <ThemedText style={styles.instructionText}>
-              Turn to your {turnLeft ? <ThemedText style={styles.instructionEmph}>left</ThemedText> : turnRight ? <ThemedText style={styles.instructionEmph}>right</ThemedText> : <ThemedText style={styles.instructionEmph}>side</ThemedText>}
+              Turn to your{" "}
+              {turnLeft ? (
+                <ThemedText style={styles.instructionEmph}>left</ThemedText>
+              ) : turnRight ? (
+                <ThemedText style={styles.instructionEmph}>right</ThemedText>
+              ) : (
+                <ThemedText style={styles.instructionEmph}>side</ThemedText>
+              )}
             </ThemedText>
           )}
         </View>
@@ -286,141 +374,195 @@ export default function QiblaScreen(): React.JSX.Element {
   );
 }
 
-const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.compass.background,
-  },
-  topBar: {
-    paddingHorizontal: ms(20, 0.1),
-    paddingTop: ms(8, 0.1),
-    paddingBottom: ms(8, 0.1),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  locationLabel: {
-    color: theme.colors.compass.muted,
-    fontSize: ms(14, 0.2) * fontScale,
-    letterSpacing: 1,
-    marginBottom: ms(6, 0.1),
-    fontFamily: FontFamily.semibold,
-    paddingLeft: ms(16, 0.1),
-  },
-  locationPill: {
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: ms(20, 0.1),
-    paddingHorizontal: ms(16, 0.1),
-    paddingVertical: ms(10, 0.1),
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: ms(8, 0.1),
-    alignSelf: 'flex-start',
-    maxWidth: '80%',
-  },
-  locationText: {
-    color: theme.colors.compass.accent,
-    fontSize: ms(24, 0.3) * fontScale,
-    fontFamily: FontFamily.bold,
-    lineHeight: ms(32, 0.1),
-    flexShrink: 1,
-  },
-  infoButton: {
-    width: ms(44, 0.1),
-    height: ms(44, 0.1),
-    borderRadius: ms(22, 0.1),
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  infoText: {
-    color: theme.colors.text.header,
-    fontSize: ms(18, 0.2) * fontScale,
-    fontFamily: FontFamily.bold,
-  },
-  stateBox: {
-    marginTop: ms(8, 0.1),
-    marginHorizontal: ms(20, 0.1),
-    padding: ms(10, 0.1),
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: ms(10, 0.1),
-  },
-  stateText: {
-    color: theme.colors.compass.muted,
-    textAlign: 'center',
-    fontFamily: FontFamily.regular,
-  },
-  actionRow: {
-    flexDirection: 'row',
-    gap: ms(10, 0.1),
-    marginTop: ms(10, 0.1),
-  },
-  actionButton: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: ms(10, 0.1),
-    paddingVertical: ms(10, 0.1),
-    alignItems: 'center',
-  },
-  actionButtonText: {
-    color: theme.colors.text.header,
-    fontFamily: FontFamily.semibold,
-    fontSize: ms(14, 0.2) * fontScale,
-    lineHeight: ms(20, 0.1),
-  },
-  compassArea: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: ms(20, 0.1),
-    minHeight: ms(240, 0.2), // Responsive minimum height
-  },
-  instructionRow: {
-    paddingBottom: ms(40, 0.1),
-    paddingHorizontal: ms(20, 0.1),
-    alignItems: 'center',
-    minHeight: ms(80, 0.1),
-  },
-  instructionText: {
-    fontSize: ms(32, 0.3) * fontScale,
-    color: theme.colors.text.header,
-    fontFamily: FontFamily.bold,
-    textAlign: 'center',
-    lineHeight: ms(40, 0.1),
-  },
-  instructionAligned: {
-    color: theme.colors.compass.accent,
-  },
-  instructionEmph: {
-    color: theme.colors.compass.accent,
-    fontFamily: FontFamily.bold,
-    fontSize: ms(32, 0.3) * fontScale,
-    lineHeight: ms(40, 0.1),
-  },
-  hintContainer: {
-    marginHorizontal: ms(24, 0.1),
-    marginTop: ms(8, 0.1),
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: ms(12, 0.1),
-    paddingHorizontal: ms(16, 0.1),
-    paddingVertical: ms(8, 0.1),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: ms(12, 0.1),
-  },
-  hintText: {
-    color: theme.colors.text.muted,
-    fontSize: ms(13, 0.1) * fontScale,
-    fontFamily: FontFamily.medium,
-    lineHeight: ms(18, 0.1),
-    flex: 1,
-    flexWrap: 'wrap',
-  },
-  hintDismiss: {
-    color: theme.colors.text.subtle,
-    fontSize: ms(12, 0.1) * fontScale,
-    fontFamily: FontFamily.semibold,
-    paddingHorizontal: ms(4, 0.1),
-  },
-});
+const createStyles = (
+  theme: AppTheme,
+  ms: (size: number, factor?: number) => number,
+  fontScale: number
+) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.compass.background,
+    },
+    topBar: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingTop: theme.spacing.sm,
+      paddingBottom: theme.spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: theme.spacing.md,
+    },
+    locationBlock: {
+      flex: 1,
+      minWidth: 0,
+    },
+    locationLabel: {
+      color: theme.colors.compass.muted,
+      fontSize: ms(11, 0.15) * fontScale,
+      letterSpacing: 0.6,
+      textTransform: "uppercase",
+      marginBottom: ms(6, 0.05),
+      fontFamily: FontFamily.medium,
+      paddingLeft: ms(4, 0.05),
+    },
+    locationPill: {
+      backgroundColor: "rgba(255,255,255,0.08)",
+      borderRadius: theme.radius.pill,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.12)",
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: ms(10, 0.1),
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+      alignSelf: "flex-start",
+      maxWidth: "100%",
+    },
+    locationText: {
+      color: theme.colors.compass.accent,
+      fontSize: ms(18, 0.25) * fontScale,
+      fontFamily: FontFamily.semibold,
+      lineHeight: ms(24, 0.2),
+      flexShrink: 1,
+    },
+    infoButton: {
+      width: ms(40, 0.2),
+      height: ms(40, 0.2),
+      borderRadius: ms(20, 0.2),
+      backgroundColor: "rgba(255,255,255,0.08)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.12)",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    },
+    stateBox: {
+      marginTop: theme.spacing.md,
+      marginHorizontal: theme.spacing.lg,
+      padding: theme.spacing.xl,
+      backgroundColor: "rgba(255,255,255,0.06)",
+      borderRadius: theme.radius.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.12)",
+      alignItems: "center",
+    },
+    stateBoxCompact: {
+      marginTop: theme.spacing.sm,
+      marginHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.lg,
+      backgroundColor: "rgba(255,255,255,0.06)",
+      borderRadius: theme.radius.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.1)",
+    },
+    stateIconWell: {
+      width: ms(52, 0.2),
+      height: ms(52, 0.2),
+      borderRadius: ms(16, 0.15),
+      backgroundColor: "rgba(244, 162, 97, 0.15)",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: theme.spacing.md,
+    },
+    stateTitle: {
+      color: theme.colors.text.header,
+      fontSize: ms(16, 0.2) * fontScale,
+      fontFamily: FontFamily.semibold,
+      textAlign: "center",
+      marginBottom: ms(6, 0.05),
+    },
+    stateText: {
+      color: theme.colors.compass.muted,
+      textAlign: "center",
+      fontFamily: FontFamily.regular,
+      fontSize: ms(13, 0.2) * fontScale,
+      lineHeight: ms(19, 0.2),
+    },
+    actionRow: {
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+      marginTop: theme.spacing.lg,
+      width: "100%",
+    },
+    actionButtonPrimary: {
+      flex: 1,
+      backgroundColor: "rgba(244, 162, 97, 0.25)",
+      borderRadius: theme.radius.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.compass.accent,
+      paddingVertical: theme.spacing.md,
+      alignItems: "center",
+    },
+    actionButton: {
+      flex: 1,
+      backgroundColor: "rgba(255,255,255,0.08)",
+      borderRadius: theme.radius.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.14)",
+      paddingVertical: theme.spacing.md,
+      alignItems: "center",
+    },
+    actionButtonText: {
+      color: theme.colors.text.header,
+      fontFamily: FontFamily.semibold,
+      fontSize: ms(14, 0.2) * fontScale,
+    },
+    compassArea: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: theme.spacing.lg,
+      minHeight: ms(240, 0.2),
+    },
+    instructionRow: {
+      paddingBottom: ms(36, 0.1),
+      paddingHorizontal: theme.spacing.lg,
+      alignItems: "center",
+      minHeight: ms(64, 0.1),
+    },
+    instructionText: {
+      fontSize: ms(24, 0.3) * fontScale,
+      color: theme.colors.text.header,
+      fontFamily: FontFamily.semibold,
+      textAlign: "center",
+      lineHeight: ms(32, 0.25),
+      letterSpacing: -0.3,
+    },
+    instructionAligned: {
+      color: theme.colors.compass.accent,
+    },
+    instructionEmph: {
+      color: theme.colors.compass.accent,
+      fontFamily: FontFamily.semibold,
+      fontSize: ms(24, 0.3) * fontScale,
+      lineHeight: ms(32, 0.25),
+    },
+    hintContainer: {
+      marginHorizontal: theme.spacing.lg,
+      marginTop: theme.spacing.sm,
+      backgroundColor: "rgba(255,255,255,0.06)",
+      borderRadius: theme.radius.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: "rgba(255,255,255,0.1)",
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: theme.spacing.sm,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: theme.spacing.sm,
+    },
+    hintText: {
+      color: theme.colors.compass.muted,
+      fontSize: ms(13, 0.15) * fontScale,
+      fontFamily: FontFamily.medium,
+      lineHeight: ms(18, 0.15),
+      flex: 1,
+    },
+    hintDismiss: {
+      color: theme.colors.text.header,
+      fontSize: ms(12, 0.15) * fontScale,
+      fontFamily: FontFamily.semibold,
+      opacity: 0.8,
+    },
+  });

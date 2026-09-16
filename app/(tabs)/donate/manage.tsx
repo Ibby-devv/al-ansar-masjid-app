@@ -1,17 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
+import {
+  BlockLabel,
+  Panel,
+  PrimaryButton,
+  ScreenIntro,
+} from "../../../components/ui/calm";
 import { AppTheme, useTheme } from "../../../contexts/ThemeContext";
 import { regionalFunctions } from "../../../firebase";
 import { useResponsive } from "../../../hooks/useResponsive";
@@ -46,7 +50,7 @@ export default function ManageTab(): React.JSX.Element {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleRequestLink = async () => {
+  const handleRequestLink = async (): Promise<void> => {
     if (!email.trim() || !email.includes("@")) {
       Alert.alert("Invalid Email", "Please enter a valid email address");
       return;
@@ -68,8 +72,10 @@ export default function ManageTab(): React.JSX.Element {
       );
 
       setEmail("");
-    } catch (error: any) {
-      Alert.alert("Error", error.message || "Failed to send link");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to send link";
+      Alert.alert("Error", message);
     } finally {
       setLoading(false);
     }
@@ -82,15 +88,13 @@ export default function ManageTab(): React.JSX.Element {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.intro}>
-          <Text style={styles.introTitle}>Manage recurring gifts</Text>
-          <Text style={styles.introSubtitle}>
-            Update, pause, or cancel your recurring donations anytime.
-          </Text>
-        </View>
+        <ScreenIntro
+          title="Manage recurring gifts"
+          subtitle="Update, pause, or cancel your recurring donations anytime."
+        />
 
-        <View style={styles.panel}>
-          <Text style={styles.blockLabel}>Your email</Text>
+        <Panel>
+          <BlockLabel>Your email</BlockLabel>
           <TextInput
             style={styles.input}
             placeholder="email@example.com"
@@ -102,29 +106,17 @@ export default function ManageTab(): React.JSX.Element {
             autoCorrect={false}
           />
 
-          <TouchableOpacity
-            style={[styles.ctaButton, loading && styles.ctaButtonDisabled]}
-            onPress={handleRequestLink}
-            disabled={loading}
-            accessibilityRole="button"
-            accessibilityLabel="Send management link"
-          >
-            {loading ? (
-              <ActivityIndicator color={theme.colors.text.header} />
-            ) : (
-              <>
-                <Ionicons
-                  name="mail-outline"
-                  size={ms(20, 0.2)}
-                  color={theme.colors.text.header}
-                />
-                <Text style={styles.ctaButtonText}>Send management link</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <PrimaryButton
+            label="Send management link"
+            onPress={() => {
+              void handleRequestLink();
+            }}
+            loading={loading}
+            icon="mail-outline"
+          />
 
           <View style={styles.block}>
-            <Text style={styles.blockLabel}>How it works</Text>
+            <BlockLabel>How it works</BlockLabel>
             <View style={styles.stepsList}>
               <View style={styles.step}>
                 <Text style={styles.stepNumber}>1</Text>
@@ -148,7 +140,7 @@ export default function ManageTab(): React.JSX.Element {
           </View>
 
           <View style={styles.block}>
-            <Text style={styles.blockLabel}>What you can manage</Text>
+            <BlockLabel>What you can manage</BlockLabel>
             {CAPABILITIES.map((item, index) => (
               <View
                 key={item.title}
@@ -160,7 +152,7 @@ export default function ManageTab(): React.JSX.Element {
                 <Ionicons
                   name={item.icon}
                   size={ms(18, 0.2)}
-                  color={theme.colors.brand.navy[700]}
+                  color={theme.colors.icon.brand}
                 />
                 <View style={styles.capabilityCopy}>
                   <Text style={styles.capabilityTitle}>{item.title}</Text>
@@ -171,7 +163,7 @@ export default function ManageTab(): React.JSX.Element {
               </View>
             ))}
           </View>
-        </View>
+        </Panel>
 
         <View style={styles.securityNote}>
           <Ionicons
@@ -206,38 +198,6 @@ const createStyles = (
       paddingTop: theme.spacing.lg,
       paddingBottom: 40,
     },
-    intro: {
-      marginBottom: theme.spacing.lg,
-    },
-    introTitle: {
-      fontSize: ms(18, 0.25) * fontScale,
-      fontWeight: "600",
-      color: theme.colors.text.strong,
-      letterSpacing: -0.2,
-    },
-    introSubtitle: {
-      marginTop: ms(4, 0.05),
-      fontSize: ms(13, 0.2) * fontScale,
-      color: theme.colors.text.muted,
-      lineHeight: ms(18, 0.2),
-    },
-    panel: {
-      backgroundColor: theme.colors.surface.base,
-      borderRadius: theme.radius.xl,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border.soft,
-      paddingHorizontal: theme.spacing.lg,
-      paddingTop: theme.spacing.xl,
-      paddingBottom: theme.spacing.lg,
-    },
-    blockLabel: {
-      fontSize: ms(11, 0.15) * fontScale,
-      fontWeight: "500",
-      letterSpacing: 0.6,
-      textTransform: "uppercase",
-      color: theme.colors.text.muted,
-      marginBottom: theme.spacing.md,
-    },
     input: {
       backgroundColor: theme.colors.surface.soft,
       borderRadius: theme.radius.md,
@@ -247,28 +207,8 @@ const createStyles = (
       fontSize: ms(15, 0.2) * fontScale,
       color: theme.colors.text.strong,
       marginBottom: theme.spacing.lg,
-      borderWidth: ms(1.5, 0.05),
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.colors.border.base,
-    },
-    ctaButton: {
-      backgroundColor: theme.colors.brand.navy[800],
-      borderRadius: theme.radius.lg,
-      paddingVertical: theme.spacing.lg,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: theme.spacing.sm,
-      ...theme.shadow.header,
-    },
-    ctaButtonDisabled: {
-      backgroundColor: theme.colors.text.muted,
-      shadowOpacity: 0,
-      elevation: 0,
-    },
-    ctaButtonText: {
-      color: theme.colors.text.header,
-      fontSize: ms(16, 0.2) * fontScale,
-      fontWeight: "600",
     },
     block: {
       paddingTop: theme.spacing.xl,
@@ -288,7 +228,7 @@ const createStyles = (
       width: ms(22, 0.15),
       fontSize: ms(13, 0.2) * fontScale,
       fontWeight: "700",
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
     },
     stepText: {
       flex: 1,

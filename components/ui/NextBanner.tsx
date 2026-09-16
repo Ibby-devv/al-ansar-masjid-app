@@ -6,12 +6,14 @@ import { useResponsive } from "../../hooks/useResponsive";
 
 type NextBannerProps = {
   prayerName: string;
+  prayerTime: string;
   timeRemaining: string;
   style?: ViewStyle | ViewStyle[];
 };
 
 export default function NextBanner({
   prayerName,
+  prayerTime,
   timeRemaining,
   style,
 }: NextBannerProps): React.JSX.Element {
@@ -22,18 +24,15 @@ export default function NextBanner({
 
   return (
     <View style={[styles.container, style]}>
-      <View style={styles.accent} />
-      <View style={styles.content}>
-        <Text style={styles.label} numberOfLines={1}>
-          Next
-        </Text>
-        <Text style={styles.prayerName} numberOfLines={1} ellipsizeMode="tail">
-          {prayerName}
-        </Text>
-        <Text style={styles.countdown} numberOfLines={1} ellipsizeMode="tail">
-          {timeRemaining}
-        </Text>
-      </View>
+      <Text style={styles.label} numberOfLines={1}>
+        Next prayer
+      </Text>
+      <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+        {prayerName} · {prayerTime}
+      </Text>
+      <Text style={styles.countdown} numberOfLines={1} ellipsizeMode="tail">
+        {timeRemaining}
+      </Text>
     </View>
   );
 }
@@ -45,47 +44,32 @@ const createStyles = (
 ) =>
   StyleSheet.create({
     container: {
-      flexDirection: "row",
-      alignItems: "stretch",
       backgroundColor: theme.colors.surface.card,
       borderColor: theme.colors.border.soft,
       borderWidth: StyleSheet.hairlineWidth,
-      borderRadius: theme.radius.md,
-      marginBottom: ms(10, 0.1),
-      overflow: "hidden",
-    },
-    accent: {
-      width: ms(3, 0.05),
-      backgroundColor: theme.colors.brand.gold[600],
-    },
-    content: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      gap: ms(8, 0.1),
-      paddingHorizontal: ms(12, 0.1),
-      paddingVertical: ms(8, 0.1),
+      borderRadius: theme.radius.lg,
+      marginBottom: ms(12, 0.1),
+      paddingHorizontal: ms(16, 0.1),
+      paddingVertical: ms(14, 0.1),
+      gap: ms(4, 0.05),
+      ...theme.shadow.soft,
     },
     label: {
-      color: theme.colors.text.muted,
-      fontFamily: FontFamily.medium,
+      color: theme.colors.brand.gold[600],
+      fontFamily: FontFamily.semibold,
       fontSize: ms(11, 0.15) * fontScale,
-      letterSpacing: 0.6,
+      letterSpacing: 0.5,
       textTransform: "uppercase",
     },
-    prayerName: {
-      flex: 1,
-      flexShrink: 1,
-      color: theme.colors.text.base,
+    title: {
+      color: theme.colors.text.strong,
       fontFamily: FontFamily.semibold,
-      fontSize: ms(15, 0.2) * fontScale,
+      fontSize: ms(22, 0.25) * fontScale,
+      lineHeight: ms(28, 0.25) * fontScale,
     },
     countdown: {
-      flexShrink: 1,
-      maxWidth: "46%",
       color: theme.colors.text.muted,
       fontFamily: FontFamily.medium,
-      fontSize: ms(12, 0.15) * fontScale,
-      textAlign: "right",
+      fontSize: ms(13, 0.15) * fontScale,
     },
   });

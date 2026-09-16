@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Events — Calm mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy-900: #0b1220;
+      --navy-800: #172554;
+      --navy-700: #1e3a8a;
+      --gold-600: #d97706;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --surface-muted: #f1f5f9;
+      --text-strong: #1f2937;
+      --text-muted: #64748b;
+      --text-subtle: #94a3b8;
+      --border: #e5e7eb;
+      --border-soft: #e2e8f0;
+      --blue-soft: #eff6ff;
+      --amber-soft: #fffbeb;
+      --phone-w: 390px;
+      --phone-h: 844px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: "Poppins", system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(30, 58, 138, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(217, 119, 6, 0.08), transparent),
+        #e8edf5;
+      color: var(--text-strong);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 48px;
+      gap: 16px;
+    }
+
+    .page-meta {
+      text-align: center;
+      max-width: 420px;
+    }
+
+    .page-meta h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--navy-800);
+      letter-spacing: -0.02em;
+    }
+
+    .page-meta p {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .phone {
+      width: var(--phone-w);
+      height: var(--phone-h);
+      background: var(--surface-muted);
+      border-radius: 36px;
+      box-shadow:
+        0 0 0 10px #1a1f2e,
+        0 0 0 12px #2a3144,
+        0 28px 60px rgba(15, 23, 42, 0.28);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .notch {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 28px;
+      background: #1a1f2e;
+      border-radius: 20px;
+      z-index: 20;
+    }
+
+    .app-header {
+      background: linear-gradient(135deg, #172554 0%, #1e3a8a 55%, #0b1220 100%);
+      padding: 52px 20px 28px;
+      border-radius: 0 0 24px 24px;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+      text-align: center;
+    }
+
+    .app-header::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .app-header h2 {
+      position: relative;
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .app-header p {
+      position: relative;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 0.82rem;
+      margin-top: 4px;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      padding: 14px 16px 8px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      scrollbar-width: none;
+    }
+
+    .chips::-webkit-scrollbar { display: none; }
+
+    .chip {
+      flex-shrink: 0;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .chip.on {
+      border-color: var(--navy-700);
+      background: var(--blue-soft);
+      color: var(--navy-700);
+      font-weight: 600;
+    }
+
+    .scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 16px 28px;
+      min-height: 0;
+    }
+
+    .scroll::-webkit-scrollbar { width: 0; }
+
+    .section {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 12px 0 8px;
+      background: var(--surface-muted);
+      border-bottom: 1px solid var(--border-soft);
+      margin-bottom: 10px;
+    }
+
+    .section h3 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: -0.01em;
+    }
+
+    .rel {
+      flex-shrink: 0;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .rel.today {
+      background: var(--amber-soft);
+      color: var(--gold-600);
+    }
+
+    .rel.tomorrow {
+      background: var(--blue-soft);
+      color: var(--navy-700);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 12px;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .card.has-image { padding-top: 12px; }
+
+    .card-img {
+      height: 120px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      background:
+        linear-gradient(160deg, rgba(23, 37, 84, 0.45), rgba(11, 18, 32, 0.35)),
+        linear-gradient(145deg, #1e3a8a, #0b1220);
+    }
+
+    .card-img.lecture {
+      background:
+        linear-gradient(160deg, rgba(217, 119, 6, 0.3), rgba(11, 18, 32, 0.4)),
+        linear-gradient(145deg, #92400e, #1e3a8a);
+    }
+
+    .card-img.youth {
+      background:
+        linear-gradient(160deg, rgba(34, 197, 94, 0.25), rgba(11, 18, 32, 0.4)),
+        linear-gradient(145deg, #166534, #172554);
+    }
+
+    .card-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .date {
+      width: 58px;
+      flex-shrink: 0;
+      border-radius: 12px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border-soft);
+      text-align: center;
+      padding: 8px 4px;
+    }
+
+    .date.hot {
+      background: var(--amber-soft);
+      border-color: rgba(217, 119, 6, 0.35);
+    }
+
+    .date .wd {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    .date .day {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--navy-800);
+      line-height: 1.15;
+    }
+
+    .date .mo {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .body { flex: 1; min-width: 0; }
+
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .title-row h4 {
+      flex: 1;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+    }
+
+    .cat {
+      flex-shrink: 0;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      max-width: 88px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cat.lecture { background: #fef3c7; color: #92400e; }
+    .cat.community { background: #dbeafe; color: #1e40af; }
+    .cat.youth { background: #dcfce7; color: #166534; }
+    .cat.fundraiser { background: #ffe4e6; color: #9f1239; }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .meta.time {
+      font-weight: 600;
+      color: var(--text-strong);
+      margin-bottom: 8px;
+    }
+
+    .meta svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      stroke: var(--text-muted);
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .desc {
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .hidden { display: none !important; }
+
+    .empty {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .note {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .note code {
+      font-size: 0.7rem;
+      background: rgba(255,255,255,0.8);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-meta">
+    <h1>Events — calm mockup</h1>
+    <p>Sample data with category chips. Matches the Direction A language used on Donate / home.</p>
+  </div>
+
+  <div class="phone" aria-label="Events phone mockup">
+    <div class="notch" aria-hidden="true"></div>
+
+    <header class="app-header">
+      <h2>Events</h2>
+      <p>Upcoming at Al Ansar Masjid</p>
+    </header>
+
+    <div class="chips" id="chips" role="tablist"></div>
+
+    <div class="scroll" id="list"></div>
+  </div>
+
+  <p class="note">Prototype only — <code>prototypes/events-calm.html</code>. Not wired to the app.</p>
+
+  <script>
+    const categories = [
+      { id: "all", label: "All" },
+      { id: "lecture", label: "Lecture" },
+      { id: "community", label: "Community" },
+      { id: "youth", label: "Youth" },
+      { id: "fundraiser", label: "Fundraiser" },
+    ];
+
+    const events = [
+      {
+        id: "1",
+        title: "Friday Night Tafsir Circle",
+        category: "lecture",
+        weekday: "FRI",
+        day: "18",
+        month: "SEP",
+        section: "Friday, September 18, 2026",
+        rel: "today",
+        time: "7:30 PM",
+        location: "Main prayer hall",
+        speaker: "Imam Yusuf",
+        description: "Weekly reflection on Surah Al-Kahf with Q&A for brothers and sisters.",
+        image: "lecture",
+      },
+      {
+        id: "2",
+        title: "Community Iftar Planning Meeting",
+        category: "community",
+        weekday: "SAT",
+        day: "19",
+        month: "SEP",
+        section: "Saturday, September 19, 2026",
+        rel: "tomorrow",
+        time: "10:00 AM",
+        location: "Classroom 2",
+        description: "Volunteer coordination for upcoming community meals and logistics.",
+      },
+      {
+        id: "3",
+        title: "Youth Basketball & Mentoring",
+        category: "youth",
+        weekday: "SAT",
+        day: "19",
+        month: "SEP",
+        section: "Saturday, September 19, 2026",
+        rel: "tomorrow",
+        time: "4:00 PM",
+        location: "Courtyard",
+        speaker: "Brother Adam",
+        description: "Open session for ages 12–18. Bring sports shoes.",
+        image: "youth",
+      },
+      {
+        id: "4",
+        title: "Masjid Expansion Briefing",
+        category: "fundraiser",
+        weekday: "SUN",
+        day: "27",
+        month: "SEP",
+        section: "Sunday, September 27, 2026",
+        rel: null,
+        time: "11:30 AM",
+        location: "Main prayer hall",
+        description: "Progress update, floor plans walkthrough, and how to contribute.",
+        image: null,
+      },
+      {
+        id: "5",
+        title: "Sisters' Qur'an Study",
+        category: "lecture",
+        weekday: "WED",
+        day: "30",
+        month: "SEP",
+        section: "Wednesday, September 30, 2026",
+        rel: null,
+        time: "6:00 PM",
+        location: "Sisters' wing",
+        speaker: "Ustadha Maryam",
+        description: "Tajweed practice and reflection circle. Open to all levels.",
+      },
+    ];
+
+    let selected = "all";
+
+    const iconClock = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`;
+    const iconPin = `<svg viewBox="0 0 24 24"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>`;
+    const iconPerson = `<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 19a7 7 0 0 1 14 0"/></svg>`;
+
+    function renderChips() {
+      const el = document.getElementById("chips");
+      el.innerHTML = categories
+        .map(
+          (c) =>
+            `<button type="button" class="chip${c.id === selected ? " on" : ""}" data-id="${c.id}">${c.label}</button>`
+        )
+        .join("");
+      el.querySelectorAll(".chip").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          selected = btn.dataset.id;
+          render();
+        });
+      });
+    }
+
+    function render() {
+      renderChips();
+      const filtered =
+        selected === "all" ? events : events.filter((e) => e.category === selected);
+
+      const list = document.getElementById("list");
+      if (!filtered.length) {
+        list.innerHTML = `<div class="empty">No upcoming events in this category.</div>`;
+        return;
+      }
+
+      const bySection = new Map();
+      filtered.forEach((e) => {
+        if (!bySection.has(e.section)) bySection.set(e.section, []);
+        bySection.get(e.section).push(e);
+      });
+
+      let html = "";
+      for (const [section, items] of bySection) {
+        const rel = items[0].rel;
+        html += `<div class="section">
+          <h3>${section}</h3>
+          ${rel ? `<span class="rel ${rel}">${rel === "today" ? "Today" : "Tomorrow"}</span>` : ""}
+        </div>`;
+
+        items.forEach((e) => {
+          html += `<article class="card${e.image ? " has-image" : ""}">
+            ${e.image ? `<div class="card-img ${e.image}"></div>` : ""}
+            <div class="card-row">
+              <div class="date${e.rel ? " hot" : ""}">
+                <div class="wd">${e.weekday}</div>
+                <div class="day">${e.day}</div>
+                <div class="mo">${e.month}</div>
+              </div>
+              <div class="body">
+                <div class="title-row">
+                  <h4>${e.title}</h4>
+                  <span class="cat ${e.category}">${categories.find((c) => c.id === e.category)?.label || e.category}</span>
+                </div>
+                <div class="meta time">${iconClock}<span>${e.time}</span></div>
+                ${e.location ? `<div class="meta">${iconPin}<span>${e.location}</span></div>` : ""}
+                ${e.speaker ? `<div class="meta">${iconPerson}<span>${e.speaker}</span></div>` : ""}
+                ${e.description ? `<p class="desc">${e.description}</p>` : ""}
+              </div>
+            </div>
+          </article>`;
+        });
+      }
+      list.innerHTML = html;
+    }
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,440 +1,428 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Clipboard, Platform, StyleSheet, Switch, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import { useTheme, type AppTheme } from '../contexts/ThemeContext';
-import { useResponsive } from '../hooks/useResponsive';
-import FCMService from '../services/FCMService';
-import NotificationService from '../services/NotificationService';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Alert,
+  Clipboard,
+  Platform,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import {
+  ListRow,
+  Panel,
+  PrimaryButton,
+  ScreenIntro,
+} from "../components/ui/calm";
+import { useTheme, type AppTheme } from "../contexts/ThemeContext";
+import { useResponsive } from "../hooks/useResponsive";
+import FCMService from "../services/FCMService";
+import NotificationService from "../services/NotificationService";
 
-const STORAGE_KEY = '@notification_settings_enabled';
+const STORAGE_KEY = "@notification_settings_enabled";
 
-export default function NotificationSettingsScreen() {
+export default function NotificationSettingsScreen(): React.JSX.Element {
   const theme = useTheme();
   const { ms } = useResponsive();
   const { fontScale } = useWindowDimensions();
-  const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
+  const styles = useMemo(
+    () => createStyles(theme, ms, fontScale),
+    [theme, ms, fontScale]
+  );
   const [enabled, setEnabled] = useState(true);
-  // No server-loading spinner; local is source of truth and UI updates instantly
   const [showDiagnostics, setShowDiagnostics] = useState(false);
-  const [diagnosticInfo, setDiagnosticInfo] = useState('');
-  const [channels, setChannels] = useState<{ id: string; name: string; importance?: number }[]>([]);
-  // Removed explicit netInfo & batteryOpt states from render; values are embedded directly in diagnosticInfo string.
-  // We no longer surface sync errors to the user; local value is source of truth.
-
-  // (moved below, after loadLocalSettings definition)
-
-  // (moved below, after loadDiagnosticInfo)
+  const [diagnosticInfo, setDiagnosticInfo] = useState("");
+  const [channels, setChannels] = useState<
+    { id: string; name: string; importance?: number }[]
+  >([]);
 
   const loadLocalSettings = useCallback(async () => {
     try {
-      // Load from local storage immediately (source of truth)
       const cached = await AsyncStorage.getItem(STORAGE_KEY);
       if (cached !== null) {
-        setEnabled(cached === 'true');
+        setEnabled(cached === "true");
       }
-      // If no local value exists, default is true (already set in state)
 
-      // Push local value to server in background to keep server in sync
-      const localValue = cached !== null ? cached === 'true' : true;
+      const localValue = cached !== null ? cached === "true" : true;
       try {
         await FCMService.updateNotificationSettings(localValue);
       } catch (error) {
-        console.warn('Background sync failed (silent):', error);
+        console.warn("Background sync failed (silent):", error);
       }
     } catch (error) {
-      console.error('Error loading local settings:', error);
-      // Still default to true on error
+      console.error("Error loading local settings:", error);
     }
   }, []);
 
   const loadDiagnosticInfo = useCallback(async () => {
     try {
-      // Diagnostics v2.0 gathers a holistic snapshot for notification troubleshooting.
-      // Fields included:
-      // - Android API level / iOS version
-      // - Device ID (partial) for correlating with backend fcmTokens doc
-      // - System permission status (fast failure root cause)
-      // - Connectivity state (offline devices won't receive FCM)
-      // - Battery optimization (Android may defer background delivery)
-      // - Token suffix + registration timestamp (verify most recent refresh)
-      // - Last foreground/background notification timestamps (recency of delivery)
-      // - Channel definitions w/ importance (misconfigured importance causes silent deliveries)
       const osVersion = Platform.Version;
       const deviceId = await FCMService.getDeviceId();
-      const permissionGranted = await NotificationService.areNotificationsEnabled();
-      // Channels (Android)
-      const ch = Platform.OS === 'android' ? await NotificationService.getChannels() : [];
+      const permissionGranted =
+        await NotificationService.areNotificationsEnabled();
+      const ch =
+        Platform.OS === "android" ? await NotificationService.getChannels() : [];
       setChannels(ch);
-      // Token suffix & registration time
-  const token = await AsyncStorage.getItem('@diag_fcm_token');
-  const suffix = token ? token.slice(-8) : '';
-  const regAt = await AsyncStorage.getItem('@diag_token_registered_at');
-      // Last received timestamps
-  const fg = await AsyncStorage.getItem('@diag_last_foreground_notification_at');
-  const bg = await AsyncStorage.getItem('@diag_last_background_notification_at');
-      // Connectivity
-      let connectionStr = 'Check manually';
-      // Note: Network detection requires expo-network which needs dev build
-      // For now, users can check connectivity manually
-      // Battery optimization (Android-only, best-effort)
-      let batteryStr = 'N/A on iOS';
-      if (Platform.OS === 'android') {
+      const token = await AsyncStorage.getItem("@diag_fcm_token");
+      const suffix = token ? token.slice(-8) : "";
+      const regAt = await AsyncStorage.getItem("@diag_token_registered_at");
+      const fg = await AsyncStorage.getItem(
+        "@diag_last_foreground_notification_at"
+      );
+      const bg = await AsyncStorage.getItem(
+        "@diag_last_background_notification_at"
+      );
+      const connectionStr = "Check manually";
+      let batteryStr = "N/A on iOS";
+      if (Platform.OS === "android") {
         const bo = await NotificationService.isBatteryOptimizationEnabled();
-        if (bo === null) batteryStr = 'Unknown';
-        else batteryStr = bo ? 'Enabled (may delay background delivery)' : 'Disabled';
+        if (bo === null) batteryStr = "Unknown";
+        else
+          batteryStr = bo
+            ? "Enabled (may delay background delivery)"
+            : "Disabled";
       }
-      
+
       setDiagnosticInfo(
         `Android API: ${osVersion}\n` +
-        `Device ID: ${deviceId.substring(0, 12)}...\n` +
-        `System Permission: ${permissionGranted ? '✅ GRANTED' : '❌ DENIED'}\n` +
-        `Connectivity: ${connectionStr}\n` +
-        `${Platform.OS === 'android' ? `Battery Optimization: ${batteryStr}\n` : ''}` +
-        `FCM Token Suffix: ${suffix || '(none)'}\n` +
-        `Token Registered At: ${regAt ? new Date(regAt).toLocaleString() : '(unknown)'}\n` +
-        `Last Foreground Notif: ${fg ? new Date(fg).toLocaleString() : '—'}\n` +
-        `Last Background Notif: ${bg ? new Date(bg).toLocaleString() : '—'}`
+          `Device ID: ${deviceId.substring(0, 12)}...\n` +
+          `System Permission: ${permissionGranted ? "GRANTED" : "DENIED"}\n` +
+          `Connectivity: ${connectionStr}\n` +
+          `${Platform.OS === "android" ? `Battery Optimization: ${batteryStr}\n` : ""}` +
+          `FCM Token Suffix: ${suffix || "(none)"}\n` +
+          `Token Registered At: ${regAt ? new Date(regAt).toLocaleString() : "(unknown)"}\n` +
+          `Last Foreground Notif: ${fg ? new Date(fg).toLocaleString() : "—"}\n` +
+          `Last Background Notif: ${bg ? new Date(bg).toLocaleString() : "—"}`
       );
     } catch (error) {
-      console.error('Error loading diagnostic info:', error);
-      setDiagnosticInfo('Error loading info');
+      console.error("Error loading diagnostic info:", error);
+      setDiagnosticInfo("Error loading info");
     }
   }, []);
 
-  // Load diagnostics when diagnostics toggle changes
   useEffect(() => {
     if (showDiagnostics) {
       loadDiagnosticInfo();
     }
   }, [showDiagnostics, loadDiagnosticInfo]);
 
-  // Load settings only on mount - local storage is source of truth
   useEffect(() => {
     loadLocalSettings();
   }, [loadLocalSettings]);
 
-  const toggleNotifications = async (value: boolean) => {
-    // Optimistic update - update UI and local storage immediately
+  const toggleNotifications = async (value: boolean): Promise<void> => {
     setEnabled(value);
-    
+
     try {
-      // 1. Update local storage first (source of truth)
       await AsyncStorage.setItem(STORAGE_KEY, String(value));
-      
-      // 2. Best-effort server sync (non-blocking; no spinner)
       await FCMService.updateNotificationSettings(value);
     } catch (error) {
-      console.warn('Toggle sync failed (silent; will retry on next mount or action):', error);
+      console.warn(
+        "Toggle sync failed (silent; will retry on next mount or action):",
+        error
+      );
     }
   };
 
-  const testLocalNotification = async () => {
+  const testLocalNotification = async (): Promise<void> => {
     try {
-      console.log('🧪 Testing local notification...');
-      
-      // First check if system permission is granted
-      const permissionGranted = await NotificationService.areNotificationsEnabled();
-      
+      const permissionGranted =
+        await NotificationService.areNotificationsEnabled();
+
       if (!permissionGranted) {
-        const apiLevel = typeof Platform.Version === 'number' ? Platform.Version : parseInt(String(Platform.Version), 10);
+        const apiLevel =
+          typeof Platform.Version === "number"
+            ? Platform.Version
+            : parseInt(String(Platform.Version), 10);
         const isAndroid13Plus = apiLevel >= 33;
-        
+
         Alert.alert(
-          'Permission Denied',
+          "Permission Denied",
           `System notification permission is DENIED.\n\n` +
-          `Android API ${apiLevel}${isAndroid13Plus ? ' (Android 13+)' : ''}\n\n` +
-          `${isAndroid13Plus ? 'Android 13+ requires POST_NOTIFICATIONS permission in AndroidManifest.xml.\n\n' : ''}` +
-          `Would you like to open system settings to enable notifications?`,
+            `Android API ${apiLevel}${isAndroid13Plus ? " (Android 13+)" : ""}\n\n` +
+            `${isAndroid13Plus ? "Android 13+ requires POST_NOTIFICATIONS permission in AndroidManifest.xml.\n\n" : ""}` +
+            `Would you like to open system settings to enable notifications?`,
           [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Open Settings', 
-              onPress: () => NotificationService.openSettings() 
-            }
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Open Settings",
+              onPress: () => NotificationService.openSettings(),
+            },
           ]
         );
         return;
       }
 
-      // Try displaying a test notification
       await NotificationService.displayNotification({
-        title: '🧪 Test Notification',
-        body: 'If you see this, local notifications work! The issue is likely with FCM delivery or background priority.',
-        channelId: 'general',
+        title: "Test Notification",
+        body: "If you see this, local notifications work! The issue is likely with FCM delivery or background priority.",
+        channelId: "general",
       });
 
       Alert.alert(
-        'Test Sent',
-        'Check if you saw the notification appear. If yes, the Notifee rendering path works. If no, check device notification settings.',
-        [{ text: 'OK' }]
+        "Test Sent",
+        "Check if you saw the notification appear. If yes, the Notifee rendering path works. If no, check device notification settings.",
+        [{ text: "OK" }]
       );
-
-      console.log('✅ Test notification sent');
-    } catch (error: any) {
-      console.error('❌ Test notification failed:', error);
-      Alert.alert('Test Failed', `Error: ${error?.message || 'Unknown error'}`);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Unknown error";
+      console.error("Test notification failed:", error);
+      Alert.alert("Test Failed", `Error: ${message}`);
     }
+  };
+
+  const switchTrack = {
+    false: theme.colors.border.base,
+    true: theme.colors.brand.navy[700],
   };
 
   return (
     <View>
-      <Text style={styles.title}>Notifications</Text>
-      
-      <View style={styles.card}>
-        <View style={styles.row}>
-          <View style={styles.textContainer}>
-            <Text style={styles.label}>Enable Notifications</Text>
-            <Text style={styles.subtitle}>
-              Get notified about new events, campaigns, and prayer time updates
-            </Text>
-          </View>
-          <View style={styles.toggleContainer}>
+      <ScreenIntro
+        title="Notifications"
+        subtitle="Events, campaigns, and prayer updates"
+      />
+
+      <Panel flush style={styles.panel}>
+        <ListRow
+          title="Enable Notifications"
+          subtitle="Get notified about new events, campaigns, and prayer time updates"
+          icon="notifications-outline"
+          showChevron={false}
+          last
+          right={
             <Switch
               value={enabled}
               onValueChange={toggleNotifications}
-              trackColor={{ false: theme.colors.surface.muted, true: theme.colors.accent.blue }}
-              thumbColor={enabled ? '#ffffff' : theme.colors.text.subtle}
+              trackColor={switchTrack}
+              thumbColor="#ffffff"
+              accessibilityLabel="Enable notifications"
             />
-          </View>
-        </View>
-      </View>
-
-      {/* We intentionally do not show a visible error banner for sync failures.
-          Local storage is authoritative; server will catch up via silent retry. */}
+          }
+        />
+      </Panel>
 
       <Text style={styles.note}>
-        You can change this setting anytime. When disabled, you won&apos;t receive any notifications from the mosque.
+        You can change this anytime. When disabled, you won&apos;t receive
+        notifications from the mosque.
       </Text>
 
-      {/* Diagnostics Toggle */}
-      <View style={[styles.card, { marginTop: 20 }]}>
-        <View style={styles.row}>
-          <View style={styles.textContainer}>
-            <Text style={styles.label}>Show Diagnostics</Text>
-            <Text style={styles.subtitle}>
-              Display diagnostic tools for troubleshooting notifications
-            </Text>
-          </View>
-          <Switch
-            value={showDiagnostics}
-            onValueChange={setShowDiagnostics}
-            trackColor={{ false: theme.colors.surface.muted, true: theme.colors.accent.blue }}
-            thumbColor={showDiagnostics ? '#ffffff' : theme.colors.text.subtle}
-          />
-        </View>
-      </View>
+      <Panel flush style={[styles.panel, styles.diagnosticsToggle]}>
+        <ListRow
+          title="Show Diagnostics"
+          subtitle="Tools for troubleshooting notification delivery"
+          icon="construct-outline"
+          showChevron={false}
+          last
+          right={
+            <Switch
+              value={showDiagnostics}
+              onValueChange={setShowDiagnostics}
+              trackColor={switchTrack}
+              thumbColor="#ffffff"
+              accessibilityLabel="Show diagnostics"
+            />
+          }
+        />
+      </Panel>
 
-      {/* Diagnostic Section */}
-      {showDiagnostics && (
+      {showDiagnostics ? (
         <View style={styles.diagnosticSection}>
-          <Text style={styles.diagnosticTitle}>🔧 Diagnostics</Text>
-          
-          <View style={styles.diagnosticCard}>
-            <Text style={styles.diagnosticText}>{diagnosticInfo || 'Loading...'}</Text>
-          </View>
+          <ScreenIntro
+            title="Diagnostics"
+            subtitle="Device and delivery snapshot"
+          />
 
-          {/* Actions */}
-          <View style={styles.actionsRow}>
-            <TouchableOpacity 
-              style={[styles.actionButton, { backgroundColor: theme.colors.text.muted }]} 
+          <Panel style={styles.diagPanel}>
+            <Text style={styles.diagnosticText}>
+              {diagnosticInfo || "Loading…"}
+            </Text>
+          </Panel>
+
+          <View style={styles.actionsStack}>
+            <PrimaryButton
+              label="Open App Settings"
               onPress={() => NotificationService.openSettings()}
-            >
-              <Text style={styles.actionButtonText}>Open App Settings</Text>
-            </TouchableOpacity>
-            {Platform.OS === 'android' && (
-              <TouchableOpacity 
-                style={[styles.actionButton, { backgroundColor: theme.colors.iconBackground.version }]} 
-                onPress={() => NotificationService.openBatteryOptimizationSettings()}
-              >
-                <Text style={styles.actionButtonText}>Battery Optimization</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View style={styles.actionsRow}>
-            <TouchableOpacity 
-              style={[styles.actionButton, { backgroundColor: theme.colors.accent.green }]} 
+            />
+            {Platform.OS === "android" ? (
+              <PrimaryButton
+                label="Battery Optimization"
+                onPress={() =>
+                  NotificationService.openBatteryOptimizationSettings()
+                }
+              />
+            ) : null}
+            <PrimaryButton
+              label="Copy FCM Token"
               onPress={async () => {
                 try {
-                  const token = (await AsyncStorage.getItem('@diag_fcm_token')) || '';
+                  const token =
+                    (await AsyncStorage.getItem("@diag_fcm_token")) || "";
                   if (!token) {
-                    Alert.alert('No Token', 'No cached FCM token yet. Try enabling notifications or restarting.');
+                    Alert.alert(
+                      "No Token",
+                      "No cached FCM token yet. Try enabling notifications or restarting."
+                    );
                     return;
                   }
                   Clipboard.setString(token);
-                  Alert.alert('Copied', 'FCM token copied to clipboard.');
-                } catch (e: any) {
-                  Alert.alert('Copy Failed', e?.message || 'Unknown error');
+                  Alert.alert("Copied", "FCM token copied to clipboard.");
+                } catch (e: unknown) {
+                  const message =
+                    e instanceof Error ? e.message : "Unknown error";
+                  Alert.alert("Copy Failed", message);
                 }
               }}
-            >
-              <Text style={styles.actionButtonText}>Copy FCM Token</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButton, { backgroundColor: theme.colors.progress.complete }]} 
+            />
+            <PrimaryButton
+              label="Test Local Notification"
               onPress={testLocalNotification}
-            >
-              <Text style={styles.actionButtonText}>🧪 Test Local</Text>
-            </TouchableOpacity>
+            />
           </View>
 
-          {/* Channels list (Android) */}
-          {Platform.OS === 'android' && (
-            <View style={[styles.diagnosticCard, { marginTop: 12 }]}> 
-              <Text style={[styles.diagnosticText, { fontWeight: '700', marginBottom: 6 }]}>Channels</Text>
+          {Platform.OS === "android" ? (
+            <Panel style={styles.diagPanel}>
+              <Text style={styles.channelsTitle}>Channels</Text>
               {channels.length === 0 ? (
-                <Text style={styles.diagnosticText}>No channels or unable to fetch.</Text>
+                <Text style={styles.diagnosticText}>
+                  No channels or unable to fetch.
+                </Text>
               ) : (
-                channels.map((ch) => (
-                  <View key={ch.id} style={styles.channelRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.diagnosticText}>{ch.name} ({ch.id})</Text>
-                      <Text style={[styles.diagnosticText, { color: theme.colors.text.subtle }]}>importance: {String(ch.importance)}</Text>
+                channels.map((ch, index) => (
+                  <View
+                    key={ch.id}
+                    style={[
+                      styles.channelRow,
+                      index === channels.length - 1 && styles.channelRowLast,
+                    ]}
+                  >
+                    <View style={styles.channelCopy}>
+                      <Text style={styles.diagnosticText}>
+                        {ch.name} ({ch.id})
+                      </Text>
+                      <Text style={styles.channelMeta}>
+                        importance: {String(ch.importance)}
+                      </Text>
                     </View>
-                    <TouchableOpacity 
-                      style={[styles.smallBtn]}
-                      onPress={() => NotificationService.openChannelSettings(ch.id)}
+                    <TouchableOpacity
+                      style={styles.smallBtn}
+                      onPress={() =>
+                        NotificationService.openChannelSettings(ch.id)
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel={`Open ${ch.name} channel settings`}
                     >
                       <Text style={styles.smallBtnText}>Open</Text>
                     </TouchableOpacity>
                   </View>
                 ))
               )}
-            </View>
-          )}
+            </Panel>
+          ) : null}
 
           <Text style={styles.diagnosticHint}>
-            Use this to verify if notifications can display on your device. If the test works but FCM doesn&apos;t, the issue is with message delivery or background priority.
+            Use this to verify if notifications can display on your device. If
+            the test works but FCM doesn&apos;t, the issue is with message
+            delivery or background priority.
           </Text>
         </View>
-      )}
+      ) : null}
     </View>
   );
 }
 
-const createStyles = (theme: AppTheme, ms: (size: number, factor?: number) => number, fontScale: number) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.surface.soft,
-  },
-  contentContainer: {
-    padding: ms(20, 0.1),
-    paddingBottom: ms(40, 0.1),
-  },
-  title: {
-    fontSize: ms(28, 0.3) * fontScale,
-    fontWeight: 'bold',
-    marginBottom: ms(20, 0.1),
-    color: theme.colors.text.base,
-  },
-  card: {
-    backgroundColor: theme.colors.surface.card,
-    borderRadius: ms(12, 0.1),
-    padding: ms(16, 0.1),
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: ms(2, 0.05) },
-    shadowOpacity: 0.1,
-    shadowRadius: ms(4, 0.1),
-    elevation: 3,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  textContainer: {
-    flex: 1,
-    marginRight: ms(16, 0.1),
-  },
-  toggleContainer: {
-    width: ms(51, 0.1),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  label: {
-    fontSize: ms(18, 0.2) * fontScale,
-    fontWeight: '600',
-    color: theme.colors.text.base,
-    marginBottom: ms(4, 0.05),
-  },
-  subtitle: {
-    fontSize: ms(14, 0.2) * fontScale,
-    color: theme.colors.text.muted,
-    lineHeight: ms(20, 0.2) * fontScale,
-  },
-  note: {
-    fontSize: ms(12, 0.2) * fontScale,
-    color: theme.colors.text.subtle,
-    marginTop: ms(16, 0.1),
-    textAlign: 'center',
-    lineHeight: ms(18, 0.2) * fontScale,
-  },
-  diagnosticSection: {
-    marginTop: ms(32, 0.1),
-    paddingTop: ms(24, 0.1),
-    borderTopWidth: ms(1, 0.05),
-    borderTopColor: theme.colors.border.base,
-  },
-  diagnosticTitle: {
-    fontSize: ms(20, 0.3) * fontScale,
-    fontWeight: 'bold',
-    marginBottom: ms(12, 0.1),
-    color: theme.colors.text.base,
-  },
-  diagnosticCard: {
-    backgroundColor: theme.colors.surface.muted,
-    borderRadius: ms(8, 0.1),
-    padding: ms(12, 0.1),
-    marginBottom: ms(16, 0.1),
-    borderWidth: ms(1, 0.05),
-    borderColor: theme.colors.border.soft,
-  },
-  diagnosticText: {
-    fontSize: ms(12, 0.2) * fontScale,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    color: theme.colors.text.base,
-    lineHeight: ms(18, 0.2) * fontScale,
-  },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: ms(10, 0.05),
-    marginBottom: ms(10, 0.05),
-  },
-  actionButton: {
-    flex: 1,
-    borderRadius: ms(8, 0.1),
-    padding: ms(12, 0.1),
-    alignItems: 'center',
-  },
-  actionButtonText: {
-    color: '#fff',
-    fontSize: ms(13, 0.2) * fontScale,
-    fontWeight: '600',
-  },
-  channelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: ms(6, 0.05),
-    borderBottomWidth: ms(1, 0.05),
-    borderBottomColor: theme.colors.border.soft,
-  },
-  smallBtn: {
-    backgroundColor: theme.colors.accent.blue,
-    paddingVertical: ms(6, 0.05),
-    paddingHorizontal: ms(10, 0.1),
-    borderRadius: ms(6, 0.1),
-  },
-  smallBtnText: {
-    color: '#fff',
-    fontSize: ms(12, 0.2) * fontScale,
-    fontWeight: '600',
-  },
-  diagnosticHint: {
-    fontSize: ms(11, 0.2) * fontScale,
-    color: theme.colors.text.subtle,
-    textAlign: 'center',
-    lineHeight: ms(16, 0.2) * fontScale,
-    fontStyle: 'italic',
-  },
-});
+const createStyles = (
+  theme: AppTheme,
+  ms: (size: number, factor?: number) => number,
+  fontScale: number
+) =>
+  StyleSheet.create({
+    panel: {
+      marginBottom: theme.spacing.sm,
+    },
+    note: {
+      fontSize: ms(12, 0.2) * fontScale,
+      color: theme.colors.text.subtle,
+      marginTop: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
+      lineHeight: ms(18, 0.2) * fontScale,
+      textAlign: "center",
+    },
+    diagnosticsToggle: {
+      marginTop: theme.spacing.md,
+    },
+    diagnosticSection: {
+      marginTop: theme.spacing.xl,
+      paddingTop: theme.spacing.lg,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.colors.border.soft,
+    },
+    diagPanel: {
+      marginBottom: theme.spacing.md,
+      paddingTop: theme.spacing.md,
+      paddingBottom: theme.spacing.md,
+    },
+    diagnosticText: {
+      fontSize: ms(12, 0.2) * fontScale,
+      fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
+      color: theme.colors.text.base,
+      lineHeight: ms(18, 0.2) * fontScale,
+    },
+    actionsStack: {
+      gap: theme.spacing.sm,
+      marginBottom: theme.spacing.md,
+    },
+    channelsTitle: {
+      fontSize: ms(12, 0.15) * fontScale,
+      fontWeight: "600",
+      letterSpacing: 0.4,
+      textTransform: "uppercase",
+      color: theme.colors.text.muted,
+      marginBottom: theme.spacing.sm,
+    },
+    channelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: ms(8, 0.05),
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.colors.border.soft,
+      gap: theme.spacing.sm,
+    },
+    channelRowLast: {
+      borderBottomWidth: 0,
+    },
+    channelCopy: {
+      flex: 1,
+      minWidth: 0,
+    },
+    channelMeta: {
+      fontSize: ms(11, 0.15) * fontScale,
+      fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
+      color: theme.colors.text.subtle,
+      marginTop: ms(2, 0.05),
+    },
+    smallBtn: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.icon.brand,
+      backgroundColor: theme.colors.accent.blueSoft,
+      paddingVertical: ms(6, 0.05),
+      paddingHorizontal: ms(12, 0.1),
+      borderRadius: theme.radius.pill,
+    },
+    smallBtnText: {
+      color: theme.colors.icon.brand,
+      fontSize: ms(12, 0.2) * fontScale,
+      fontWeight: "600",
+    },
+    diagnosticHint: {
+      fontSize: ms(11, 0.2) * fontScale,
+      color: theme.colors.text.subtle,
+      textAlign: "center",
+      lineHeight: ms(16, 0.2) * fontScale,
+    },
+  });
