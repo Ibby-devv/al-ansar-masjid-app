@@ -68,7 +68,7 @@ class NotificationService {
           channelId,
           importance: channel.importance,
           color: styleConfig.color,
-          smallIcon: styleConfig.smallIcon || 'ic_launcher',
+          smallIcon: styleConfig.smallIcon || 'ic_notification_general',
           pressAction: {
             id: 'default',
           },

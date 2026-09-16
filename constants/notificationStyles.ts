@@ -7,43 +7,44 @@ export interface NotificationStyleConfig {
   useBigTextStyle?: boolean;
 }
 
-// App color theme - adjust to match your branding
+/**
+ * Calm brand tints for Android notification chrome (small-icon colour).
+ * Navy for most channels; gold for giving / urgency.
+ */
 export const NOTIFICATION_COLORS = {
-  primary: '#1e3a8a', // Deep blue
-  prayer: '#059669',  // Green
-  event: '#7c3aed',   // Purple
-  campaign: '#dc2626', // Red
-  general: '#0284c7', // Sky blue
-  urgent: '#ea580c',  // Orange
+  navy: '#1e3a8a',
+  gold: '#d97706',
+  urgent: '#b45309',
 } as const;
 
-// Unified icon for brand consistency - Android guidelines recommend monochromatic app icon
-const UNIFIED_SMALL_ICON = 'ic_launcher'; // App launcher icon
-
+/**
+ * Simple white-on-transparent drawables in android/app/src/main/res/drawable-*.
+ * Do not use ic_launcher — too detailed for status-bar glyphs.
+ */
 export const NOTIFICATION_STYLES: Record<NotificationChannelId, NotificationStyleConfig> = {
   prayer: {
-    color: NOTIFICATION_COLORS.prayer,
-    smallIcon: UNIFIED_SMALL_ICON,
+    color: NOTIFICATION_COLORS.navy,
+    smallIcon: 'ic_notification_prayer',
     useBigTextStyle: true,
   },
   events: {
-    color: NOTIFICATION_COLORS.event,
-    smallIcon: UNIFIED_SMALL_ICON,
+    color: NOTIFICATION_COLORS.navy,
+    smallIcon: 'ic_notification_event',
     useBigTextStyle: true,
   },
   campaigns: {
-    color: NOTIFICATION_COLORS.campaign,
-    smallIcon: UNIFIED_SMALL_ICON,
+    color: NOTIFICATION_COLORS.gold,
+    smallIcon: 'ic_notification_campaign',
     useBigTextStyle: true,
   },
   general: {
-    color: NOTIFICATION_COLORS.general,
-    smallIcon: UNIFIED_SMALL_ICON,
+    color: NOTIFICATION_COLORS.navy,
+    smallIcon: 'ic_notification_general',
     useBigTextStyle: true,
   },
   urgent: {
     color: NOTIFICATION_COLORS.urgent,
-    smallIcon: UNIFIED_SMALL_ICON,
+    smallIcon: 'ic_notification_urgent',
     useBigTextStyle: true,
   },
 };
