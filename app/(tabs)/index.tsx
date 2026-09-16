@@ -422,7 +422,7 @@ export default function HomeScreen(): React.JSX.Element {
           {(loading && !jumuahTimes) || (jumuahTimes && jumuahTimes.times.length > 0) ? (
             <View style={[styles.prayerTableCard, styles.jumuahTableCard]}>
               <View style={[styles.tableRow, styles.tableHeaderRow, styles.tableRowDivider]}>
-                <Text style={[styles.rowName, styles.rowHeaderLabel]}>Jumu'ah</Text>
+                <Text style={[styles.rowName, styles.rowHeaderLabel]}>{"Jumu'ah"}</Text>
                 <Text style={[styles.rowTime, styles.rowHeaderLabel]}>Khutbah</Text>
               </View>
               {loading && !jumuahTimes ? (
