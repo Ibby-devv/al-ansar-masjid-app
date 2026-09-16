@@ -152,7 +152,7 @@ export default function ManageTab(): React.JSX.Element {
                 <Ionicons
                   name={item.icon}
                   size={ms(18, 0.2)}
-                  color={theme.colors.brand.navy[700]}
+                  color={theme.colors.icon.brand}
                 />
                 <View style={styles.capabilityCopy}>
                   <Text style={styles.capabilityTitle}>{item.title}</Text>
@@ -228,7 +228,7 @@ const createStyles = (
       width: ms(22, 0.15),
       fontSize: ms(13, 0.2) * fontScale,
       fontWeight: "700",
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
     },
     stepText: {
       flex: 1,

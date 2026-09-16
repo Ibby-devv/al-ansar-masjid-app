@@ -42,11 +42,11 @@ export default function DonationAnalyticsCard({
 
   const getColorForIndex = (index: number): string => {
     const colors = [
-      theme.colors.brand.navy[700],
+      theme.colors.icon.brand,
       theme.colors.brand.gold[600],
       theme.colors.accent.green,
     ];
-    return colors[index] || theme.colors.brand.navy[700];
+    return colors[index] || theme.colors.icon.brand;
   };
 
   return (

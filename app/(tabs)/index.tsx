@@ -302,8 +302,8 @@ export default function HomeScreen(): React.JSX.Element {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={theme.colors.brand.navy[700]}
-            colors={[theme.colors.brand.navy[700]]}
+            tintColor={theme.colors.icon.brand}
+            colors={[theme.colors.icon.brand]}
           />
         }
       >
@@ -563,7 +563,8 @@ const createStyles = (
       backgroundColor: theme.colors.surface.base,
       borderRadius: theme.radius.lg,
       paddingVertical: theme.spacing.sm,
-      ...theme.shadow.soft,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.border.soft,
     },
     jumuahTableCard: {
       marginTop: theme.spacing.md,

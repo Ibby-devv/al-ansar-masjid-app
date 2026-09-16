@@ -408,14 +408,14 @@ const createStyles = (
     },
     smallBtn: {
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.brand.navy[700],
+      borderColor: theme.colors.icon.brand,
       backgroundColor: theme.colors.accent.blueSoft,
       paddingVertical: ms(6, 0.05),
       paddingHorizontal: ms(12, 0.1),
       borderRadius: theme.radius.pill,
     },
     smallBtnText: {
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
       fontSize: ms(12, 0.2) * fontScale,
       fontWeight: "600",
     },

@@ -258,7 +258,7 @@ export default function EventsScreen(): React.JSX.Element {
       <View style={styles.eventsContainer}>
         {eventsLoading ? (
           <View style={styles.emptyState}>
-            <ActivityIndicator color={theme.colors.brand.navy[700]} />
+            <ActivityIndicator color={theme.colors.icon.brand} />
             <Text style={styles.emptyStateText}>Loading events…</Text>
           </View>
         ) : (
@@ -334,7 +334,7 @@ export default function EventsScreen(): React.JSX.Element {
                         <Ionicons
                           name="time-outline"
                           size={ms(15, 0.2)}
-                          color={theme.colors.text.muted}
+                          color={theme.colors.icon.muted}
                         />
                         <Text style={styles.timeText}>{event.time}</Text>
                         {showPerEventBadge
@@ -347,7 +347,7 @@ export default function EventsScreen(): React.JSX.Element {
                           <Ionicons
                             name="location-outline"
                             size={ms(14, 0.15)}
-                            color={theme.colors.text.muted}
+                            color={theme.colors.icon.muted}
                           />
                           <Text style={styles.metaText}>{event.location}</Text>
                         </View>
@@ -358,7 +358,7 @@ export default function EventsScreen(): React.JSX.Element {
                           <Ionicons
                             name="person-outline"
                             size={ms(14, 0.15)}
-                            color={theme.colors.text.muted}
+                            color={theme.colors.icon.muted}
                           />
                           <Text style={styles.metaText}>{event.speaker}</Text>
                         </View>
@@ -369,7 +369,7 @@ export default function EventsScreen(): React.JSX.Element {
                           <Ionicons
                             name="people-outline"
                             size={ms(14, 0.15)}
-                            color={theme.colors.text.muted}
+                            color={theme.colors.icon.muted}
                           />
                           <Text style={styles.metaText}>
                             {event.rsvp_count || 0} /{" "}
@@ -393,7 +393,7 @@ export default function EventsScreen(): React.JSX.Element {
                 <Ionicons
                   name="calendar-outline"
                   size={ms(48, 0.2)}
-                  color={theme.colors.text.subtle}
+                  color={theme.colors.icon.subtle}
                 />
                 <Text style={styles.emptyStateTitle}>No upcoming events</Text>
                 <Text style={styles.emptyStateText}>
@@ -502,9 +502,13 @@ const createStyles = (
     },
     relativeChipToday: {
       backgroundColor: theme.colors.accent.amberSoft,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.brand.gold[600],
     },
     relativeChipTomorrow: {
       backgroundColor: theme.colors.accent.blueSoft,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.icon.brand,
     },
     relativeChipText: {
       fontSize: ms(11, 0.15) * fontScale,
@@ -514,7 +518,7 @@ const createStyles = (
       color: theme.colors.brand.gold[600],
     },
     relativeChipTextTomorrow: {
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
     },
     eventCard: {
       marginBottom: theme.spacing.md,

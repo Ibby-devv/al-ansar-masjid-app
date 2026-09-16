@@ -185,7 +185,7 @@ export default function DonationErrorModal({
               <Ionicons
                 name="information-circle-outline"
                 size={ms(18, 0.2)}
-                color={theme.colors.brand.navy[700]}
+                color={theme.colors.icon.brand}
               />
               <Text style={styles.supportText}>
                 Need help? Contact us at support@alansar.au
@@ -312,7 +312,7 @@ const createStyles = (
     supportText: {
       flex: 1,
       fontSize: ms(12, 0.15) * fontScale,
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
       lineHeight: ms(17, 0.15),
     },
   });

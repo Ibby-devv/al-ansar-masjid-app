@@ -162,7 +162,7 @@ Thank you for your generous support!
                 <Ionicons
                   name={campaignName ? "flag-outline" : "heart-outline"}
                   size={ms(18, 0.2)}
-                  color={theme.colors.text.muted}
+                  color={theme.colors.icon.brand}
                 />
                 <Text style={styles.detailLabel}>
                   {campaignName ? "Campaign" : "Cause"}
@@ -177,7 +177,7 @@ Thank you for your generous support!
                   <Ionicons
                     name="document-text-outline"
                     size={ms(18, 0.2)}
-                    color={theme.colors.text.muted}
+                    color={theme.colors.icon.muted}
                   />
                   <Text style={styles.detailLabel}>Receipt</Text>
                   <Text style={styles.detailValue}>{receiptNumber}</Text>
@@ -189,7 +189,7 @@ Thank you for your generous support!
                   <Ionicons
                     name="information-circle-outline"
                     size={ms(18, 0.2)}
-                    color={theme.colors.brand.navy[700]}
+                    color={theme.colors.icon.brand}
                   />
                   <Text style={styles.infoText}>
                     You&apos;ll receive an email receipt after each payment. You
@@ -212,7 +212,7 @@ Thank you for your generous support!
                   <Ionicons
                     name="receipt-outline"
                     size={ms(18, 0.2)}
-                    color={theme.colors.brand.navy[700]}
+                    color={theme.colors.icon.brand}
                   />
                   <Text style={styles.secondaryButtonText}>View receipt</Text>
                 </TouchableOpacity>
@@ -229,7 +229,7 @@ Thank you for your generous support!
                 <Ionicons
                   name="share-outline"
                   size={ms(18, 0.2)}
-                  color={theme.colors.brand.navy[700]}
+                  color={theme.colors.icon.brand}
                 />
                 <Text style={styles.secondaryButtonText}>Share</Text>
               </TouchableOpacity>
@@ -364,7 +364,7 @@ const createStyles = (
     infoText: {
       flex: 1,
       fontSize: ms(12, 0.15) * fontScale,
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
       lineHeight: ms(17, 0.15),
     },
     actions: {
@@ -380,7 +380,7 @@ const createStyles = (
       gap: theme.spacing.sm,
       backgroundColor: theme.colors.surface.base,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.brand.navy[700],
+      borderColor: theme.colors.icon.brand,
       paddingVertical: theme.spacing.md,
       paddingHorizontal: theme.spacing.md,
       borderRadius: theme.radius.md,
@@ -388,6 +388,6 @@ const createStyles = (
     secondaryButtonText: {
       fontSize: ms(14, 0.2) * fontScale,
       fontWeight: "600",
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
     },
   });

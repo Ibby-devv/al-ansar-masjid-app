@@ -59,7 +59,7 @@ export default function ListRow({
   );
 
   const chevron = showChevron ?? Boolean(onPress);
-  const tint = iconColor ?? theme.colors.brand.navy[700];
+  const tint = iconColor ?? theme.colors.icon.brand;
   const well = iconBackground ?? theme.colors.accent.blueSoft;
 
   const content = (
@@ -82,14 +82,14 @@ export default function ListRow({
         <Ionicons
           name="checkmark-circle"
           size={ms(22, 0.2)}
-          color={theme.colors.brand.navy[700]}
+          color={theme.colors.icon.brand}
         />
       ) : null}
       {chevron && !right && !selected ? (
         <Ionicons
           name="chevron-forward"
           size={ms(18, 0.2)}
-          color={theme.colors.text.subtle}
+          color={theme.colors.icon.muted}
         />
       ) : null}
     </>

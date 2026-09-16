@@ -85,9 +85,7 @@ const createStyles = (
       justifyContent: "center",
     },
     itemSelected: {
-      backgroundColor: theme.colors.surface.base,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.brand.navy[700],
+      backgroundColor: theme.colors.brand.navy[800],
     },
     text: {
       color: theme.colors.text.muted,
@@ -95,7 +93,7 @@ const createStyles = (
       fontWeight: "500",
     },
     textSelected: {
-      color: theme.colors.brand.navy[800],
+      color: theme.colors.text.header,
       fontWeight: "600",
     },
   });

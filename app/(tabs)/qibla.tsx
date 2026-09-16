@@ -320,12 +320,24 @@ export default function QiblaScreen(): React.JSX.Element {
             showInstruction={false}
             theme={{
               faceColor: theme.colors.compass.face,
-              borderColor: "rgba(255,255,255,0.7)",
-              tickColor: "rgba(0,0,0,0.1)",
-              tickMajorColor: "rgba(0,0,0,0.25)",
+              borderColor:
+                theme.colorScheme === "dark"
+                  ? "rgba(255,255,255,0.35)"
+                  : "rgba(255,255,255,0.7)",
+              tickColor:
+                theme.colorScheme === "dark"
+                  ? "rgba(255,255,255,0.12)"
+                  : "rgba(0,0,0,0.1)",
+              tickMajorColor:
+                theme.colorScheme === "dark"
+                  ? "rgba(255,255,255,0.28)"
+                  : "rgba(0,0,0,0.25)",
               pointerColor: theme.colors.compass.accent,
               pointerAlignedColor: theme.colors.accent.green,
-              cardinalColor: "rgba(0,0,0,0.2)",
+              cardinalColor:
+                theme.colorScheme === "dark"
+                  ? "rgba(255,255,255,0.22)"
+                  : "rgba(0,0,0,0.2)",
               kaabahColor:
                 theme.colorScheme === "dark" ? "#f5f5f5" : "#2f2a2a",
               kaabahStripeColor: theme.colors.brand.gold[400],

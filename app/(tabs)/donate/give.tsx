@@ -377,7 +377,7 @@ export default function GiveTab(): React.JSX.Element | null {
     return (
       <SafeAreaView style={styles.container} edges={["bottom"]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.brand.navy[700]} />
+          <ActivityIndicator size="large" color={theme.colors.icon.brand} />
           <Text style={styles.loadingText}>Loading donation options...</Text>
         </View>
       </SafeAreaView>
@@ -459,7 +459,7 @@ export default function GiveTab(): React.JSX.Element | null {
                     <Ionicons
                       name="chevron-back"
                       size={ms(18, 0.2)}
-                      color={theme.colors.brand.navy[700]}
+                      color={theme.colors.icon.brand}
                     />
                     <Text style={styles.backLinkText}>Back to causes</Text>
                   </TouchableOpacity>
@@ -651,7 +651,7 @@ export default function GiveTab(): React.JSX.Element | null {
                           <Ionicons
                             name="information-circle"
                             size={ms(18, 0.2)}
-                            color={theme.colors.brand.navy[700]}
+                            color={theme.colors.icon.brand}
                           />
                           <Text style={styles.infoText}>
                             Email is required to manage your recurring donation
@@ -817,7 +817,7 @@ const createStyles = (
     backLinkText: {
       fontSize: ms(14, 0.2) * fontScale,
       fontWeight: "500",
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
     },
     causeChip: {
       flexDirection: "row",
@@ -863,7 +863,7 @@ const createStyles = (
     amountDisplay: {
       fontSize: ms(40, 0.35) * fontScale,
       fontWeight: "700",
-      color: theme.colors.brand.navy[800],
+      color: theme.colors.text.strong,
       letterSpacing: -1,
     },
     amountCurrency: {
@@ -885,12 +885,12 @@ const createStyles = (
       borderRadius: theme.radius.md,
       paddingVertical: theme.spacing.lg,
       alignItems: "center",
-      borderWidth: ms(1.5, 0.05),
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.colors.border.base,
     },
     amountButtonSelected: {
-      borderColor: theme.colors.brand.navy[700],
-      backgroundColor: theme.colors.brand.navy[700],
+      borderColor: theme.colors.brand.navy[800],
+      backgroundColor: theme.colors.brand.navy[800],
     },
     amountButtonText: {
       fontSize: ms(15, 0.2) * fontScale,
@@ -947,9 +947,7 @@ const createStyles = (
       borderRadius: ms(10, 0.1),
     },
     segmentItemSelected: {
-      backgroundColor: theme.colors.surface.base,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.brand.navy[700],
+      backgroundColor: theme.colors.brand.navy[800],
     },
     segmentText: {
       fontSize: ms(13, 0.2) * fontScale,
@@ -957,7 +955,7 @@ const createStyles = (
       color: theme.colors.text.muted,
     },
     segmentTextSelected: {
-      color: theme.colors.brand.navy[800],
+      color: theme.colors.text.header,
       fontWeight: "600",
     },
     freqRow: {
@@ -1011,7 +1009,7 @@ const createStyles = (
     infoText: {
       flex: 1,
       fontSize: ms(12, 0.15) * fontScale,
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
       lineHeight: ms(17, 0.15),
     },
     ctaBar: {

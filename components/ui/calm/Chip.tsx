@@ -72,12 +72,12 @@ const createStyles = (
       paddingHorizontal: ms(14, 0.1),
     },
     selectedNavy: {
-      borderColor: theme.colors.brand.navy[700],
-      backgroundColor: theme.colors.accent.blueSoft,
+      borderColor: theme.colors.brand.navy[800],
+      backgroundColor: theme.colors.brand.navy[800],
     },
     selectedGold: {
       borderColor: theme.colors.brand.gold[600],
-      backgroundColor: theme.colors.accent.amberSoft,
+      backgroundColor: theme.colors.brand.gold[600],
     },
     text: {
       fontSize: ms(13, 0.2) * fontScale,
@@ -85,11 +85,11 @@ const createStyles = (
       color: theme.colors.text.muted,
     },
     textSelectedNavy: {
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.text.header,
       fontWeight: "600",
     },
     textSelectedGold: {
-      color: theme.colors.brand.gold[600],
+      color: theme.colors.text.inverse,
       fontWeight: "600",
     },
   });

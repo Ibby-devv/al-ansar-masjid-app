@@ -69,30 +69,88 @@ export const Theme = {
       border: { base: '#e5e7eb', soft: '#e2e8f0' },
       accent: { blueSoft: '#eff6ff', blue: '#60a5fa', amberSoft: '#fffbeb', green: '#22c55e', amber: '#f59e0b' },
       error: { 500: '#ef4444', 100: '#fee2e2' },
+      icon: {
+        brand: '#1e3a8a', // matches navy[700] — glyph tint on soft wells
+        muted: '#64748b',
+        subtle: '#94a3b8',
+      },
       tabBar: { background: '#ffffff', border: '#e5e7eb', activeTint: '#1e3a8a', inactiveTint: '#9ca3af' },
       iconBackground: { map: '#ef4444', phone: '#22c55e', email: '#f59e0b', website: '#0ea5e9', imam: '#d97706', version: '#8b5cf6', developer: '#6366f1', facebook: '#1877F2' },
       progress: { background: '#e5e7eb', fill: '#3b82f6', complete: '#10b981' },
       compass: { background: '#0f2945', face: '#f5efeb', accent: '#f4a261', muted: 'rgba(255,255,255,0.6)' },
     },
+    // Dark: navy-night canvas with lifted cards (same elevation ladder as light).
+    // Navy stops stay deep brand — not sky-blue chrome. Gold is the bright accent.
     dark: {
       brand: {
-        navy: { 900: '#1e3a8a', 800: '#1e40af', 700: '#2563eb', 600: '#91adf9ff' },
+        navy: {
+          900: '#060a12',
+          800: '#1e3a8a', // primary fills / CTAs (readable on night canvas)
+          700: '#3d5fbf', // solid chrome (headers, selected borders)
+          600: '#6b8fd9', // lighter accents (iqama, links)
+        },
         gold: { 600: '#f59e0b', 400: '#fbbf24' },
       },
-      surface: { base: '#111827', soft: '#1f2937', muted: '#374151', card: '#1f2937' },
-      text: { base: '#f9fafb', muted: '#9ca3af', subtle: '#6b7280', inverse: '#0f172a', strong: '#ffffff', header: '#ffffff' },
-      border: { base: '#374151', soft: '#4b5563' },
-      accent: { blueSoft: '#1e3a5f', blue: '#60a5fa', amberSoft: '#422006', green: '#34d399', amber: '#fbbf24' },
-      error: { 500: '#ef4444', 100: '#7f1d1d' },
-      tabBar: { background: '#1a1a1a', border: '#374151', activeTint: '#60a5fa', inactiveTint: '#6b7280' },
-      iconBackground: { map: '#dc2626', phone: '#16a34a', email: '#d97706', website: '#0284c7', imam: '#f59e0b', version: '#a78bfa', developer: '#818cf8', facebook: '#1877F2' },
-      progress: { background: '#374151', fill: '#60a5fa', complete: '#34d399' },
-      compass: { background: '#0b1220', face: '#1f2937', accent: '#fb923c', muted: 'rgba(255,255,255,0.3)' },
+      surface: {
+        base: '#152036', // elevated panels / cards
+        soft: '#101828', // inset wells
+        muted: '#0b1220', // page canvas (darkest)
+        card: '#152036',
+      },
+      text: {
+        base: '#e8eef7',
+        muted: '#94a3b8',
+        subtle: '#7c8aa0',
+        inverse: '#0b1220',
+        strong: '#f8fafc',
+        header: '#ffffff',
+      },
+      border: { base: '#2d3a52', soft: '#243044' },
+      accent: {
+        blueSoft: '#152a4a',
+        blue: '#60a5fa',
+        amberSoft: '#3a2a12',
+        green: '#34d399',
+        amber: '#fbbf24',
+      },
+      error: { 500: '#f87171', 100: '#3f1219' },
+      icon: {
+        brand: '#93b4f5', // light navy tint — readable on night panels/wells
+        muted: '#94a3b8',
+        subtle: '#7c8aa0',
+      },
+      tabBar: {
+        background: '#101828',
+        border: '#243044',
+        activeTint: '#fbbf24',
+        inactiveTint: '#7c8aa0',
+      },
+      iconBackground: {
+        map: '#dc2626',
+        phone: '#16a34a',
+        email: '#d97706',
+        website: '#0284c7',
+        imam: '#f59e0b',
+        version: '#a78bfa',
+        developer: '#818cf8',
+        facebook: '#1877F2',
+      },
+      progress: {
+        background: '#243044',
+        fill: '#4a6bb5',
+        complete: '#34d399',
+      },
+      compass: {
+        background: '#060a12',
+        face: '#1a2438',
+        accent: '#f4a261',
+        muted: 'rgba(255,255,255,0.55)',
+      },
     },
   },
   gradients: {
     light: { header: ['#172554', '#1e3a8a', '#0b1220'] as const },
-    dark: { header: ['#1e3a8a', '#1e40af', '#172554'] as const },
+    dark: { header: ['#0b1220', '#172554', '#060a12'] as const },
   },
   spacing: {
     xs: 4,

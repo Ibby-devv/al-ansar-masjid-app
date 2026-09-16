@@ -126,7 +126,7 @@ export default function HistoryTab(): React.JSX.Element {
           <Ionicons
             name="heart-outline"
             size={ms(20, 0.2)}
-            color={theme.colors.brand.navy[700]}
+            color={theme.colors.icon.brand}
           />
         </View>
         <View style={styles.donationInfo}>
@@ -147,7 +147,7 @@ export default function HistoryTab(): React.JSX.Element {
           <Ionicons
             name="document-text-outline"
             size={ms(14, 0.15)}
-            color={theme.colors.text.muted}
+            color={theme.colors.icon.muted}
           />
           <Text style={styles.receiptText}>
             Receipt: {donation.receipt_number}
@@ -165,13 +165,13 @@ export default function HistoryTab(): React.JSX.Element {
           <Ionicons
             name="receipt-outline"
             size={ms(16, 0.2)}
-            color={theme.colors.brand.navy[700]}
+            color={theme.colors.icon.brand}
           />
           <Text style={styles.viewReceiptText}>View receipt</Text>
           <Ionicons
             name="open-outline"
             size={ms(12, 0.15)}
-            color={theme.colors.text.muted}
+            color={theme.colors.icon.muted}
           />
         </TouchableOpacity>
       )}
@@ -256,7 +256,7 @@ export default function HistoryTab(): React.JSX.Element {
                 <Ionicons
                   name="mail-outline"
                   size={ms(18, 0.2)}
-                  color={theme.colors.text.muted}
+                  color={theme.colors.icon.muted}
                 />
                 <Text style={styles.emailText} numberOfLines={1}>
                   {email}
@@ -305,7 +305,7 @@ export default function HistoryTab(): React.JSX.Element {
                     <Ionicons
                       name="heart-outline"
                       size={ms(40, 0.2)}
-                      color={theme.colors.text.subtle}
+                      color={theme.colors.icon.subtle}
                     />
                     <Text style={styles.emptyText}>
                       No one-time donations found
@@ -321,7 +321,7 @@ export default function HistoryTab(): React.JSX.Element {
                     <Ionicons
                       name="refresh-outline"
                       size={ms(40, 0.2)}
-                      color={theme.colors.text.subtle}
+                      color={theme.colors.icon.subtle}
                     />
                     <Text style={styles.emptyText}>
                       No recurring donations found
@@ -397,7 +397,7 @@ const createStyles = (
       paddingVertical: ms(6, 0.1),
     },
     changeButtonText: {
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
       fontSize: ms(14, 0.2) * fontScale,
       fontWeight: "600",
     },
@@ -489,7 +489,7 @@ const createStyles = (
     viewReceiptText: {
       fontSize: ms(13, 0.2) * fontScale,
       fontWeight: "600",
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.icon.brand,
     },
     emptyState: {
       alignItems: "center",
