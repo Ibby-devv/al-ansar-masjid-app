@@ -618,7 +618,7 @@ const createStyles = (
       color: theme.colors.brand.gold[600],
     },
     nextPrayerText: {
-      color: theme.colors.brand.navy[700],
+      color: theme.colors.brand.gold[600],
     },
     staleBanner: {
       backgroundColor: theme.colors.accent.amberSoft,
