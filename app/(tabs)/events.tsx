@@ -557,7 +557,10 @@ const createStyles = (
     },
     dateDay: {
       fontSize: ms(22, 0.25) * fontScale,
-      color: theme.colors.brand.navy[800],
+      color:
+        theme.colorScheme === "dark"
+          ? theme.colors.icon.brand
+          : theme.colors.brand.navy[800],
       fontWeight: "700",
       lineHeight: ms(26, 0.2),
     },
