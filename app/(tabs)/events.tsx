@@ -5,6 +5,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Pressable,
   ScrollView,
   SectionList,
   StatusBar,
@@ -14,6 +15,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import EventDetailsModal from "../../components/EventDetailsModal";
 import PatternOverlay from "../../components/PatternOverlay";
 import { Chip, Panel } from "../../components/ui/calm";
 import { AppTheme, useTheme } from "../../contexts/ThemeContext";
@@ -21,12 +23,14 @@ import { useEventCategories } from "../../hooks/useEventCategories";
 import { useEvents } from "../../hooks/useEvents";
 import { useFirebaseData } from "../../hooks/useFirebaseData";
 import { useResponsive } from "../../hooks/useResponsive";
+import type { Event } from "../../types";
 
 export default function EventsScreen(): React.JSX.Element {
   const theme = useTheme();
   const { ms } = useResponsive();
   const { fontScale } = useWindowDimensions();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   const styles = useMemo(
     () => createStyles(theme, ms, fontScale),
@@ -106,6 +110,18 @@ export default function EventsScreen(): React.JSX.Element {
   const getCategoryLabel = (categoryId: string): string => {
     const category = categories.find((cat) => cat.id === categoryId);
     return category?.label || "Unknown";
+  };
+
+  const formatEventDate = (
+    timestamp: FirebaseFirestoreTypes.Timestamp
+  ): string => {
+    return timestamp.toDate().toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      timeZone: MOSQUE_TZ,
+    });
   };
 
   const filteredEvents = useMemo(() => {
@@ -283,109 +299,127 @@ export default function EventsScreen(): React.JSX.Element {
               const showPerEventBadge = !section.relBadge && relEvent;
 
               return (
-                <Panel compact style={styles.eventCard}>
-                  {event.image_url ? (
-                    <Image
-                      source={{ uri: event.image_url }}
-                      style={styles.eventImage}
-                      resizeMode="cover"
-                    />
-                  ) : null}
-                  <View style={styles.cardRow}>
-                    <View
-                      style={[
-                        styles.dateBadge,
-                        relEvent ? styles.dateBadgeHighlight : undefined,
-                      ]}
-                    >
-                      <Text style={styles.dateWeekday}>
-                        {parts.weekday.toUpperCase()}
-                      </Text>
-                      <Text style={styles.dateDay}>{parts.day}</Text>
-                      <Text style={styles.dateMonth}>
-                        {parts.month.toUpperCase()}
-                      </Text>
-                    </View>
-
-                    <View style={styles.cardContent}>
-                      <View style={styles.titleRow}>
-                        <Text style={styles.eventTitle} numberOfLines={2}>
-                          {event.title}
+                <Pressable
+                  onPress={() => setSelectedEvent(event)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`View details for ${event.title}`}
+                  style={({ pressed }) => [
+                    pressed ? styles.eventCardPressed : null,
+                  ]}
+                >
+                  <Panel compact style={styles.eventCard}>
+                    {event.image_url ? (
+                      <Image
+                        source={{ uri: event.image_url }}
+                        style={styles.eventImage}
+                        resizeMode="cover"
+                      />
+                    ) : null}
+                    <View style={styles.cardRow}>
+                      <View
+                        style={[
+                          styles.dateBadge,
+                          relEvent ? styles.dateBadgeHighlight : undefined,
+                        ]}
+                      >
+                        <Text style={styles.dateWeekday}>
+                          {parts.weekday.toUpperCase()}
                         </Text>
-                        <View
-                          style={[
-                            styles.categoryChip,
-                            { backgroundColor: categoryColors.bg },
-                          ]}
-                        >
-                          <Text
+                        <Text style={styles.dateDay}>{parts.day}</Text>
+                        <Text style={styles.dateMonth}>
+                          {parts.month.toUpperCase()}
+                        </Text>
+                      </View>
+
+                      <View style={styles.cardContent}>
+                        <View style={styles.titleRow}>
+                          <Text style={styles.eventTitle} numberOfLines={2}>
+                            {event.title}
+                          </Text>
+                          <View
                             style={[
-                              styles.categoryChipText,
-                              { color: categoryColors.text },
+                              styles.categoryChip,
+                              { backgroundColor: categoryColors.bg },
                             ]}
-                            numberOfLines={1}
                           >
-                            {getCategoryLabel(event.category)}
+                            <Text
+                              style={[
+                                styles.categoryChipText,
+                                { color: categoryColors.text },
+                              ]}
+                              numberOfLines={1}
+                            >
+                              {getCategoryLabel(event.category)}
+                            </Text>
+                          </View>
+                          <Ionicons
+                            name="chevron-forward"
+                            size={ms(18, 0.2)}
+                            color={theme.colors.icon.muted}
+                            style={styles.chevron}
+                          />
+                        </View>
+
+                        <View style={styles.timeRow}>
+                          <Ionicons
+                            name="time-outline"
+                            size={ms(15, 0.2)}
+                            color={theme.colors.icon.muted}
+                          />
+                          <Text style={styles.timeText}>{event.time}</Text>
+                          {showPerEventBadge
+                            ? renderRelativeChip(relEvent)
+                            : null}
+                        </View>
+
+                        {event.location ? (
+                          <View style={styles.metaItem}>
+                            <Ionicons
+                              name="location-outline"
+                              size={ms(14, 0.15)}
+                              color={theme.colors.icon.muted}
+                            />
+                            <Text style={styles.metaText}>{event.location}</Text>
+                          </View>
+                        ) : null}
+
+                        {event.speaker ? (
+                          <View style={styles.metaItem}>
+                            <Ionicons
+                              name="person-outline"
+                              size={ms(14, 0.15)}
+                              color={theme.colors.icon.muted}
+                            />
+                            <Text style={styles.metaText}>{event.speaker}</Text>
+                          </View>
+                        ) : null}
+
+                        {event.rsvp_enabled ? (
+                          <View style={styles.metaItem}>
+                            <Ionicons
+                              name="people-outline"
+                              size={ms(14, 0.15)}
+                              color={theme.colors.icon.muted}
+                            />
+                            <Text style={styles.metaText}>
+                              {event.rsvp_count || 0} /{" "}
+                              {event.rsvp_limit || "Unlimited"} RSVPs
+                            </Text>
+                          </View>
+                        ) : null}
+
+                        {event.description ? (
+                          <Text
+                            style={styles.eventDescription}
+                            numberOfLines={3}
+                          >
+                            {event.description}
                           </Text>
-                        </View>
+                        ) : null}
                       </View>
-
-                      <View style={styles.timeRow}>
-                        <Ionicons
-                          name="time-outline"
-                          size={ms(15, 0.2)}
-                          color={theme.colors.icon.muted}
-                        />
-                        <Text style={styles.timeText}>{event.time}</Text>
-                        {showPerEventBadge
-                          ? renderRelativeChip(relEvent)
-                          : null}
-                      </View>
-
-                      {event.location ? (
-                        <View style={styles.metaItem}>
-                          <Ionicons
-                            name="location-outline"
-                            size={ms(14, 0.15)}
-                            color={theme.colors.icon.muted}
-                          />
-                          <Text style={styles.metaText}>{event.location}</Text>
-                        </View>
-                      ) : null}
-
-                      {event.speaker ? (
-                        <View style={styles.metaItem}>
-                          <Ionicons
-                            name="person-outline"
-                            size={ms(14, 0.15)}
-                            color={theme.colors.icon.muted}
-                          />
-                          <Text style={styles.metaText}>{event.speaker}</Text>
-                        </View>
-                      ) : null}
-
-                      {event.rsvp_enabled ? (
-                        <View style={styles.metaItem}>
-                          <Ionicons
-                            name="people-outline"
-                            size={ms(14, 0.15)}
-                            color={theme.colors.icon.muted}
-                          />
-                          <Text style={styles.metaText}>
-                            {event.rsvp_count || 0} /{" "}
-                            {event.rsvp_limit || "Unlimited"} RSVPs
-                          </Text>
-                        </View>
-                      ) : null}
-
-                      {event.description ? (
-                        <Text style={styles.eventDescription} numberOfLines={3}>
-                          {event.description}
-                        </Text>
-                      ) : null}
                     </View>
-                  </View>
-                </Panel>
+                  </Panel>
+                </Pressable>
               );
             }}
             ListEmptyComponent={
@@ -406,6 +440,23 @@ export default function EventsScreen(): React.JSX.Element {
           />
         )}
       </View>
+
+      <EventDetailsModal
+        visible={!!selectedEvent}
+        event={selectedEvent}
+        categoryLabel={
+          selectedEvent ? getCategoryLabel(selectedEvent.category) : ""
+        }
+        categoryColors={
+          selectedEvent
+            ? getCategoryColor(selectedEvent.category)
+            : { bg: theme.colors.surface.soft, text: theme.colors.text.muted }
+        }
+        formattedDate={
+          selectedEvent ? formatEventDate(selectedEvent.date) : ""
+        }
+        onClose={() => setSelectedEvent(null)}
+      />
     </View>
   );
 }
@@ -523,6 +574,9 @@ const createStyles = (
     eventCard: {
       marginBottom: theme.spacing.md,
     },
+    eventCardPressed: {
+      opacity: 0.85,
+    },
     eventImage: {
       width: "100%",
       height: ms(140, 0.2),
@@ -596,6 +650,10 @@ const createStyles = (
     categoryChipText: {
       fontSize: ms(10, 0.15) * fontScale,
       fontWeight: "600",
+    },
+    chevron: {
+      marginTop: ms(2, 0.05),
+      flexShrink: 0,
     },
     timeRow: {
       flexDirection: "row",
