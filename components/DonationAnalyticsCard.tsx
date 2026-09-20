@@ -149,7 +149,10 @@ const createStyles = (
     statValue: {
       fontSize: ms(20, 0.25) * fontScale,
       fontWeight: "700",
-      color: theme.colors.brand.navy[800],
+      color:
+        theme.colorScheme === "dark"
+          ? theme.colors.icon.brand
+          : theme.colors.brand.navy[800],
       marginBottom: ms(2, 0.05),
     },
     statLabel: {

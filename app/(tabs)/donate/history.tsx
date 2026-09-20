@@ -447,7 +447,10 @@ const createStyles = (
     donationAmount: {
       fontSize: ms(15, 0.2) * fontScale,
       fontWeight: "700",
-      color: theme.colors.brand.navy[800],
+      color:
+        theme.colorScheme === "dark"
+          ? theme.colors.icon.brand
+          : theme.colors.brand.navy[800],
     },
     recurringChip: {
       backgroundColor: theme.colors.accent.amberSoft,

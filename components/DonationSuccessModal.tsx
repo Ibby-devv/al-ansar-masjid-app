@@ -322,7 +322,10 @@ const createStyles = (
     amount: {
       fontSize: ms(36, 0.3) * fontScale,
       fontWeight: "700",
-      color: theme.colors.brand.navy[800],
+      color:
+        theme.colorScheme === "dark"
+          ? theme.colors.icon.brand
+          : theme.colors.brand.navy[800],
       letterSpacing: -0.8,
     },
     frequency: {
