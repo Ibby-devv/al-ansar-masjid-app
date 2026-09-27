@@ -6,6 +6,7 @@ import {
   Linking,
   Platform,
   ScrollView,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
@@ -23,6 +24,10 @@ import {
   ScreenIntro,
 } from "../../components/ui/calm";
 import InstagramIcon from "../../components/ui/InstagramIcon";
+import {
+  SHARE_APP_MESSAGE,
+  SHARE_APP_TITLE,
+} from "../../constants/appLinks";
 import { AppTheme, useTheme } from "../../contexts/ThemeContext";
 import { useFirebaseData } from "../../hooks/useFirebaseData";
 import { useResponsive } from "../../hooks/useResponsive";
@@ -164,6 +169,19 @@ export default function MoreScreen(): React.JSX.Element {
       Linking.openURL(url).catch((err) =>
         console.error("Error opening link:", err)
       );
+    }
+  };
+
+  const handleShareApp = async (): Promise<void> => {
+    await triggerHaptic();
+    try {
+      await Share.share({
+        message: SHARE_APP_MESSAGE,
+        title: SHARE_APP_TITLE,
+      });
+    } catch (error) {
+      // User cancel is not an error on all platforms; log unexpected failures only.
+      console.error("Error sharing app:", error);
     }
   };
 
@@ -338,6 +356,16 @@ export default function MoreScreen(): React.JSX.Element {
             title="Version"
             subtitle={`${appVersion}${buildNumber ? ` (${buildNumber})` : ""}`}
             icon="shield-checkmark-outline"
+          />
+          <ListRow
+            title="Share app"
+            subtitle="Invite others to Al Ansar Masjid"
+            hint="Opens share sheet"
+            icon="share-outline"
+            accessibilityLabel="Share app"
+            onPress={() => {
+              void handleShareApp();
+            }}
           />
           <ListRow
             title="Developed by"
