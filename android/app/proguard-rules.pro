@@ -11,4 +11,11 @@
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
+# Expo modules — R8 renames Record/options classes and breaks JS↔native casting
+# (e.g. Location.getLastKnownPositionAsync → expo.modules.location.records)
+-keep class expo.modules.** { *; }
+
+# Stripe optional push-provisioning SDK (not shipped; referenced by stripe-react-native)
+-dontwarn com.stripe.android.pushProvisioning.**
+
 # Add any project specific keep options here:
