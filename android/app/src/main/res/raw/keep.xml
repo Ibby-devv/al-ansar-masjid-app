@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_notification_prayer,@drawable/ic_notification_event,@drawable/ic_notification_campaign,@drawable/ic_notification_general,@drawable/ic_notification_urgent" />

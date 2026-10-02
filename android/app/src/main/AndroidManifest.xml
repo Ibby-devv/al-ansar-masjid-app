@@ -27,6 +27,12 @@
     <meta-data
         android:name="com.google.android.gms.wallet.api.enabled"
         android:value="true" />
+
+    <!-- Used when FCM displays a notification payload itself. Notifee still
+         selects per-channel icons by name; those are kept in res/raw/keep.xml. -->
+    <meta-data
+        android:name="com.google.firebase.messaging.default_notification_icon"
+        android:resource="@drawable/ic_notification_general" />
     
     <activity android:name=".MainActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:theme="@style/Theme.App.SplashScreen" android:exported="true" android:screenOrientation="portrait">
       <intent-filter>
