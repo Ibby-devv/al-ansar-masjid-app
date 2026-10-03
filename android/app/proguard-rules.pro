@@ -18,4 +18,12 @@
 # Stripe optional push-provisioning SDK (not shipped; referenced by stripe-react-native)
 -dontwarn com.stripe.android.pushProvisioning.**
 
+# Notifee (reflection / native bridge)
+-keep class app.notifee.** { *; }
+-dontwarn app.notifee.**
+
+# Keep runtime-named notification drawables reachable for resource shrinking.
+# keep.xml alone was not enough for channel icons other than the FCM default.
+-keep class com.alansarmasjid.app.ResourceAnchor { *; }
+
 # Add any project specific keep options here:

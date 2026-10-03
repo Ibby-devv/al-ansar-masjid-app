@@ -1,3 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Belt-and-suspenders with ResourceAnchor.java — Notifee loads these by name. -->
 <resources xmlns:tools="http://schemas.android.com/tools"
     tools:keep="@drawable/ic_notification_prayer,@drawable/ic_notification_event,@drawable/ic_notification_campaign,@drawable/ic_notification_general,@drawable/ic_notification_urgent" />

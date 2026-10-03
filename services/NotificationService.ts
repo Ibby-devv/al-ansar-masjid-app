@@ -21,6 +21,17 @@ class NotificationService {
     console.log('🔔 Creating notification channels...');
     
     try {
+      // Prayer channel has been observed as "enabled" yet dropping posts on some
+      // installs (custom type=prayer / Iqama pushes). Recreate it so importance,
+      // sound, and vibration are applied fresh. Android ignores updates in place.
+      if (Platform.OS === 'android') {
+        try {
+          await notifee.deleteChannel('prayer');
+        } catch (e) {
+          console.warn('Could not delete prayer channel before recreate:', e);
+        }
+      }
+
       // Create all defined channels
       for (const channel of Object.values(NOTIFICATION_CHANNELS)) {
         await notifee.createChannel({
@@ -40,86 +51,105 @@ class NotificationService {
     }
   }
 
-  /**
-   * Display a notification with proper styling
-   */
-  async displayNotification(options: DisplayNotificationOptions) {
-    const {
+  /** Notifee Android requires string data values; drop/convert anything else. */
+  private toNotifeeData(
+    data?: Record<string, any>
+  ): Record<string, string> | undefined {
+    if (!data) return undefined;
+    const out: Record<string, string> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value == null) continue;
+      out[key] = typeof value === 'string' ? value : String(value);
+    }
+    return out;
+  }
+
+  private buildAndroidNotification(
+    options: DisplayNotificationOptions,
+    channelId: NotificationChannelId
+  ) {
+    const { title, body, data, largeIcon, imageUrl } = options;
+    const styleConfig = NOTIFICATION_STYLES[channelId] ?? NOTIFICATION_STYLES.general;
+    const channel = NOTIFICATION_CHANNELS[channelId] ?? NOTIFICATION_CHANNELS.general;
+    const effectiveImageUrl =
+      (imageUrl && imageUrl.trim()) ||
+      (typeof data?.imageUrl === 'string' && data.imageUrl.trim()) ||
+      '';
+
+    const notification: any = {
       title,
       body,
-      channelId = 'general',
-      data,
-      largeIcon,
-      imageUrl,
-    } = options;
+      android: {
+        channelId,
+        importance: channel.importance,
+        color: styleConfig.color,
+        // Prefer channel icon; fall back to general if a drawable is missing
+        smallIcon: styleConfig.smallIcon || 'ic_notification_general',
+        pressAction: {
+          id: 'default',
+        },
+        // Sound/vibration belong on the channel; repeating them here breaks some OEMs
+      },
+      data: this.toNotifeeData(data),
+    };
+
+    const finalLargeIcon = largeIcon || styleConfig.largeIcon;
+    if (finalLargeIcon) {
+      notification.android.largeIcon = finalLargeIcon;
+    }
+
+    if (effectiveImageUrl) {
+      notification.android.style = {
+        type: AndroidStyle.BIGPICTURE,
+        picture: effectiveImageUrl,
+      };
+      notification.ios = {
+        attachments: [{ url: effectiveImageUrl }],
+      };
+    } else if (styleConfig.useBigTextStyle) {
+      notification.android.style = {
+        type: AndroidStyle.BIGTEXT,
+        text: body,
+      };
+    }
+
+    return notification;
+  }
+
+  /**
+   * Display a notification with proper styling.
+   * Retries on the general channel if the requested channel/icon fails.
+   */
+  async displayNotification(options: DisplayNotificationOptions) {
+    const channelId = options.channelId ?? 'general';
 
     try {
-      const styleConfig = NOTIFICATION_STYLES[channelId];
-
-      const channel = NOTIFICATION_CHANNELS[channelId];
-
-      // Fallback: allow image URL to be provided via data.imageUrl when not explicitly passed
-      const effectiveImageUrl = (imageUrl && imageUrl.trim()) || (typeof data?.imageUrl === 'string' && data.imageUrl.trim()) || '';
-
-      const notification: any = {
-        title,
-        body,
-        android: {
-          channelId,
-          importance: channel.importance,
-          color: styleConfig.color,
-          smallIcon: styleConfig.smallIcon || 'ic_notification_general',
-          pressAction: {
-            id: 'default',
-          },
-        },
-        data,
-      };
-
-      // Add vibration pattern if defined for this channel
-      if (channel.vibrationPattern) {
-        notification.android.vibrationPattern = channel.vibrationPattern;
-      }
-
-      // Add sound if defined for this channel
-      if (channel.sound) {
-        notification.android.sound = channel.sound;
-      }
-
-      // Only add largeIcon if it exists
-      const finalLargeIcon = largeIcon || styleConfig.largeIcon;
-      if (finalLargeIcon) {
-        notification.android.largeIcon = finalLargeIcon;
-      }
-
-      // Add Big Picture style on Android if image URL is provided
-      if (effectiveImageUrl) {
-        notification.android.style = {
-          type: AndroidStyle.BIGPICTURE,
-          picture: effectiveImageUrl,
-        };
-        // Add iOS attachment so images also display on iOS
-        notification.ios = {
-          attachments: [
-            {
-              url: effectiveImageUrl,
-            },
-          ],
-        };
-      }
-      // Otherwise, add BigText style if enabled
-      else if (styleConfig.useBigTextStyle) {
-        notification.android.style = {
-          type: AndroidStyle.BIGTEXT,
-          text: body,
-        };
-      }
-
+      const notification = this.buildAndroidNotification(options, channelId);
       await notifee.displayNotification(notification);
-
-      console.log(`✅ Notification displayed: ${title} (${channelId})${imageUrl ? ' [with image]' : ''}`);
+      console.log(
+        `✅ Notification displayed: ${options.title} (${channelId})${
+          options.imageUrl ? ' [with image]' : ''
+        }`
+      );
     } catch (error) {
-      console.error('❌ Error displaying notification:', error);
+      console.error(`❌ Error displaying notification on ${channelId}:`, error);
+      if (channelId !== 'general') {
+        try {
+          const fallback = this.buildAndroidNotification(
+            { ...options, channelId: 'general' },
+            'general'
+          );
+          // Force a known-good icon on the fallback path
+          fallback.android.smallIcon = 'ic_notification_general';
+          await notifee.displayNotification(fallback);
+          console.warn(
+            `⚠️ Displayed via general fallback after ${channelId} failed`
+          );
+          return;
+        } catch (fallbackError) {
+          console.error('❌ General fallback also failed:', fallbackError);
+        }
+      }
       throw error;
     }
   }

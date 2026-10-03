@@ -28,8 +28,9 @@
         android:name="com.google.android.gms.wallet.api.enabled"
         android:value="true" />
 
-    <!-- Used when FCM displays a notification payload itself. Notifee still
-         selects per-channel icons by name; those are kept in res/raw/keep.xml. -->
+    <!-- FCM default icon when a notification payload is shown by the system.
+         Per-channel Notifee icons are name-loaded; kept via ResourceAnchor +
+         res/raw/keep.xml so R8 resource shrinking does not strip them. -->
     <meta-data
         android:name="com.google.firebase.messaging.default_notification_icon"
         android:resource="@drawable/ic_notification_general" />

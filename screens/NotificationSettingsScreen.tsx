@@ -164,7 +164,7 @@ export default function NotificationSettingsScreen(): React.JSX.Element {
 
       Alert.alert(
         "Test Sent",
-        "Check if you saw the notification appear. If yes, the Notifee rendering path works. If no, check device notification settings.",
+        "Check if you saw the general-channel notification. Next, use Test Prayer Channel if Iqama pushes are missing.",
         [{ text: "OK" }]
       );
     } catch (error: unknown) {
@@ -281,6 +281,25 @@ export default function NotificationSettingsScreen(): React.JSX.Element {
             <PrimaryButton
               label="Test Local Notification"
               onPress={testLocalNotification}
+            />
+            <PrimaryButton
+              label="Test Prayer Channel"
+              onPress={async () => {
+                try {
+                  await NotificationService.displayPrayerNotification(
+                    "Prayer channel test",
+                    "If this appears, the prayer channel/icon path works."
+                  );
+                  Alert.alert(
+                    "Prayer Test Sent",
+                    "If nothing appeared, the prayer channel or ic_notification_prayer icon is failing on this device."
+                  );
+                } catch (error: unknown) {
+                  const message =
+                    error instanceof Error ? error.message : "Unknown error";
+                  Alert.alert("Prayer Test Failed", message);
+                }
+              }}
             />
           </View>
 
