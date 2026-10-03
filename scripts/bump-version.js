@@ -2,11 +2,11 @@
  * Bump app version in app.json and android/app/build.gradle together.
  *
  * Usage:
- *   npm run bump              # patch (default)
- *   npm run bump:patch
+ *   npm run bump:code         # versionCode only (iterate Play uploads)
+ *   npm run bump:version      # patch + versionCode (ship a new user-facing version)
+ *   npm run bump:patch        # same as bump:version
  *   npm run bump:minor
  *   npm run bump:major
- *   node scripts/bump-version.js --code-only
  */
 
 /* eslint-disable no-undef */
