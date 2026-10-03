@@ -25,6 +25,7 @@ import { regionalFunctions } from "../../../firebase";
 import { useFirebaseData } from "../../../hooks/useFirebaseData";
 import { useResponsive } from "../../../hooks/useResponsive";
 import { Donation } from "../../../types/donation";
+import { DEFAULT_MOSQUE_TZ, formatInstantDisplay } from "../../../utils/civilTime";
 
 type DonationListType = "one-time" | "recurring";
 
@@ -44,7 +45,7 @@ export default function HistoryTab(): React.JSX.Element {
   const [hasLoaded, setHasLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState<DonationListType>("one-time");
   const { mosqueSettings } = useFirebaseData();
-  const MOSQUE_TZ = mosqueSettings?.timezone || "Australia/Sydney";
+  const MOSQUE_TZ = mosqueSettings?.timezone || DEFAULT_MOSQUE_TZ;
 
   const loadDonations = async () => {
     if (!email.trim() || !email.includes("@")) {
@@ -99,15 +100,7 @@ export default function HistoryTab(): React.JSX.Element {
         return "N/A";
       }
 
-      return date.toLocaleString("en-AU", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-        timeZone: MOSQUE_TZ,
-      });
+      return formatInstantDisplay(date, MOSQUE_TZ);
     } catch (error) {
       console.error("Error formatting date:", error, timestamp);
       return "N/A";

@@ -80,8 +80,12 @@ export interface Event {
   id: string;
   title: string;
   description: string;
-  date: FirebaseFirestoreTypes.Timestamp;
-  time: string; // e.g., "7:00 PM"
+  event_date: string; // civil date in mosque zone, "YYYY-MM-DD"
+  event_time: string; // civil clock, "HH:mm"
+  /** @deprecated legacy documents only; reads may still see these, never written */
+  date?: FirebaseFirestoreTypes.Timestamp;
+  /** @deprecated legacy documents only (e.g. "7:00 PM") */
+  time?: string;
   location?: string;
   category: string; // CHANGED: from union type to string
   speaker?: string;

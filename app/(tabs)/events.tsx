@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useCallback, useMemo, useState } from "react";
 import {
@@ -20,10 +19,22 @@ import PatternOverlay from "../../components/PatternOverlay";
 import { Chip, Panel } from "../../components/ui/calm";
 import { AppTheme, useTheme } from "../../contexts/ThemeContext";
 import { useEventCategories } from "../../hooks/useEventCategories";
+import { useCivilToday } from "../../hooks/useCivilToday";
 import { useEvents } from "../../hooks/useEvents";
 import { useFirebaseData } from "../../hooks/useFirebaseData";
 import { useResponsive } from "../../hooks/useResponsive";
 import type { Event } from "../../types";
+import {
+  DEFAULT_MOSQUE_TZ,
+  addCivilDays,
+  compareCivilDates,
+  formatCivilDateHeading,
+  formatClockStringDisplay,
+  monthShort,
+  parseCivilDate,
+  parseClock,
+  weekdayShort,
+} from "../../utils/civilTime";
 
 export default function EventsScreen(): React.JSX.Element {
   const theme = useTheme();
@@ -37,66 +48,39 @@ export default function EventsScreen(): React.JSX.Element {
     [theme, ms, fontScale]
   );
 
-  const { upcomingEvents, loading: eventsLoading } = useEvents();
+  const { mosqueSettings } = useFirebaseData();
+  const MOSQUE_TZ = mosqueSettings?.timezone || DEFAULT_MOSQUE_TZ;
+
+  const { upcomingEvents, loading: eventsLoading } = useEvents(MOSQUE_TZ);
   const { categories, loading: categoriesLoading, hasRealData } =
     useEventCategories();
-  const { mosqueSettings } = useFirebaseData();
 
-  const MOSQUE_TZ = mosqueSettings?.timezone || "Australia/Sydney";
-
-  const getDateParts = (timestamp: FirebaseFirestoreTypes.Timestamp) => {
-    const d = timestamp.toDate();
-    const weekday = d.toLocaleDateString("en-US", {
-      weekday: "short",
-      timeZone: MOSQUE_TZ,
-    });
-    const month = d.toLocaleDateString("en-US", {
-      month: "short",
-      timeZone: MOSQUE_TZ,
-    });
-    const day = parseInt(
-      d.toLocaleDateString("en-US", { day: "numeric", timeZone: MOSQUE_TZ }),
-      10
-    );
-    return { weekday, month, day };
-  };
-
-  const startOfDay = useCallback(
-    (d: Date) => {
-      const parts = d
-        .toLocaleString("en-US", {
-          timeZone: MOSQUE_TZ,
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour12: false,
-        })
-        .split(/[,\s:]+/);
-      const [m, day, y] = parts[0].split("/");
-      return new Date(parseInt(y), parseInt(m) - 1, parseInt(day), 0, 0, 0);
-    },
-    [MOSQUE_TZ]
+  // Mosque civil "today" (YYYY-MM-DD); string compare, no ms arithmetic
+  const todayCivilDate = useCivilToday(MOSQUE_TZ);
+  const tomorrowCivilDate = useMemo(
+    () => addCivilDays(todayCivilDate, 1),
+    [todayCivilDate]
   );
 
+  const getDateParts = (eventDate: string) => {
+    const parsed = parseCivilDate(eventDate);
+    if (!parsed) return { weekday: "", month: "", day: "" };
+    return {
+      weekday: weekdayShort(parsed),
+      month: monthShort(parsed),
+      day: String(parsed.day),
+    };
+  };
+
   const getRelativeBadge = useCallback(
-    (
-      timestamp: FirebaseFirestoreTypes.Timestamp
-    ): { label: string; tone: "today" | "tomorrow" } | null => {
-      try {
-        const eventDate = startOfDay(timestamp.toDate());
-        const today = startOfDay(new Date());
-        const msInDay = 24 * 60 * 60 * 1000;
-        const diffDays = Math.round(
-          (eventDate.getTime() - today.getTime()) / msInDay
-        );
-        if (diffDays === 0) return { label: "Today", tone: "today" };
-        if (diffDays === 1) return { label: "Tomorrow", tone: "tomorrow" };
-        return null;
-      } catch {
-        return null;
+    (eventDate: string): { label: string; tone: "today" | "tomorrow" } | null => {
+      if (eventDate === todayCivilDate) return { label: "Today", tone: "today" };
+      if (eventDate === tomorrowCivilDate) {
+        return { label: "Tomorrow", tone: "tomorrow" };
       }
+      return null;
     },
-    [startOfDay]
+    [todayCivilDate, tomorrowCivilDate]
   );
 
   const getCategoryColor = (categoryId: string) => {
@@ -112,26 +96,29 @@ export default function EventsScreen(): React.JSX.Element {
     return category?.label || "Unknown";
   };
 
-  const formatEventDate = (
-    timestamp: FirebaseFirestoreTypes.Timestamp
-  ): string => {
-    return timestamp.toDate().toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-      timeZone: MOSQUE_TZ,
-    });
+  /** `Saturday, 04-10-2026` for a `YYYY-MM-DD` civil date */
+  const formatEventDate = (eventDate: string): string => {
+    const parsed = parseCivilDate(eventDate);
+    return parsed ? formatCivilDateHeading(parsed) : eventDate;
   };
 
   const filteredEvents = useMemo(() => {
-    const list =
+    const list = (
       selectedCategory === "all"
         ? upcomingEvents
-        : upcomingEvents.filter((event) => event.category === selectedCategory);
-    return [...list].sort(
-      (a, b) => a.date.toDate().getTime() - b.date.toDate().getTime()
+        : upcomingEvents.filter((event) => event.category === selectedCategory)
+    ).filter(
+      (event) =>
+        typeof event.event_date === "string" &&
+        parseCivilDate(event.event_date) !== null
     );
+    const clockMinutes = (value?: string): number =>
+      (value ? parseClock(value) : null) ?? 24 * 60;
+    return [...list].sort((a, b) => {
+      const byDate = compareCivilDates(a.event_date, b.event_date);
+      if (byDate !== 0) return byDate;
+      return clockMinutes(a.event_time) - clockMinutes(b.event_time);
+    });
   }, [selectedCategory, upcomingEvents]);
 
   const categoryFilters = [
@@ -139,60 +126,21 @@ export default function EventsScreen(): React.JSX.Element {
     ...categories.map((cat) => ({ id: cat.id, label: cat.label })),
   ];
 
-  const sections = useMemo(() => {
-    const map = new Map<
-      string,
-      {
-        date: Date;
-        timestamp: FirebaseFirestoreTypes.Timestamp;
-        items: typeof upcomingEvents;
-      }
-    >();
-    filteredEvents.forEach((ev) => {
-      const baseTs = ev.date as FirebaseFirestoreTypes.Timestamp;
-      const d = baseTs.toDate();
-      const parts = d
-        .toLocaleString("en-US", {
-          timeZone: MOSQUE_TZ,
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour12: false,
-        })
-        .split(/[,\s:]+/);
-      const [m, day, y] = parts[0].split("/");
-      const keyDate = new Date(
-        parseInt(y, 10),
-        parseInt(m, 10) - 1,
-        parseInt(day, 10),
-        0,
-        0,
-        0
-      );
-      const key = `${y}-${m}-${day}`;
-      if (!map.has(key))
-        map.set(key, { date: keyDate, timestamp: baseTs, items: [] });
-      map.get(key)!.items.push(ev);
-    });
-    return Array.from(map.values()).sort(
-      (a, b) => a.date.getTime() - b.date.getTime()
-    );
-  }, [filteredEvents, MOSQUE_TZ]);
-
+  // Group by civil event_date (already sorted ascending)
   const sectionListData = useMemo(() => {
-    return sections.map((s) => ({
-      title: s.date.toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        timeZone: MOSQUE_TZ,
-      }),
-      date: s.date,
-      relBadge: getRelativeBadge(s.timestamp),
-      data: s.items,
+    const map = new Map<string, Event[]>();
+    filteredEvents.forEach((ev) => {
+      const list = map.get(ev.event_date);
+      if (list) list.push(ev);
+      else map.set(ev.event_date, [ev]);
+    });
+    return Array.from(map.entries()).map(([eventDate, items]) => ({
+      title: formatEventDate(eventDate),
+      eventDate,
+      relBadge: getRelativeBadge(eventDate),
+      data: items,
     }));
-  }, [sections, MOSQUE_TZ, getRelativeBadge]);
+  }, [filteredEvents, getRelativeBadge]);
 
   const renderRelativeChip = (
     badge: { label: string; tone: "today" | "tomorrow" } | null
@@ -294,8 +242,8 @@ export default function EventsScreen(): React.JSX.Element {
             renderItem={({ item, section }: any) => {
               const event = item;
               const categoryColors = getCategoryColor(event.category);
-              const parts = getDateParts(event.date);
-              const relEvent = getRelativeBadge(event.date);
+              const parts = getDateParts(event.event_date);
+              const relEvent = getRelativeBadge(event.event_date);
               const showPerEventBadge = !section.relBadge && relEvent;
 
               return (
@@ -366,7 +314,9 @@ export default function EventsScreen(): React.JSX.Element {
                             size={ms(15, 0.2)}
                             color={theme.colors.icon.muted}
                           />
-                          <Text style={styles.timeText}>{event.time}</Text>
+                          <Text style={styles.timeText}>
+                            {formatClockStringDisplay(event.event_time)}
+                          </Text>
                           {showPerEventBadge
                             ? renderRelativeChip(relEvent)
                             : null}
@@ -453,7 +403,7 @@ export default function EventsScreen(): React.JSX.Element {
             : { bg: theme.colors.surface.soft, text: theme.colors.text.muted }
         }
         formattedDate={
-          selectedEvent ? formatEventDate(selectedEvent.date) : ""
+          selectedEvent ? formatEventDate(selectedEvent.event_date) : ""
         }
         onClose={() => setSelectedEvent(null)}
       />

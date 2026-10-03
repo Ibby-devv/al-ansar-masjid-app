@@ -28,6 +28,12 @@ import { useFirebaseData } from "../../hooks/useFirebaseData";
 import { useResponsive } from "../../hooks/useResponsive";
 
 import { Prayer, calculateIqamaTime } from "../../types";
+import {
+  DEFAULT_MOSQUE_TZ,
+  formatCivilDateHeading,
+  formatInstantDisplay,
+  zonedParts,
+} from "../../utils/civilTime";
 
 const getOrdinalSuffix = (num: number): string => {
   const j = num % 10;
@@ -50,6 +56,9 @@ export default function HomeScreen(): React.JSX.Element {
 
   const styles = useMemo(() => createStyles(theme, ms, fontScale), [theme, ms, fontScale]);
 
+  const MOSQUE_TZ: string =
+    (mosqueSettings as { timezone?: string } | null)?.timezone || DEFAULT_MOSQUE_TZ;
+
   const formatDateTimeDisplay = (timestamp?: FirebaseFirestoreTypes.Timestamp): string | null => {
     if (!timestamp) return null;
     try {
@@ -67,14 +76,8 @@ export default function HomeScreen(): React.JSX.Element {
         return null;
       }
 
-      const d = String(date.getDate()).padStart(2, "0");
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      const y = date.getFullYear();
-      const hours = date.getHours();
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-      const ampm = hours >= 12 ? "PM" : "AM";
-      const displayHours = hours % 12 || 12;
-      return `${d}-${m}-${y} at ${displayHours}:${minutes} ${ampm}`;
+      if (Number.isNaN(date.getTime())) return null;
+      return formatInstantDisplay(date, MOSQUE_TZ);
     } catch {
       return null;
     }
@@ -133,56 +136,19 @@ export default function HomeScreen(): React.JSX.Element {
     }
   }, [refetch]);
 
+  /** `Saturday, 04-10-2026` in the mosque timezone */
   const formatDate = (date: Date): string => {
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-      timeZone: (mosqueSettings as { timezone?: string } | null)?.timezone || "Australia/Sydney",
-    });
+    return formatCivilDateHeading(zonedParts(date, MOSQUE_TZ));
   };
 
-  const MOSQUE_TZ: string =
-    (mosqueSettings as { timezone?: string } | null)?.timezone || "Australia/Sydney";
-
+  // hourCycle h23, hour 24 → 0 (see utils/civilTime)
   const getSydneyNowParts = (): {
     year: number;
     month: number;
     day: number;
     hour: number;
     minute: number;
-  } => {
-    const parts = new Intl.DateTimeFormat("en-AU", {
-      timeZone: MOSQUE_TZ,
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      hour12: false,
-    }).formatToParts(new Date());
-
-    const map: Record<string, number> = {};
-    for (const p of parts) {
-      if (
-        p.type === "year" ||
-        p.type === "month" ||
-        p.type === "day" ||
-        p.type === "hour" ||
-        p.type === "minute"
-      ) {
-        map[p.type] = parseInt(p.value, 10);
-      }
-    }
-    return {
-      year: map.year,
-      month: map.month,
-      day: map.day,
-      hour: map.hour,
-      minute: map.minute,
-    };
-  };
+  } => zonedParts(new Date(), MOSQUE_TZ);
 
   const parseTimeToMinutes = (timeString: string | undefined): number | null => {
     if (!timeString) return null;

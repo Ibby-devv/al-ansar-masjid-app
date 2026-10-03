@@ -15,6 +15,7 @@ import { PrimaryButton } from "./ui/calm";
 import { AppTheme, useTheme } from "../contexts/ThemeContext";
 import { useResponsive } from "../hooks/useResponsive";
 import type { Event } from "../types";
+import { formatClockStringDisplay } from "../utils/civilTime";
 
 interface EventDetailsModalProps {
   visible: boolean;
@@ -134,7 +135,9 @@ export default function EventDetailsModal({
                   size={ms(16, 0.15)}
                   color={theme.colors.icon.muted}
                 />
-                <Text style={styles.metaText}>{event.time}</Text>
+                <Text style={styles.metaText}>
+                  {formatClockStringDisplay(event.event_time)}
+                </Text>
               </View>
 
               {event.location ? (
